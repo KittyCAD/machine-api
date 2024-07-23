@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: machine-api
+resources:
+  - ../base
+  # include if using secrets from vault
+  # - secrets.yaml
+patches:
+  - target:
+      kind: ExternalSecret
+      name: ghcr-auth
+    patch: |-
+      - op: replace
+        path: /spec/data/0/remoteRef/key
+        value: /prod/ghcr
+    # - target:
+    #     kind: ServiceAccount
+    #     name: machine-api
+    #   patch: |-
+    #     - op: replace
+    #       path: /metadata/annotations/eks.amazonaws.com~1role-arn
+    #       value: arn:aws:iam::PROD_ACCOUNT_NUM:role/machine-api
+configMapGenerator:
+  - name: env-config
+    literals:
+      - SENTRY_ENV=PRODUCTION

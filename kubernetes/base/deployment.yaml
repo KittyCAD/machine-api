@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: machine-api
+  labels:
+    app.kubernetes.io/component: api
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: api
+  replicas: 3
+  template:
+    metadata:
+      annotations:
+        # We skip 3306 because it doesn't play nice with protocol detection
+        config.linkerd.io/skip-outbound-ports: "3306"
+      labels:
+        app.kubernetes.io/component: api
+    spec:
+      serviceAccountName: machine-api
+      containers:
+        - name: server
+          image: ghcr.io/kittycad/machine-api:latest
+          envFrom:
+            - configMapRef:
+                name: env-config
+          env:
+            - name: RUST_BACKTRACE
+              value: "1"
+            - name: SENTRY_ENV
+              value: "production"
+            - name: RUST_LOG
+              value: "info"
+            - name: PORT
+              value: "8080"
+            - name: NODE_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://$(NODE_IP):4317
+          resources:
+            requests:
+              cpu: 100m
+              memory: 1Gi
+          ports:
+            - name: api
+              containerPort: 8080
+      imagePullSecrets:
+        - name: ghcr-auth

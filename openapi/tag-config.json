@@ -1,0 +1,12 @@
+{
+  "allow_other_tags": false,
+  "endpoint_tag_policy": "AtLeastOne",
+  "tag_definitions": {
+    "meta": {
+      "description": "Meta information about the API.",
+      "external_docs": {
+        "url": "https://docs.zoo.dev/api/meta"
+      }
+    }
+  }
+}

@@ -1,0 +1,43 @@
+name: deployment
+permissions:
+  packages: write
+  contents: read
+  pull-requests: write
+on:
+  push:
+    branches: main
+    paths:
+      - "**/*.rs"
+      - Cargo.toml
+      - Cargo.lock
+      - Dockerfile
+      - .github/workflows/docker-image.yml
+      - .github/workflows/deployment.yml
+      - kubernetes/**.yaml
+  workflow_dispatch:
+    inputs:
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+jobs:
+  docker-image:
+    uses: ./.github/workflows/docker-image.yml
+    secrets: inherit
+  argocd:
+    needs: [docker-image]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          # required
+          app-id: ${{ secrets.GH_ORG_APP_ID }}
+          private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Dispatch deploy to infra
+        uses: peter-evans/repository-dispatch@v2
+        with:
+          token: ${{ steps.app-token.outputs.token }}}
+          repository: kittycad/infra
+          event-type: kustomize-deploy
+          client-payload: '{"update_type": "appset", "image_name": "ghcr.io/kittycad/machine-api", "app_name": "machine-api", "sha": "${{github.sha}}"}'

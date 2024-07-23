@@ -1,0 +1,77 @@
+name: docker-image
+permissions:
+  packages: write
+  contents: read
+  pull-requests: write
+on:
+  pull_request:
+    paths:
+      - "**.rs"
+      - Cargo.toml
+      - Cargo.lock
+      - rust-toolchain.toml
+      - Dockerfile
+      - .github/workflows/docker-image.yml
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_call:
+  workflow_dispatch:
+    inputs:
+concurrency:
+  group: docker-image-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  docker-image:
+    runs-on: ubuntu-latest-8-cores
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Packages Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Set up env vars
+        shell: bash
+        run: |
+          maybe_branch=${GITHUB_HEAD_REF//\//-}
+          BRANCH=${maybe_branch:-main}
+          echo "BRANCH=${BRANCH}" >> "$GITHUB_ENV"
+          if [ "$BRANCH" = "main" ]; then
+            echo "BUILD_MODE=release" >> "$GITHUB_ENV"
+          else
+            echo "BUILD_MODE=debug" >> "$GITHUB_ENV"
+          fi
+        id: setup_env
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          file: ./Dockerfile
+          
+          build-args: |
+            BUILD_MODE=${{ env.BUILD_MODE }}
+          tags: |
+            ghcr.io/kittycad/${{ github.event.repository.name }}:${{ env.BRANCH }}
+            ghcr.io/kittycad/${{ github.event.repository.name }}:${{ github.sha }}
+          
+          cache-from: type=gha
+          cache-to: type=gha
+      - name: Docker Scout
+        id: docker-scout
+        uses: docker/scout-action@v1
+        with:
+          image: ghcr.io/kittycad/${{ github.event.repository.name }}:${{ env.BRANCH }}
+          organization: zoodotdev
+          command: cves
+          ignore-base: true
+          ignore-unchanged: true
+          only-fixed: true

@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: machine-api
+labels:
+  - includeSelectors: true
+    pairs:
+      zoo.dev/repo: machine-api
+      app.kubernetes.io/name: machine-api
+resources:
+  - ghcr-auth.yaml
+  - deployment.yaml
+  - service.yaml
+  - service-account.yaml
+  - pod-disruption-budget.yaml
+replacements:
+  - source:
+      fieldPath: metadata.labels
+      kind: Deployment
+    targets:
+      - fieldPaths:
+          - spec.selector.matchLabels
+        select:
+          kind: PodDisruptionBudget
+        options:
+          create: true
+      - fieldPaths:
+          - spec.selector.matchLabels
+        select:
+          kind: ServiceMonitor
+        options:
+          create: true

@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: machine-api
+  labels:
+    zoo.dev/component: api
+spec:
+  minAvailable: 3
+  selector:
+    matchLabels:
+      zoo.dev/component: api
