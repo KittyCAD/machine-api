@@ -115,7 +115,7 @@
     {
       "description": "Meta information about the API.",
       "externalDocs": {
-        "url": "https://docs.kittycad.io/api/meta"
+        "url": "https://docs.zoo.dev/api/meta"
       },
       "name": "meta"
     }
