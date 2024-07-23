@@ -1,0 +1,10 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: machine-api
+  annotations:
+    github.com/project-slug: KittyCAD/machine-api
+spec:
+  type: service
+  lifecycle: alpha
+  owner: user:iterion
