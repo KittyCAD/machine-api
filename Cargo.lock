@@ -676,47 +676,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
-name = "foo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "clap",
- "console-subscriber",
- "delouse",
- "dropshot",
- "expectorate",
- "futures",
- "git_rev",
- "http 0.2.9",
- "lazy_static",
- "openapiv3 1.0.3",
- "opentelemetry",
- "opentelemetry-otlp",
- "opentelemetry_sdk",
- "portpicker",
- "pretty_assertions",
- "rand",
- "reqwest",
- "schemars",
- "serde",
- "serde_json",
- "signal-hook",
- "slog",
- "slog-async",
- "slog-json",
- "slog-term",
- "test-context",
- "testresult",
- "thiserror",
- "tokio",
- "tracing",
- "tracing-opentelemetry",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "foreign-types"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1187,6 +1146,47 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 
 [[package]]
+name = "machine-api"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "clap",
+ "console-subscriber",
+ "delouse",
+ "dropshot",
+ "expectorate",
+ "futures",
+ "git_rev",
+ "http 0.2.9",
+ "lazy_static",
+ "openapiv3 1.0.3",
+ "opentelemetry",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk",
+ "portpicker",
+ "pretty_assertions",
+ "rand",
+ "reqwest",
+ "schemars",
+ "serde",
+ "serde_json",
+ "signal-hook",
+ "slog",
+ "slog-async",
+ "slog-json",
+ "slog-term",
+ "test-context",
+ "testresult",
+ "thiserror",
+ "tokio",
+ "tracing",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "match_cfg"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1236,9 +1236,9 @@ dependencies = [
 
 [[package]]
 name = "mio"
-version = "0.8.9"
+version = "0.8.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3dce281c5e46beae905d4de1870d8b1509a9142b62eedf18b443b011ca8343d0"
+checksum = "a4a650543ca06a924e8b371db273b2756685faae30f8487da1b56505a8f78b0c"
 dependencies = [
  "libc",
  "wasi",
