@@ -2,17 +2,23 @@
 
 #![deny(missing_docs)]
 
+mod gcode;
 mod server;
 #[cfg(test)]
 mod tests;
+mod usb_printer;
 
 use anyhow::{bail, Result};
 use clap::Parser;
+use gcode::GcodeSequence;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
 use slog::Drain;
+use std::io::BufRead;
+use std::time::Duration;
 use tracing_subscriber::{prelude::*, Layer};
+use usb_printer::UsbPrinter;
 
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields.
@@ -67,6 +73,12 @@ impl Opts {
 pub enum SubCommand {
     /// Run the server.
     Server(Server),
+
+    /// List all available USB devices.
+    ListUsbDevices,
+
+    /// Debug
+    Debug,
 }
 
 /// A subcommand for running the server.
@@ -174,6 +186,30 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
     match &opts.subcmd {
         SubCommand::Server(s) => {
             crate::server::server(s, opts).await?;
+        }
+        SubCommand::ListUsbDevices => {
+            let ports = serialport::available_ports().expect("No ports found!");
+            for p in ports {
+                println!("{}: {:?}", p.port_name, p.port_type);
+            }
+        }
+        SubCommand::Debug => {
+            let mut printer = UsbPrinter::new();
+            printer.wait_for_start()?;
+
+            let gcode = GcodeSequence::from_file_path(
+                "/home/iterion/Downloads/objective-lens-holder_0.2mm_PLA_MK3S_5h42m.gcode",
+            );
+            for line in gcode.lines.iter() {
+                if line.is_empty() {
+                    println!("skipping empty line");
+                    continue;
+                }
+                let msg = format!("{}\r\n", line);
+                println!("writing: {}", line);
+                printer.writer.write_all(msg.as_bytes())?;
+                printer.wait_for_ok()?;
+            }
         }
     }
 

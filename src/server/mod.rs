@@ -1,7 +1,7 @@
 pub mod context;
 pub mod endpoints;
 
-use std::{env, sync::Arc};
+use std::{env, net::SocketAddr, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
@@ -73,6 +73,15 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
 
 pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
     let (server, api_context) = create_server(s, opts).await?;
+    let addr: SocketAddr = s.address.parse()?;
+
+    let responder = libmdns::Responder::new().unwrap();
+    let _svc = responder.register(
+        "_machine-api._tcp".to_owned(),
+        "Machine Api Server".to_owned(),
+        addr.port(),
+        &["path=/"],
+    );
 
     // For Cloud run & ctrl+c, shutdown gracefully.
     // "The main process inside the container will receive SIGTERM, and after a grace period,

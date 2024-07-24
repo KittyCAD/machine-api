@@ -52,7 +52,8 @@
 
             # dependencies for machine-api
             just
-
+            pkg-config
+            udev
           ]) ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
             libiconv 
             darwin.apple_sdk.frameworks.Security

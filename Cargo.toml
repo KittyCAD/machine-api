@@ -3,6 +3,9 @@ name = "machine-api"
 version = "0.1.0"
 edition = "2021"
 
+[profile.dev]
+panic = "abort"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -16,6 +19,7 @@ futures = "0.3.28"
 git_rev = "0.1.0"
 http = "0.2.8"
 lazy_static = "1.4.0"
+libmdns = "0.8.0"
 opentelemetry = "0.21.0"
 opentelemetry-otlp = "0.14.0"
 opentelemetry_sdk = { version = "0.21.2", features = ["rt-tokio"] }
@@ -23,6 +27,7 @@ reqwest = { version = "0.11", default-features = false, features = ["json", "rus
 schemars = { version = "0.8", features = ["chrono", "uuid1", "bigdecimal"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+serialport = "4.4.0"
 signal-hook = "0.3"
 slog = "2.7.0"
 slog-async = "2.7.0"
