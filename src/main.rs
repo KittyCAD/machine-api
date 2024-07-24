@@ -8,6 +8,8 @@ mod server;
 mod tests;
 mod usb_printer;
 
+use std::ffi::OsStr;
+
 use anyhow::{bail, Result};
 use clap::Parser;
 use gcode::GcodeSequence;
@@ -15,8 +17,6 @@ use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
 use slog::Drain;
-use std::io::BufRead;
-use std::time::Duration;
 use tracing_subscriber::{prelude::*, Layer};
 use usb_printer::UsbPrinter;
 
@@ -77,8 +77,23 @@ pub enum SubCommand {
     /// List all available USB devices.
     ListUsbDevices,
 
-    /// Debug
-    Debug,
+    /// Slice the given `file` with config from `config_file`
+    SliceFile {
+        /// Path to config file for slice
+        config_file: std::path::PathBuf,
+
+        /// File path to slice
+        file: std::path::PathBuf,
+    },
+
+    /// Print the given `file` with config from `config_file`
+    PrintFile {
+        /// Path to config file for slice
+        config_file: std::path::PathBuf,
+
+        /// File path to slice
+        file: std::path::PathBuf,
+    },
 }
 
 /// A subcommand for running the server.
@@ -193,18 +208,23 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
                 println!("{}: {:?}", p.port_name, p.port_type);
             }
         }
-        SubCommand::Debug => {
+        SubCommand::SliceFile { config_file, file } => {
+            let gcode = GcodeSequence::from_stl_path(config_file, file)?;
+            println!("Parsed {} lines of gcode", gcode.lines.len());
+        }
+        SubCommand::PrintFile { config_file, file } => {
+            let extension = file.extension().unwrap_or(OsStr::new("stl"));
+            let gcode = if extension != "gcode" {
+                GcodeSequence::from_stl_path(config_file, file)?
+            } else {
+                GcodeSequence::from_file_path(file)?
+            };
+
+            // Now connect to printer over serial port
             let mut printer = UsbPrinter::new();
             printer.wait_for_start()?;
 
-            let gcode = GcodeSequence::from_file_path(
-                "/home/iterion/Downloads/objective-lens-holder_0.2mm_PLA_MK3S_5h42m.gcode",
-            );
             for line in gcode.lines.iter() {
-                if line.is_empty() {
-                    println!("skipping empty line");
-                    continue;
-                }
                 let msg = format!("{}\r\n", line);
                 println!("writing: {}", line);
                 printer.writer.write_all(msg.as_bytes())?;

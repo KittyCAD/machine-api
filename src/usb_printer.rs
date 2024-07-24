@@ -20,9 +20,10 @@ impl UsbPrinter {
         loop {
             let mut line = String::new();
             if let Err(e) = self.reader.read_line(&mut line) {
+                println!("wait_for_start err: {}", e);
             } else {
-                println!("RCVD: {}", line);
-                if line.trim() == "start" {
+                // Use ends with because sometimes we may still have some data left on the buffer
+                if line.trim().ends_with("start") {
                     return Ok(());
                 }
             }
@@ -33,6 +34,7 @@ impl UsbPrinter {
         loop {
             let mut line = String::new();
             if let Err(e) = self.reader.read_line(&mut line) {
+                println!("wait_for_ok err: {}", e);
             } else {
                 println!("RCVD: {}", line);
                 if line.trim() == "ok" {
