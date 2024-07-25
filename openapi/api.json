@@ -44,6 +44,48 @@
           "message"
         ],
         "type": "object"
+      },
+      "PrintJobResponse": {
+        "description": "The response from the `/print` endpoint.",
+        "properties": {
+          "job_id": {
+            "description": "The job id used for this print.",
+            "type": "string"
+          },
+          "printer_id": {
+            "description": "The printer id used for this print.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "printer_id"
+        ],
+        "type": "object"
+      },
+      "UsbPrinterInfo": {
+        "description": "Details for a 3d printer connected over USB.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "manufacturer": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "manufacturer",
+          "model",
+          "port"
+        ],
+        "type": "object"
       }
     }
   },
@@ -109,6 +151,75 @@
           "meta"
         ]
       }
+    },
+    "/print": {
+      "post": {
+        "operationId": "print_file",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrintJobResponse"
+                }
+              }
+            },
+            "description": "successful operation"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "Print a given file. File must be a sliceable 3D model.",
+        "tags": [
+          "print"
+        ]
+      }
+    },
+    "/printers": {
+      "get": {
+        "operationId": "get_printers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UsbPrinterInfo"
+                  },
+                  "title": "Array_of_UsbPrinterInfo",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "successful operation"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "List available printers and their statuses",
+        "tags": [
+          "print"
+        ]
+      }
     }
   },
   "tags": [
@@ -118,6 +229,13 @@
         "url": "https://docs.zoo.dev/api/meta"
       },
       "name": "meta"
+    },
+    {
+      "description": "Utilities for printing and discovering printers.",
+      "externalDocs": {
+        "url": "https://docs.zoo.dev/api/print"
+      },
+      "name": "print"
     }
   ]
 }

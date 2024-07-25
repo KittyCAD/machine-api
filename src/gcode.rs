@@ -3,6 +3,8 @@ use std::{
     process::Command,
 };
 
+// TODO don't clone this, maybe use Arc instead.
+#[derive(Clone)]
 pub struct GcodeSequence {
     pub lines: Vec<String>,
 }

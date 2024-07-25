@@ -3,6 +3,7 @@
 #![deny(missing_docs)]
 
 mod gcode;
+mod print_manager;
 mod server;
 #[cfg(test)]
 mod tests;
@@ -88,6 +89,9 @@ pub enum SubCommand {
 
     /// Print the given `file` with config from `config_file`
     PrintFile {
+        /// Id for a printer
+        printer_id: String,
+
         /// Path to config file for slice
         config_file: std::path::PathBuf,
 
@@ -203,16 +207,21 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             crate::server::server(s, opts).await?;
         }
         SubCommand::ListUsbDevices => {
-            let ports = serialport::available_ports().expect("No ports found!");
-            for p in ports {
-                println!("{}: {:?}", p.port_name, p.port_type);
+            let printers = crate::usb_printer::UsbPrinter::list_all();
+            println!("Printers:");
+            for printer in printers {
+                println!("{:?}", printer);
             }
         }
         SubCommand::SliceFile { config_file, file } => {
             let gcode = GcodeSequence::from_stl_path(config_file, file)?;
             println!("Parsed {} lines of gcode", gcode.lines.len());
         }
-        SubCommand::PrintFile { config_file, file } => {
+        SubCommand::PrintFile {
+            printer_id,
+            config_file,
+            file,
+        } => {
             let extension = file.extension().unwrap_or(OsStr::new("stl"));
             let gcode = if extension != "gcode" {
                 GcodeSequence::from_stl_path(config_file, file)?
@@ -220,8 +229,13 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
                 GcodeSequence::from_file_path(file)?
             };
 
-            // Now connect to printer over serial port
-            let mut printer = UsbPrinter::new();
+            // Now connect to first printer we find over serial port
+            //
+            let printers = crate::usb_printer::UsbPrinter::list_all();
+            let printer = printers
+                .find_by_id(printer_id.to_owned())
+                .expect("Printer not found by given ID");
+            let mut printer = UsbPrinter::new(printer);
             printer.wait_for_start()?;
 
             for line in gcode.lines.iter() {

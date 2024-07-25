@@ -3,3 +3,8 @@ OPERATION ID                             URL PATH
 api_get_schema                           /
 ping                                     /ping
 
+API operations found with tag "print"
+OPERATION ID                             URL PATH
+get_printers                             /printers
+print_file                               /print
+
