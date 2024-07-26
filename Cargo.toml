@@ -18,7 +18,7 @@ delouse = { version = "0.1", optional = true }
 dropshot = "0.10"
 futures = "0.3.28"
 git_rev = "0.1.0"
-http = "0.2.8"
+http = "1.0.0"
 libmdns = "0.8.0"
 multer = { version = "3.1.0", features = ["json"] }
 opentelemetry = "0.21.0"
