@@ -1185,7 +1185,6 @@ dependencies = [
  "futures",
  "git_rev",
  "http 0.2.9",
- "lazy_static",
  "libmdns",
  "multer",
  "openapiv3 1.0.3",

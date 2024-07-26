@@ -34,6 +34,8 @@ impl GcodeSequence {
 
 fn slice_stl_with_prusa_slicer(config_path: &Path, stl_path: &Path) -> anyhow::Result<PathBuf> {
     let gcode_path = stl_path.with_extension("gcode");
+    let stl = std::fs::read_to_string(stl_path)?;
+    println!("{}", stl);
     let args: Vec<&str> = vec![
         "--load",
         config_path.to_str().ok_or(anyhow::anyhow!("bad slicer config path"))?,
@@ -43,7 +45,9 @@ fn slice_stl_with_prusa_slicer(config_path: &Path, stl_path: &Path) -> anyhow::R
         "--output",
         gcode_path.to_str().ok_or(anyhow::anyhow!("bad gcode path"))?,
     ];
-    let _output = Command::new("prusa-slicer").args(args).output()?;
+    let output = Command::new("prusa-slicer").args(args).output()?;
+    println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
+    println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);
 
     Ok(gcode_path.to_path_buf())
 }
