@@ -9,6 +9,10 @@ use anyhow::{anyhow, Result};
 
 use crate::build_support::cmake_ext::CmakeExt;
 
+/// Cereal is a dependency for orcaslicer.
+const CEREAL_VERSION: &str = "v1.3.2";
+const CEREAL_GIT_REPO: &str = "https://github.com/USCiLab/cereal.git";
+
 /// Glew is a dependency for orcaslicer.
 const GLEW_VERSION: &str = "glew-2.2.0";
 const GLEW_GIT_REPO: &str = "https://github.com/nigels-com/glew.git";
@@ -275,6 +279,87 @@ pub trait BuildDependency {
     fn is_whole_archive(&self) -> bool;
 }
 
+/// Our cereal dependency.
+pub struct Cereal(Dependency);
+
+impl BuildDependency for Cereal {
+    fn new(build: &crate::build_support::build::Build) -> Box<Self> {
+        Box::new(Cereal(Dependency::new(
+            "cereal",
+            CEREAL_VERSION,
+            CEREAL_GIT_REPO,
+            build,
+        )))
+    }
+
+    /// Build cereal.
+    fn build(&mut self) -> Result<()> {
+        // Let's ensure that we have the latest version of cereal locally.
+        match self.0.git_clone_repo() {
+            Ok(()) => (),
+            Err(e) => {
+                // We can ignore the error if we have unstaged changes since it doesn't
+                // really matter.
+                if !e.to_string().contains("You have unstaged changes.") {
+                    anyhow::bail!(e);
+                }
+            }
+        }
+
+        self.0.create_build_directory()?;
+
+        // Check if we have already built the library.
+        let built = self.0.check_built()?;
+        if built {
+            return Ok(());
+        }
+
+        // Configure cereal.
+        let mut cmake = Command::new("cmake");
+        cmake
+            .current_dir(&self.0.build_dir)
+            .arg(&self.0.source_dir)
+            .arg(format!("-DCMAKE_BUILD_TYPE={}", cmake_profile()))
+            .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
+            .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"))
+            .arg(format!("-DSKIP_PORTABILITY_TEST={}", "ON"))
+            .arg(format!("-DSKIP_PERFORMANCE_COMPARISON={}", "ON"))
+            .arg(format!("-DJUST_INSTALL_CEREAL={}", "ON"))
+            .arg(format!("-DBUILD_SANDBOX={}", "OFF"))
+            .arg(format!("-DBUILD_DOC={}", "OFF"));
+
+        cmake.set_cmake_env(&self.0.build)?;
+
+        crate::build_support::run_command(&mut cmake, "cmake")?;
+
+        self.0.run_cmake_install(Vec::new())?;
+
+        self.0.write_build_version()?;
+
+        Ok(())
+    }
+
+    fn include_dir(&self) -> String {
+        self.0.include_dir.to_string()
+    }
+
+    fn lib_dir(&self) -> String {
+        self.0.lib_dir.to_string()
+    }
+
+    fn link_libs(&self) -> Vec<String> {
+        self.0.link_libs.clone()
+    }
+
+    fn is_static(&self) -> bool {
+        true
+    }
+
+    fn is_whole_archive(&self) -> bool {
+        false
+    }
+}
+
 /// Our glew dependency.
 pub struct Glew(Dependency);
 
@@ -319,6 +404,83 @@ impl BuildDependency for Glew {
         crate::build_support::run_command(&mut cmake, "cmake")?;
 
         self.0.run_cmake_install(Vec::new())?;
+
+        self.0.write_build_version()?;
+
+        Ok(())
+    }
+
+    fn include_dir(&self) -> String {
+        self.0.include_dir.to_string()
+    }
+
+    fn lib_dir(&self) -> String {
+        self.0.lib_dir.to_string()
+    }
+
+    fn link_libs(&self) -> Vec<String> {
+        self.0.link_libs.clone()
+    }
+
+    fn is_static(&self) -> bool {
+        true
+    }
+
+    fn is_whole_archive(&self) -> bool {
+        false
+    }
+}
+
+/// Our glfw dependency.
+pub struct Glfw(Dependency);
+
+impl BuildDependency for Glfw {
+    fn new(build: &crate::build_support::build::Build) -> Box<Self> {
+        Box::new(Glfw(Dependency::new("glfw3", GLFW_VERSION, GLFW_GIT_REPO, build)))
+    }
+
+    /// Build glfw.
+    fn build(&mut self) -> Result<()> {
+        // Let's ensure that we have the latest version of glfw locally.
+        match self.0.git_clone_repo() {
+            Ok(()) => (),
+            Err(e) => {
+                // We can ignore the error if we have unstaged changes since it doesn't
+                // really matter.
+                if !e.to_string().contains("You have unstaged changes.") {
+                    anyhow::bail!(e);
+                }
+            }
+        }
+
+        self.0.create_build_directory()?;
+
+        // Check if we have already built the library.
+        let built = self.0.check_built()?;
+        if built {
+            self.0.set_link_libs()?;
+            // If so, return early.
+            return Ok(());
+        }
+
+        // Configure glfw.
+        let mut cmake = Command::new("cmake");
+        cmake
+            .current_dir(&self.0.build_dir)
+            .arg(&self.0.source_dir)
+            .arg(format!("-DCMAKE_BUILD_TYPE={}", cmake_profile()))
+            .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
+            .arg(format!("-DCMAKE_INSTALL_LIBDIR={}", "lib"))
+            .arg(format!("-DGLFW_BUILD_DOCS={}", "OFF"))
+            .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"));
+
+        cmake.set_cmake_env(&self.0.build)?;
+
+        crate::build_support::run_command(&mut cmake, "cmake")?;
+
+        self.0.run_cmake_install(Vec::new())?;
+
+        self.0.set_link_libs()?;
 
         self.0.write_build_version()?;
 
@@ -400,6 +562,19 @@ impl BuildDependency for Orcaslicer {
                     .to_str()
                     .unwrap()
             ))
+            .arg(format!(
+                "-Dcereal_DIR={}",
+                path::Path::new(&self.0.source_dir)
+                    .join("..")
+                    .join("cereal")
+                    .join("build")
+                    .join("install")
+                    .join("lib")
+                    .join("cmake")
+                    .join("cereal")
+                    .to_str()
+                    .unwrap()
+            ))
             .arg(format!("-DSLIC3R_GUI={}", "0"));
 
         cmake.set_cmake_env(&self.0.build)?;
@@ -412,83 +587,6 @@ impl BuildDependency for Orcaslicer {
 
         // Add the glew dependency.
         self.link_libs().push("glewstatic".to_string());
-
-        self.0.write_build_version()?;
-
-        Ok(())
-    }
-
-    fn include_dir(&self) -> String {
-        self.0.include_dir.to_string()
-    }
-
-    fn lib_dir(&self) -> String {
-        self.0.lib_dir.to_string()
-    }
-
-    fn link_libs(&self) -> Vec<String> {
-        self.0.link_libs.clone()
-    }
-
-    fn is_static(&self) -> bool {
-        true
-    }
-
-    fn is_whole_archive(&self) -> bool {
-        false
-    }
-}
-
-/// Our glfw dependency.
-pub struct Glfw(Dependency);
-
-impl BuildDependency for Glfw {
-    fn new(build: &crate::build_support::build::Build) -> Box<Self> {
-        Box::new(Glfw(Dependency::new("glfw3", GLFW_VERSION, GLFW_GIT_REPO, build)))
-    }
-
-    /// Build glfw.
-    fn build(&mut self) -> Result<()> {
-        // Let's ensure that we have the latest version of glfw locally.
-        match self.0.git_clone_repo() {
-            Ok(()) => (),
-            Err(e) => {
-                // We can ignore the error if we have unstaged changes since it doesn't
-                // really matter.
-                if !e.to_string().contains("You have unstaged changes.") {
-                    anyhow::bail!(e);
-                }
-            }
-        }
-
-        self.0.create_build_directory()?;
-
-        // Check if we have already built the library.
-        let built = self.0.check_built()?;
-        if built {
-            self.0.set_link_libs()?;
-            // If so, return early.
-            return Ok(());
-        }
-
-        // Configure glfw.
-        let mut cmake = Command::new("cmake");
-        cmake
-            .current_dir(&self.0.build_dir)
-            .arg(&self.0.source_dir)
-            .arg(format!("-DCMAKE_BUILD_TYPE={}", cmake_profile()))
-            .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
-            .arg(format!("-DCMAKE_INSTALL_LIBDIR={}", "lib"))
-            .arg(format!("-DGLFW_BUILD_DOCS={}", "OFF"))
-            .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"));
-
-        cmake.set_cmake_env(&self.0.build)?;
-
-        crate::build_support::run_command(&mut cmake, "cmake")?;
-
-        self.0.run_cmake_install(Vec::new())?;
-
-        self.0.set_link_libs()?;
 
         self.0.write_build_version()?;
 
