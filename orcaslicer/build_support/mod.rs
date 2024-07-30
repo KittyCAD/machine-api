@@ -1,10 +1,9 @@
 pub mod build;
-pub mod cmake_export;
 pub mod cmake_ext;
 pub mod dependency;
 pub mod target;
 
-use std::{env, io::ErrorKind, process::Command};
+use std::{io::ErrorKind, process::Command};
 
 use anyhow::{bail, Result};
 

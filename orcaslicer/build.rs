@@ -3,7 +3,15 @@ use std::path::PathBuf;
 
 mod build_support;
 
+use crate::build_support::dependency::BuildDependency;
+
 fn main() {
+    let build = crate::build_support::build::Build::new().unwrap();
+
+    // Create a dependency for orcaslicer.
+    let mut orcaslicer = build_support::dependency::Orcaslicer::new(&build);
+    orcaslicer.build().unwrap();
+
     // Get the current directory.
     let current_dir = env::current_dir().unwrap();
 
