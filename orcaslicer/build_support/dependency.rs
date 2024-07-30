@@ -389,13 +389,14 @@ impl BuildDependency for Orcaslicer {
             .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"))
             .arg(format!(
                 "-Dglfw3_DIR={}",
-                self.0
-                    .source_dir
-                    .join("deps")
-                    .join("glfw")
-                    .join("src")
+                path::Path::new(&self.0.source_dir)
+                    .join("..")
                     .join("glfw3")
-                    .join("glfw3Config.cmake")
+                    .join("build")
+                    .join("install")
+                    .join("lib")
+                    .join("cmake")
+                    .join("glfw3")
                     .to_str()
                     .unwrap()
             ))
