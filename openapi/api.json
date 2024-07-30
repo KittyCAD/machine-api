@@ -36,70 +36,84 @@
         "description": "Details for a 3d printer connected over USB.",
         "oneOf": [
           {
-            "additionalProperties": false,
+            "description": "Details for a 3d printer connected over USB.",
             "properties": {
-              "UsbPrinter": {
-                "$ref": "#/components/schemas/UsbPrinterInfo"
+              "id": {
+                "type": "string"
+              },
+              "manufacturer": {
+                "type": "string"
+              },
+              "model": {
+                "type": "string"
+              },
+              "port": {
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "UsbPrinter"
+                ],
+                "type": "string"
               }
             },
             "required": [
-              "UsbPrinter"
+              "id",
+              "manufacturer",
+              "model",
+              "port",
+              "type"
             ],
             "type": "object"
           },
           {
-            "additionalProperties": false,
+            "description": "Details for a 3d printer connected over USB.",
             "properties": {
-              "NetworkPrinter": {
-                "$ref": "#/components/schemas/NetworkPrinterInfo"
+              "hostname": {
+                "description": "The hostname of the printer.",
+                "nullable": true,
+                "type": "string"
+              },
+              "ip": {
+                "description": "The IP address of the printer.",
+                "format": "ip",
+                "type": "string"
+              },
+              "manufacturer": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/NetworkPrinterManufacturer"
+                  }
+                ],
+                "description": "The manufacturer of the printer."
+              },
+              "model": {
+                "description": "The model of the printer.",
+                "nullable": true,
+                "type": "string"
+              },
+              "port": {
+                "description": "The port of the printer.",
+                "format": "uint16",
+                "minimum": 0,
+                "nullable": true,
+                "type": "integer"
+              },
+              "type": {
+                "enum": [
+                  "NetworkPrinter"
+                ],
+                "type": "string"
               }
             },
             "required": [
-              "NetworkPrinter"
+              "ip",
+              "manufacturer",
+              "type"
             ],
             "type": "object"
           }
         ]
-      },
-      "NetworkPrinterInfo": {
-        "description": "Details for a 3d printer connected over USB.",
-        "properties": {
-          "hostname": {
-            "description": "The hostname of the printer.",
-            "nullable": true,
-            "type": "string"
-          },
-          "ip": {
-            "description": "The IP address of the printer.",
-            "format": "ip",
-            "type": "string"
-          },
-          "manufacturer": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/NetworkPrinterManufacturer"
-              }
-            ],
-            "description": "The manufacturer of the printer."
-          },
-          "model": {
-            "description": "The model of the printer.",
-            "nullable": true,
-            "type": "string"
-          },
-          "port": {
-            "description": "The port of the printer.",
-            "format": "uint16",
-            "minimum": 0,
-            "nullable": true,
-            "type": "integer"
-          }
-        },
-        "required": [
-          "ip",
-          "manufacturer"
-        ],
-        "type": "object"
       },
       "NetworkPrinterManufacturer": {
         "description": "Network printer manufacturer.",
@@ -148,30 +162,6 @@
         "required": [
           "job_id",
           "printer_id"
-        ],
-        "type": "object"
-      },
-      "UsbPrinterInfo": {
-        "description": "Details for a 3d printer connected over USB.",
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "manufacturer": {
-            "type": "string"
-          },
-          "model": {
-            "type": "string"
-          },
-          "port": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "manufacturer",
-          "model",
-          "port"
         ],
         "type": "object"
       }

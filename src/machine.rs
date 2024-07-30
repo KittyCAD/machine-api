@@ -5,6 +5,7 @@ use crate::{network_printer::NetworkPrinterInfo, usb_printer::UsbPrinterInfo};
 
 /// Details for a 3d printer connected over USB.
 #[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum Machine {
     UsbPrinter(UsbPrinterInfo),
     NetworkPrinter(NetworkPrinterInfo),
