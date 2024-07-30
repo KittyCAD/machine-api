@@ -86,6 +86,13 @@
           "port"
         ],
         "type": "object"
+      },
+      "UsbPrinterList": {
+        "description": "List of 3d printers connected over USB.",
+        "items": {
+          "$ref": "#/components/schemas/UsbPrinterInfo"
+        },
+        "type": "array"
       }
     }
   },
@@ -198,11 +205,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/UsbPrinterInfo"
-                  },
-                  "title": "Array_of_UsbPrinterInfo",
-                  "type": "array"
+                  "$ref": "#/components/schemas/UsbPrinterList"
                 }
               }
             },
