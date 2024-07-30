@@ -90,3 +90,19 @@ fn build_orcaslicer() -> Result<()> {
 
     Ok(())
 }
+
+// Build on windows.
+#[cfg(target_os = "windows")]
+fn build_orcaslicer() -> Result<()> {
+    // Build the slicer.
+    let output = std::process::Command::new("build_release.bat")
+        .current_dir(orcaslicer_dir())
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to build Orcaslicer: {}", stderr);
+    }
+
+    Ok(())
+}
