@@ -3,6 +3,7 @@
 #![deny(missing_docs)]
 
 mod gcode;
+mod network_printer;
 mod print_manager;
 mod server;
 #[cfg(test)]

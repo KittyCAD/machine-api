@@ -1,6 +1,4 @@
-use crate::gcode::GcodeSequence;
-use crate::server::endpoints::PrintParameters;
-use crate::usb_printer::UsbPrinter;
+use crate::{gcode::GcodeSequence, server::endpoints::PrintParameters, usb_printer::UsbPrinter};
 
 pub struct PrintJob {
     gcode: GcodeSequence,

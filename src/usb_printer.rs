@@ -1,7 +1,8 @@
+use std::io::BufRead;
+
 use schemars::JsonSchema;
 use serde::Serialize;
 use serialport::SerialPortType;
-use std::io::BufRead;
 
 pub struct UsbPrinter {
     pub reader: std::io::BufReader<Box<dyn serialport::SerialPort>>,
