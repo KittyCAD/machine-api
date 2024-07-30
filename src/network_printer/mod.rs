@@ -1,5 +1,6 @@
 //! A trait for a printer on a network.
 
+pub mod bambu_x1_carbon;
 pub mod formlabs;
 
 use std::net::IpAddr;
@@ -24,7 +25,7 @@ pub trait NetworkPrinter: Send + Sync {
 }
 
 /// Details for a 3d printer connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
+#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize, Hash, PartialEq, Eq)]
 pub struct NetworkPrinterInfo {
     /// The hostname of the printer.
     pub hostname: Option<String>,
