@@ -6,7 +6,7 @@ use std::net::IpAddr;
 
 use anyhow::Result;
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A network printer interface.
 #[async_trait::async_trait]
@@ -16,12 +16,15 @@ pub trait NetworkPrinter: Send + Sync {
     /// You likely want to spawn this on a separate thread.
     async fn discover(&self) -> Result<()>;
 
+    /// List all printers found on the network.
+    fn list(&self) -> Result<Vec<NetworkPrinterInfo>>;
+
     // Print a file.
     // fn print(&self);
 }
 
 /// Details for a 3d printer connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize)]
+#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
 pub struct NetworkPrinterInfo {
     /// The hostname of the printer.
     pub hostname: Option<String>,
@@ -36,7 +39,7 @@ pub struct NetworkPrinterInfo {
 }
 
 /// Network printer manufacturer.
-#[derive(Clone, Debug, JsonSchema, Serialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub enum NetworkPrinterManufacturer {
     /// Bambu.
     Bambu,

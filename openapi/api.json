@@ -32,6 +32,94 @@
         ],
         "type": "object"
       },
+      "Machine": {
+        "description": "Details for a 3d printer connected over USB.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "UsbPrinter": {
+                "$ref": "#/components/schemas/UsbPrinterInfo"
+              }
+            },
+            "required": [
+              "UsbPrinter"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "NetworkPrinter": {
+                "$ref": "#/components/schemas/NetworkPrinterInfo"
+              }
+            },
+            "required": [
+              "NetworkPrinter"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "NetworkPrinterInfo": {
+        "description": "Details for a 3d printer connected over USB.",
+        "properties": {
+          "hostname": {
+            "description": "The hostname of the printer.",
+            "nullable": true,
+            "type": "string"
+          },
+          "ip": {
+            "description": "The IP address of the printer.",
+            "format": "ip",
+            "type": "string"
+          },
+          "manufacturer": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NetworkPrinterManufacturer"
+              }
+            ],
+            "description": "The manufacturer of the printer."
+          },
+          "model": {
+            "description": "The model of the printer.",
+            "nullable": true,
+            "type": "string"
+          },
+          "port": {
+            "description": "The port of the printer.",
+            "format": "uint16",
+            "minimum": 0,
+            "nullable": true,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "ip",
+          "manufacturer"
+        ],
+        "type": "object"
+      },
+      "NetworkPrinterManufacturer": {
+        "description": "Network printer manufacturer.",
+        "oneOf": [
+          {
+            "description": "Bambu.",
+            "enum": [
+              "Bambu"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Formlabs.",
+            "enum": [
+              "Formlabs"
+            ],
+            "type": "string"
+          }
+        ]
+      },
       "Pong": {
         "description": "The response from the `/ping` endpoint.",
         "properties": {
@@ -86,13 +174,6 @@
           "port"
         ],
         "type": "object"
-      },
-      "UsbPrinterList": {
-        "description": "List of 3d printers connected over USB.",
-        "items": {
-          "$ref": "#/components/schemas/UsbPrinterInfo"
-        },
-        "type": "array"
       }
     }
   },
@@ -129,6 +210,37 @@
         "summary": "Return the OpenAPI schema in JSON format.",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/machines": {
+      "get": {
+        "operationId": "get_printers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Machine"
+                  },
+                  "title": "Array_of_Machine",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "successful operation"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Error"
+          },
+          "5XX": {
+            "$ref": "#/components/responses/Error"
+          }
+        },
+        "summary": "List available machines and their statuses",
+        "tags": [
+          "print"
         ]
       }
     },
@@ -192,33 +304,6 @@
           }
         },
         "summary": "Print a given file. File must be a sliceable 3D model.",
-        "tags": [
-          "print"
-        ]
-      }
-    },
-    "/printers": {
-      "get": {
-        "operationId": "get_printers",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UsbPrinterList"
-                }
-              }
-            },
-            "description": "successful operation"
-          },
-          "4XX": {
-            "$ref": "#/components/responses/Error"
-          },
-          "5XX": {
-            "$ref": "#/components/responses/Error"
-          }
-        },
-        "summary": "List available printers and their statuses",
         "tags": [
           "print"
         ]

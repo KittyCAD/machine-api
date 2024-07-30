@@ -1,7 +1,7 @@
 use std::io::BufRead;
 
 use schemars::JsonSchema;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serialport::SerialPortType;
 
 pub struct UsbPrinter {
@@ -10,7 +10,7 @@ pub struct UsbPrinter {
 }
 
 /// List of 3d printers connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize)]
+#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
 pub struct UsbPrinterList(Vec<UsbPrinterInfo>);
 
 impl IntoIterator for UsbPrinterList {
@@ -28,7 +28,7 @@ impl UsbPrinterList {
     }
 }
 /// Details for a 3d printer connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize)]
+#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
 pub struct UsbPrinterInfo {
     pub port: String,
     pub id: String,

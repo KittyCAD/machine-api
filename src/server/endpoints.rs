@@ -4,7 +4,7 @@ use dropshot::{endpoint, HttpError, HttpResponseOk, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{gcode::GcodeSequence, print_manager::PrintJob, server::context::Context, usb_printer::UsbPrinterList};
+use crate::{gcode::GcodeSequence, print_manager::PrintJob, server::context::Context};
 
 /**
  * Return the OpenAPI schema in JSON format.
@@ -39,14 +39,32 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
     }))
 }
 
-/** List available printers and their statuses */
+/** List available machines and their statuses */
 #[endpoint {
     method = GET,
-    path = "/printers",
+    path = "/machines",
     tags = ["print"],
 }]
-pub async fn get_printers(rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk<UsbPrinterList>, HttpError> {
-    Ok(HttpResponseOk(rqctx.context().usb_printers.clone()))
+pub async fn get_printers(
+    rqctx: RequestContext<Arc<Context>>,
+) -> Result<HttpResponseOk<Vec<crate::machine::Machine>>, HttpError> {
+    let ctx = rqctx.context();
+    let mut machines: Vec<crate::machine::Machine> = ctx
+        .usb_printers
+        .clone()
+        .into_iter()
+        .map(|printer| printer.into())
+        .collect();
+    for (_, np) in ctx.network_printers.iter() {
+        machines.extend(
+            np.list()
+                .map_err(|_| HttpError::for_internal_error("failed to list network printers".to_owned()))?
+                .into_iter()
+                .map(|printer| printer.into())
+                .collect::<Vec<_>>(),
+        );
+    }
+    Ok(HttpResponseOk(machines))
 }
 
 /// The response from the `/print` endpoint.

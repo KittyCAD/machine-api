@@ -5,6 +5,6 @@ ping                                     /ping
 
 API operations found with tag "print"
 OPERATION ID                             URL PATH
-get_printers                             /printers
+get_printers                             /machines
 print_file                               /print
 

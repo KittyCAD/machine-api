@@ -48,4 +48,8 @@ impl NetworkPrinter for Formlabs {
 
         anyhow::bail!("formlabs printer discovery ended unexpectedly");
     }
+
+    fn list(&self) -> Result<Vec<NetworkPrinterInfo>> {
+        Ok(self.printers.iter().map(|printer| printer.value().clone()).collect())
+    }
 }
