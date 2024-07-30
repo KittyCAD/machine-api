@@ -1,0 +1,3 @@
+[submodule "bindings/OrcaSlicer"]
+	path = bindings/OrcaSlicer
+	url = git@github.com:SoftFever/OrcaSlicer.git

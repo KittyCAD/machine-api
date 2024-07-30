@@ -1,32 +1,10 @@
 use std::env;
 use std::path::PathBuf;
 
-mod build_support;
-
-use crate::build_support::dependency::BuildDependency;
+use anyhow::Result;
 
 fn main() {
-    let build = crate::build_support::build::Build::new().unwrap();
-
-    // Create a new dependency for cereal.
-    let mut cereal = build_support::dependency::Cereal::new(&build);
-    cereal.build().unwrap();
-
-    // Create a new dependency for glew.
-    //let mut glew = build_support::dependency::Glew::new(&build);
-    //glew.build().unwrap();
-
-    // Create a new dependency for glfw.
-    let mut glfw = build_support::dependency::Glfw::new(&build);
-    glfw.build().unwrap();
-
-    // Create a new dependency for nlopt.
-    let mut nlopt = build_support::dependency::Nlopt::new(&build);
-    nlopt.build().unwrap();
-
-    // Create a dependency for orcaslicer.
-    let mut orcaslicer = build_support::dependency::Orcaslicer::new(&build);
-    orcaslicer.build().unwrap();
+    build_orcaslicer().unwrap();
 
     // Get the current directory.
     let current_dir = env::current_dir().unwrap();
@@ -61,4 +39,54 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
+}
+
+fn orcaslicer_dir() -> PathBuf {
+    let current_dir = env::current_dir().unwrap();
+    current_dir.join("..").join("bindings").join("Orcaslicer")
+}
+
+// Build on macos.
+#[cfg(target_os = "macos")]
+fn build_orcaslicer() -> Result<()> {
+    // Build the deps.
+    let output = std::process::Command::new("./build_release_macos.sh")
+        .current_dir(orcaslicer_dir())
+        .arg("-d")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to build Orcaslicer deps: {}", stderr);
+    }
+
+    // Build the slicer.
+    let output = std::process::Command::new("./build_release_macos.sh")
+        .current_dir(orcaslicer_dir())
+        .arg("-s")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to build Orcaslicer: {}", stderr);
+    }
+
+    Ok(())
+}
+
+// Build on linux.
+#[cfg(target_os = "linux")]
+fn build_orcaslicer() -> Result<()> {
+    // Build the slicer.
+    let output = std::process::Command::new("./BuildLinux.sh")
+        .current_dir(orcaslicer_dir())
+        .arg("-ds")
+        .output()?;
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Failed to build Orcaslicer: {}", stderr);
+    }
+
+    Ok(())
 }
