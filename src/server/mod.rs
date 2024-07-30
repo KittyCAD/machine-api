@@ -103,6 +103,13 @@ pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
         }
     });
 
+    // Start all the discovery tasks.
+    tokio::spawn(async move {
+        for np in api_context.network_printers.values() {
+            np.discover().await.unwrap();
+        }
+    });
+
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
 
     Ok(())
