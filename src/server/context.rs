@@ -33,6 +33,12 @@ impl Context {
             Box::new(crate::network_printer::formlabs::Formlabs::new()),
         );
 
+        // Add Bambu Lab backend.
+        network_printers.insert(
+            NetworkPrinterManufacturer::Bambu,
+            Box::new(crate::network_printer::bambu_x1_carbon::BambuX1Carbon::new()),
+        );
+
         // Create the context.
         Ok(Context {
             schema,

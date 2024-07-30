@@ -10,7 +10,7 @@ use signal_hook::{
     iterator::Signals,
 };
 
-use crate::server::context::Context;
+use crate::{network_printer::NetworkPrinterManufacturer, server::context::Context};
 
 /// Create an API description for the server.
 pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
@@ -105,9 +105,17 @@ pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
 
     // Start all the discovery tasks.
     tokio::spawn(async move {
-        for np in api_context.network_printers.values() {
-            np.discover().await.unwrap();
-        }
+        // TODO: Restart tasks if they fail, with some kind of backoff timer
+        let form_labs = api_context
+            .network_printers
+            .get(&NetworkPrinterManufacturer::Formlabs)
+            .expect("No formlabs discover task registered");
+        let bambu = api_context
+            .network_printers
+            .get(&NetworkPrinterManufacturer::Bambu)
+            .expect("No Bambu discover task registered");
+
+        tokio::join!(form_labs.discover(), bambu.discover())
     });
 
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
