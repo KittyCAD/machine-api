@@ -58,3 +58,8 @@ testresult = "0.4.1"
 
 [features]
 debug = ["dep:delouse", "dep:console-subscriber"]
+
+[workspace]
+members = [
+	"orcaslicer",
+]
