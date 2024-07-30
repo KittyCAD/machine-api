@@ -20,6 +20,10 @@ fn main() {
     let mut glfw = build_support::dependency::Glfw::new(&build);
     glfw.build().unwrap();
 
+    // Create a new dependency for nlopt.
+    let mut nlopt = build_support::dependency::Nlopt::new(&build);
+    nlopt.build().unwrap();
+
     // Create a dependency for orcaslicer.
     let mut orcaslicer = build_support::dependency::Orcaslicer::new(&build);
     orcaslicer.build().unwrap();

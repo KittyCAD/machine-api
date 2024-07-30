@@ -22,6 +22,10 @@ const GLEW_GIT_REPO: &str = "https://github.com/nigels-com/glew.git";
 const GLFW_VERSION: &str = "3.4";
 const GLFW_GIT_REPO: &str = "https://github.com/glfw/glfw.git";
 
+/// Nlopt is a dependency for orcaslicer.
+const NLOPT_VERSION: &str = "v2.7.1";
+const NLOPT_GIT_REPO: &str = "https://github.com/stevengj/nlopt.git";
+
 /// Orcaslicer.
 const ORCASLICER_VERSION: &str = "v2.1.1";
 const ORCASLICER_GIT_REPO: &str = "https://github.com/SoftFever/OrcaSlicer.git";
@@ -508,6 +512,84 @@ impl BuildDependency for Glfw {
     }
 }
 
+/// Our nlopt dependency.
+pub struct Nlopt(Dependency);
+
+impl BuildDependency for Nlopt {
+    fn new(build: &crate::build_support::build::Build) -> Box<Self> {
+        Box::new(Nlopt(Dependency::new("nlopt", NLOPT_VERSION, NLOPT_GIT_REPO, build)))
+    }
+
+    /// Build nlopt.
+    fn build(&mut self) -> Result<()> {
+        // Let's ensure that we have the latest version of nlopt locally.
+        match self.0.git_clone_repo() {
+            Ok(()) => (),
+            Err(e) => {
+                // We can ignore the error if we have unstaged changes since it doesn't
+                // really matter.
+                if !e.to_string().contains("You have unstaged changes.") {
+                    anyhow::bail!(e);
+                }
+            }
+        }
+
+        self.0.create_build_directory()?;
+
+        // Check if we have already built the library.
+        let built = self.0.check_built()?;
+        if built {
+            return Ok(());
+        }
+
+        // Configure nlopt.
+        let mut cmake = Command::new("cmake");
+        cmake
+            .current_dir(&self.0.build_dir)
+            .arg(&self.0.source_dir)
+            .arg(format!("-DCMAKE_BUILD_TYPE={}", cmake_profile()))
+            .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
+            .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"))
+            .arg(format!("-DNLOPT_CXX={}", "ON"))
+            .arg(format!("-DNLOPT_MATLAB={}", "OFF"))
+            .arg(format!("-DNLOPT_OCTAVE={}", "OFF"))
+            .arg(format!("-DNLOPT_GUILE={}", "OFF"))
+            .arg(format!("-DNLOPT_SWIG={}", "OFF"))
+            .arg(format!("-DNLOPT_TESTS={}", "OFF"))
+            .arg(format!("-DNLOPT_PYTHON={}", "OFF"));
+
+        cmake.set_cmake_env(&self.0.build)?;
+
+        crate::build_support::run_command(&mut cmake, "cmake")?;
+
+        self.0.run_cmake_install(Vec::new())?;
+
+        self.0.write_build_version()?;
+
+        Ok(())
+    }
+
+    fn include_dir(&self) -> String {
+        self.0.include_dir.to_string()
+    }
+
+    fn lib_dir(&self) -> String {
+        self.0.lib_dir.to_string()
+    }
+
+    fn link_libs(&self) -> Vec<String> {
+        self.0.link_libs.clone()
+    }
+
+    fn is_static(&self) -> bool {
+        true
+    }
+
+    fn is_whole_archive(&self) -> bool {
+        false
+    }
+}
+
 /// Our orcaslicer dependency.
 pub struct Orcaslicer(Dependency);
 
@@ -544,6 +626,16 @@ impl BuildDependency for Orcaslicer {
         let mut cmake = Command::new("cmake");
         cmake
             .current_dir(&self.0.build_dir)
+            .env(
+                "NLOPT",
+                path::Path::new(&self.0.source_dir)
+                    .join("..")
+                    .join("nlopt")
+                    .join("build")
+                    .join("install")
+                    .to_str()
+                    .unwrap(),
+            )
             .arg(&self.0.source_dir)
             .arg(format!("-DCMAKE_BUILD_TYPE={}", "Release"))
             .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
