@@ -9,9 +9,13 @@ use anyhow::{anyhow, Result};
 
 use crate::build_support::cmake_ext::CmakeExt;
 
+/// Glew is a dependency for orcaslicer.
+const GLEW_VERSION: &str = "glew-2.2.0";
+const GLEW_GIT_REPO: &str = "https://github.com/nigels-com/glew.git";
+
 /// Orcaslicer.
 const ORCASLICER_VERSION: &str = "v2.1.1";
-const ORCASLICER_GIT_REPO: &str = "https://github.com/SoftFever/OrcaSlicer";
+const ORCASLICER_GIT_REPO: &str = "https://github.com/SoftFever/OrcaSlicer.git";
 
 #[derive(Debug, Clone)]
 pub struct Dependency {
@@ -168,7 +172,7 @@ impl Dependency {
 
     /// Check if we have already built the library.
     fn check_built(&self) -> Result<bool> {
-        let mut lib = self.name.to_string();
+        let lib = self.name.to_string();
 
         let lib_exists = path::Path::new(&self.lib_dir)
             .join(crate::build_support::static_lib_filename(&lib))
@@ -266,6 +270,77 @@ pub trait BuildDependency {
     fn is_whole_archive(&self) -> bool;
 }
 
+/// Our glew dependency.
+pub struct Glew(Dependency);
+
+impl BuildDependency for Glew {
+    fn new(build: &crate::build_support::build::Build) -> Box<Self> {
+        Box::new(Glew(Dependency::new("glew", GLEW_VERSION, GLEW_GIT_REPO, build)))
+    }
+
+    /// Build glew.
+    fn build(&mut self) -> Result<()> {
+        // Let's ensure that we have the latest version of glew locally.
+        match self.0.git_clone_repo() {
+            Ok(()) => (),
+            Err(e) => {
+                // We can ignore the error if we have unstaged changes since it doesn't
+                // really matter.
+                if !e.to_string().contains("You have unstaged changes.") {
+                    anyhow::bail!(e);
+                }
+            }
+        }
+
+        self.0.create_build_directory()?;
+
+        // Check if we have already built the library.
+        let built = self.0.check_built()?;
+        if built {
+            return Ok(());
+        }
+
+        // Configure glew.
+        let mut cmake = Command::new("cmake");
+        cmake
+            .current_dir(&self.0.build_dir)
+            .arg(&self.0.source_dir)
+            .arg(format!("-DCMAKE_BUILD_TYPE={}", cmake_profile()))
+            .arg(format!("-DCMAKE_INSTALL_PREFIX={}", self.0.install_dir))
+            .arg(format!("-DBUILD_SHARED_LIBS={}", "OFF"));
+
+        cmake.set_cmake_env(&self.0.build)?;
+
+        crate::build_support::run_command(&mut cmake, "cmake")?;
+
+        self.0.run_cmake_install(Vec::new())?;
+
+        self.0.write_build_version()?;
+
+        Ok(())
+    }
+
+    fn include_dir(&self) -> String {
+        self.0.include_dir.to_string()
+    }
+
+    fn lib_dir(&self) -> String {
+        self.0.lib_dir.to_string()
+    }
+
+    fn link_libs(&self) -> Vec<String> {
+        self.0.link_libs.clone()
+    }
+
+    fn is_static(&self) -> bool {
+        true
+    }
+
+    fn is_whole_archive(&self) -> bool {
+        false
+    }
+}
+
 /// Our orcaslicer dependency.
 pub struct Orcaslicer(Dependency);
 
@@ -291,8 +366,8 @@ impl BuildDependency for Orcaslicer {
         if built {
             self.0.set_link_libs()?;
 
-            // Add the zlib dependency.
-            //self.link_libs().push("zlibstatic".to_string());
+            // Add the glew dependency.
+            //self.link_libs().push("glewstatic".to_string());
 
             // If so, return early.
             return Ok(());
@@ -317,8 +392,8 @@ impl BuildDependency for Orcaslicer {
 
         self.0.set_link_libs()?;
 
-        // Add the zlib dependency.
-        self.link_libs().push("zlibstatic".to_string());
+        // Add the glew dependency.
+        self.link_libs().push("glewstatic".to_string());
 
         self.0.write_build_version()?;
 

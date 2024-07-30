@@ -58,28 +58,3 @@ pub fn static_lib_filename(lib_name: &str) -> String {
 pub fn static_lib_filename(lib_name: &str) -> String {
     format!("{}.lib", lib_name)
 }
-
-pub fn get_source_files() -> Vec<String> {
-    // Add in our test files for when running tests.
-    // We also _must_ add every bridged rs file to this list for them to be generated and linked correctly for C++
-    vec![
-        "src/engine.rs".to_string(),
-        "src/stream.rs".to_string(),
-        "src/brep.rs".to_string(),
-        "src/export.rs".to_string(),
-        "src/mesh.rs".to_string(),
-        "src/solid.rs".to_string(),
-        "src/tests.rs".to_string(),
-        "src/demo.rs".to_string(),
-    ]
-}
-
-#[cfg(target_os = "linux")]
-fn build_nv_video_encoder() -> bool {
-    true
-}
-
-#[cfg(any(target_os = "windows", target_os = "macos"))]
-fn build_nv_video_encoder() -> bool {
-    false
-}
