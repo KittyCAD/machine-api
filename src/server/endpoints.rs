@@ -86,7 +86,7 @@ pub(crate) async fn print_file(
         let dir = tempdir::TempDir::new(&printer_id)?;
         let slicer_config_path = Path::new("/home/iterion/Development/machine-api/mk3.ini");
         let stl_path = dir.path().join(file.file_name.unwrap_or("print.stl".to_string()));
-        let _ = std::fs::write(&stl_path, file.content)?;
+        std::fs::write(&stl_path, file.content)?;
         GcodeSequence::from_stl_path(slicer_config_path, &stl_path)
     })
     .await

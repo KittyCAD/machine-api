@@ -131,7 +131,7 @@ fn test_openapi() -> TestResult {
 #[test_context(ServerContext)]
 #[tokio::test]
 async fn test_root(ctx: &mut ServerContext) -> TestResult {
-    let response = ctx.client.get(&ctx.get_url("")).send().await?;
+    let response = ctx.client.get(ctx.get_url("")).send().await?;
 
     assert_eq!(response.status(), reqwest::StatusCode::OK);
     let text = response.text().await?;
@@ -146,7 +146,7 @@ async fn test_root(ctx: &mut ServerContext) -> TestResult {
 #[test_context(ServerContext)]
 #[tokio::test]
 async fn test_ping(ctx: &mut ServerContext) -> TestResult {
-    let response = ctx.client.get(&ctx.get_url("ping")).send().await?;
+    let response = ctx.client.get(ctx.get_url("ping")).send().await?;
 
     assert_eq!(response.status(), reqwest::StatusCode::OK);
     assert_eq!(response.text().await?, r#"{"message":"pong"}"#);
