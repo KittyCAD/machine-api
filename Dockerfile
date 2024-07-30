@@ -9,6 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y \
 	ca-certificates \
 	libssl3 \
+	libudev \
 	--no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
@@ -29,6 +30,7 @@ FROM rust:latest AS cargo-build
 
 RUN apt-get update && apt-get install -y \
 	ca-certificates \
+	libudev-dev \
 	--no-install-recommends \
 	&& rm -rf /var/lib/apt/lists/*
 
