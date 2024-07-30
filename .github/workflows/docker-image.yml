@@ -35,6 +35,8 @@ jobs:
     runs-on: ubuntu-latest-8-cores
     steps:
       - uses: actions/checkout@v4
+        with:
+          recursive: true
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GitHub Packages Docker Registry
