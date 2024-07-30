@@ -27,6 +27,12 @@ jobs:
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           components: clippy
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libudev-dev
+        shell: bash
       - name: Run clippy
         run: cargo clippy --workspace --tests -- -D warnings
       - name: Cargo check --release
