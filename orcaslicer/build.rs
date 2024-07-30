@@ -25,7 +25,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header("wrapper.h")
+        .header("src/wrapper.hpp")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
@@ -49,6 +49,26 @@ fn orcaslicer_dir() -> PathBuf {
 // Build on macos.
 #[cfg(target_os = "macos")]
 fn build_orcaslicer() -> Result<()> {
+    let arch = match env::var("CARGO_CFG_TARGET_ARCH") {
+        Ok(arch) => match arch.as_str() {
+            "aarch64" => "arm64".to_string(),
+            a => a.to_string(),
+        },
+        Err(err) => anyhow::bail!("Failed to get target arch: {}", err),
+    };
+
+    // Check if the build already exists.
+    if orcaslicer_dir()
+        .join(format!("build_{}", arch))
+        .join("src")
+        .join("slic3r")
+        .join("Release")
+        .join("liblibslic3r_gui.a")
+        .exists()
+    {
+        return Ok(());
+    }
+
     // Build the deps.
     let output = std::process::Command::new("./build_release_macos.sh")
         .current_dir(orcaslicer_dir())
@@ -77,6 +97,14 @@ fn build_orcaslicer() -> Result<()> {
 // Build on linux.
 #[cfg(target_os = "linux")]
 fn build_orcaslicer() -> Result<()> {
+    let arch = match env::var("CARGO_CFG_TARGET_ARCH") {
+        Ok(arch) => match arch.as_str() {
+            "aarch64" => "arm64".to_string(),
+            a => a.to_string(),
+        },
+        Err(err) => anyhow::bail!("Failed to get target arch: {}", err),
+    };
+
     // Build the slicer.
     let output = std::process::Command::new("./BuildLinux.sh")
         .current_dir(orcaslicer_dir())
