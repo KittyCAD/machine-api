@@ -104,9 +104,9 @@ pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
     });
 
     // Start handles for all network printers to do discovery.
-    for (_, printer) in api_context.network_printers.iter() {
+    /*for (_, printer) in api_context.network_printers.iter() {
         let _ = printer.discover().await;
-    }
+    }*/
 
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
 
