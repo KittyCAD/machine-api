@@ -23,9 +23,16 @@ pub trait NetworkPrinter: Send + Sync {
 /// Details for a 3d printer connected over USB.
 #[derive(Clone, Debug, JsonSchema, Serialize)]
 pub struct NetworkPrinterInfo {
+    /// The hostname of the printer.
+    pub hostname: Option<String>,
+    /// The IP address of the printer.
     pub ip: IpAddr,
+    /// The port of the printer.
+    pub port: Option<u16>,
+    /// The manufacturer of the printer.
     pub manufacturer: NetworkPrinterManufacturer,
-    pub model: String,
+    /// The model of the printer.
+    pub model: Option<String>,
 }
 
 /// Network printer manufacturer.
@@ -35,12 +42,4 @@ pub enum NetworkPrinterManufacturer {
     Bambu,
     /// Formlabs.
     Formlabs,
-}
-
-pub fn to_ip_addr(record: &mdns::Record) -> Option<IpAddr> {
-    match record.kind {
-        mdns::RecordKind::A(addr) => Some(addr.into()),
-        mdns::RecordKind::AAAA(addr) => Some(addr.into()),
-        _ => None,
-    }
 }

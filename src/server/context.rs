@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 use tokio::sync::Mutex;
@@ -16,7 +16,7 @@ pub struct Context {
     pub logger: slog::Logger,
     pub settings: crate::Server,
     pub usb_printers: UsbPrinterList,
-    pub network_printers: HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>>,
+    pub network_printers: Arc<HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>>>,
     pub active_jobs: Mutex<HashMap<String, tokio::task::JoinHandle<anyhow::Result<()>>>>,
 }
 
@@ -38,7 +38,7 @@ impl Context {
             schema,
             logger,
             settings,
-            network_printers,
+            network_printers: Arc::new(network_printers),
             usb_printers: crate::usb_printer::UsbPrinter::list_all(),
             active_jobs: Mutex::new(HashMap::new()),
         })

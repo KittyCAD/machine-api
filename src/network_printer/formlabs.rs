@@ -4,7 +4,7 @@ use anyhow::Result;
 use dashmap::DashMap;
 use futures_util::{pin_mut, stream::StreamExt};
 
-use crate::network_printer::{to_ip_addr, NetworkPrinter, NetworkPrinterInfo, NetworkPrinterManufacturer};
+use crate::network_printer::{NetworkPrinter, NetworkPrinterInfo, NetworkPrinterManufacturer};
 
 /// The hostname formlabs printers.
 const SERVICE_NAME: &str = "_formlabs_formule._tcp.local";
@@ -31,20 +31,18 @@ impl NetworkPrinter for Formlabs {
         pin_mut!(stream);
 
         while let Some(Ok(response)) = stream.next().await {
-            let addr = response.records().filter_map(to_ip_addr).next();
-
-            if let Some(addr) = addr {
-                println!("found formlabs printer at {}", addr);
-                self.printers.insert(
-                    addr.to_string(),
-                    NetworkPrinterInfo {
-                        ip: addr,
-                        manufacturer: NetworkPrinterManufacturer::Formlabs,
-                        model: "Formule".to_string(),
-                    },
-                );
+            if let Some(addr) = response.ip_addr() {
+                let printer = NetworkPrinterInfo {
+                    hostname: response.hostname().map(|name| name.to_string()),
+                    ip: addr,
+                    port: response.port(),
+                    manufacturer: NetworkPrinterManufacturer::Formlabs,
+                    model: None,
+                };
+                println!("formlabs printer: {:#?}", printer);
+                self.printers.insert(addr.to_string(), printer);
             } else {
-                println!("formlabs printer does not advertise address");
+                println!("formlabs printer does not advertise address: {:#?}", response);
             }
         }
 

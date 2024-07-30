@@ -91,16 +91,22 @@ pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
     // Regsitering SIGKILL here will panic at runtime, so let's avoid that.
     let mut signals = Signals::new([SIGINT, SIGTERM])?;
 
+    let cloned_api_context = api_context.clone();
     tokio::spawn(async move {
         if let Some(sig) = signals.forever().next() {
-            slog::info!(api_context.logger, "received signal: {:?}", sig);
-            slog::info!(api_context.logger, "triggering cleanup...");
+            slog::info!(cloned_api_context.logger, "received signal: {:?}", sig);
+            slog::info!(cloned_api_context.logger, "triggering cleanup...");
 
             // Exit the process.
-            slog::info!(api_context.logger, "all clean, exiting!");
+            slog::info!(cloned_api_context.logger, "all clean, exiting!");
             std::process::exit(0);
         }
     });
+
+    // Start handles for all network printers to do discovery.
+    for (_, printer) in api_context.network_printers.iter() {
+        let _ = printer.discover().await;
+    }
 
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
 
