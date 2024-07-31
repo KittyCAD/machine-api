@@ -78,7 +78,7 @@ impl NetworkPrinter for BambuX1Carbon {
                     continue;
                 }
 
-                let Some((token, rest)) = line.split_once(":") else {
+                let Some((token, rest)) = line.split_once(':') else {
                     tracing::debug!("Bad token line {}", line);
 
                     continue;
