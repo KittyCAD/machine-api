@@ -11,7 +11,6 @@ use crate::network_printer::{NetworkPrinter, NetworkPrinterManufacturer};
 pub struct Context {
     pub schema: serde_json::Value,
     pub logger: slog::Logger,
-    pub settings: crate::Server,
     pub usb_printers: Arc<HashMap<String, crate::usb_printer::UsbPrinterInfo>>,
     pub network_printers: Arc<HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>>>,
     pub active_jobs: Mutex<HashMap<String, tokio::task::JoinHandle<anyhow::Result<()>>>>,
@@ -21,7 +20,7 @@ impl Context {
     /**
      * Return a new Context.
      */
-    pub async fn new(schema: serde_json::Value, logger: slog::Logger, settings: crate::Server) -> Result<Context> {
+    pub async fn new(schema: serde_json::Value, logger: slog::Logger) -> Result<Context> {
         let mut network_printers: HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>> = HashMap::new();
 
         // Add formlabs backend.
@@ -40,7 +39,6 @@ impl Context {
         Ok(Context {
             schema,
             logger,
-            settings,
             network_printers: Arc::new(network_printers),
             usb_printers: Arc::new(crate::usb_printer::UsbPrinter::list_all()),
             active_jobs: Mutex::new(HashMap::new()),
