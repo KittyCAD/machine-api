@@ -62,8 +62,8 @@ pub struct PrintJobResponse {
     /// The job id used for this print.
     pub job_id: String,
 
-    /// The machine id used for this print.
-    pub machine_id: String,
+    /// The parameters used for this print.
+    pub parameters: PrintParameters,
 }
 
 /** Print a given file. File must be a sliceable 3D model. */
@@ -118,7 +118,7 @@ pub(crate) async fn print_file(
 
     Ok(HttpResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
-        machine_id: machine.id(),
+        parameters: params,
     }))
 }
 

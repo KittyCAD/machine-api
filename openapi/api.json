@@ -154,13 +154,29 @@
             "description": "The job id used for this print.",
             "type": "string"
           },
-          "machine_id": {
-            "description": "The machine id used for this print.",
-            "type": "string"
+          "parameters": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PrintParameters"
+              }
+            ],
+            "description": "The parameters used for this print."
           }
         },
         "required": [
           "job_id",
+          "parameters"
+        ],
+        "type": "object"
+      },
+      "PrintParameters": {
+        "description": "Parameters for printing.",
+        "properties": {
+          "machine_id": {
+            "type": "string"
+          }
+        },
+        "required": [
           "machine_id"
         ],
         "type": "object"

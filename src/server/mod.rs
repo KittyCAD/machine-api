@@ -52,7 +52,7 @@ pub async fn create_server(
     let logger = opts.create_logger("server");
     let dropshot_logger = logger.new(slog::o!("component" => "dropshot"));
 
-    let api_context = Arc::new(Context::new(schema, logger, s.clone()).await?);
+    let api_context = Arc::new(Context::new(schema, logger).await?);
 
     let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &dropshot_logger)
         .map_err(|error| anyhow!("failed to create server: {}", error))?

@@ -17,6 +17,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use gcode::GcodeSequence;
 use machine::Machine;
+use network_printer::NetworkPrinterManufacturer;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
@@ -79,8 +80,8 @@ pub enum SubCommand {
     /// Run the server.
     Server(Server),
 
-    /// List all available USB devices.
-    ListUsbDevices,
+    /// List all available machines on the network or over USB.
+    ListMachines,
 
     /// Slice the given `file` with config from `config_file`
     SliceFile {
@@ -105,7 +106,7 @@ pub enum SubCommand {
 }
 
 /// A subcommand for running the server.
-#[derive(Parser, Clone, Debug, Default)]
+#[derive(Parser, Clone, Debug)]
 pub struct Server {
     /// IP address and port that the server should listen
     #[clap(short, long, default_value = "0.0.0.0:8080")]
@@ -192,11 +193,32 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
         SubCommand::Server(s) => {
             crate::server::server(s, opts).await?;
         }
-        SubCommand::ListUsbDevices => {
-            let printers = crate::usb_printer::UsbPrinter::list_all();
-            println!("Printers:");
-            for printer in printers {
-                println!("{:?}", printer);
+        SubCommand::ListMachines => {
+            // Now connect to first printer we find over serial port
+            //
+            let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
+
+            println!("Discovering printers...");
+            let cloned_api_context = api_context.clone();
+            // We don't care if it times out, we just want to wait for the discovery tasks to
+            // finish.
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
+            let machines = api_context.list_machines()?;
+            for (id, machine) in machines.iter() {
+                println!("{}: {:?}", id, machine);
             }
         }
         SubCommand::SliceFile { config_file, file } => {
@@ -217,8 +239,25 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
 
             // Now connect to first printer we find over serial port
             //
-            let api_context =
-                Arc::new(Context::new(Default::default(), opts.create_logger("print"), Default::default()).await?);
+            let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
+
+            println!("Discovering printers...");
+            // Start all the discovery tasks.
+            let cloned_api_context = api_context.clone();
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
             let machine = api_context
                 .find_machine_by_id(printer_id)?
                 .expect("Printer not found by given ID");

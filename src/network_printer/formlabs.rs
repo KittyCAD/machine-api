@@ -39,7 +39,6 @@ impl NetworkPrinter for Formlabs {
                     manufacturer: NetworkPrinterManufacturer::Formlabs,
                     model: None,
                 };
-                println!("formlabs printer: {:#?}", printer);
                 self.printers.insert(addr.to_string(), printer);
             } else {
                 println!("formlabs printer does not advertise address: {:#?}", response);
