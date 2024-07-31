@@ -31,3 +31,9 @@ Note: you may need to allow user permissions to USB devices. Alternatively, you 
 ## machine-api CLI
 
 You can also use machine-api as a CLI. `cargo run` with no parameters will give the available options.
+
+## Regenerating the OpenAPI definition file
+
+```bash
+EXPECTORATE=overwrite cargo test --all openapi
+```
