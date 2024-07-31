@@ -9,7 +9,7 @@ panic = "abort"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.86"
 async-trait = "0.1.81"
 bytes = "1.6.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
