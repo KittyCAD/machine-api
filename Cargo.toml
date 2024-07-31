@@ -11,7 +11,7 @@ panic = "abort"
 [dependencies]
 anyhow = "1.0.75"
 async-trait = "0.1.81"
-bytes = "1.6.1"
+bytes = "1.7.0"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = { version = "4.4.6", features = ["cargo", "derive", "env", "unicode"] }
 console-subscriber = { version = "0", optional = true }
