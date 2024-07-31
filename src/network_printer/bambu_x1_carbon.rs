@@ -65,6 +65,7 @@ impl NetworkPrinter for BambuX1Carbon {
             let mut urn = None;
             let mut name = None;
             let mut ip = None;
+            let mut serial = None;
             // TODO: This is probably the secure MQTT port 8883 but we need to test that assumption
             #[allow(unused_mut)]
             let mut port = None;
@@ -90,6 +91,7 @@ impl NetworkPrinter for BambuX1Carbon {
                 match token {
                     "Location" => ip = Some(rest.parse().expect("Bad IP")),
                     "DevName.bambu.com" => name = Some(rest.to_owned()),
+                    "USN" => serial = Some(rest.to_owned()),
                     "NT" => urn = Some(rest.to_owned()),
                     // Ignore everything else
                     _ => (),
@@ -124,10 +126,13 @@ impl NetworkPrinter for BambuX1Carbon {
                 // We can hard code this for now as we check the URN above (and assume the URN is
                 // unique to the X1 carbon)
                 model: Some(String::from("Bambu Lab X1 Carbon")),
+                serial,
             };
 
             if self.printers.insert(info.clone()) {
                 tracing::info!("Found printer {:?} at IP {:?}", info.hostname, info.ip);
+
+                tracing::debug!("--> Full printer details {:?}", info);
             }
         }
 

@@ -37,6 +37,8 @@ pub struct NetworkPrinterInfo {
     pub manufacturer: NetworkPrinterManufacturer,
     /// The model of the printer.
     pub model: Option<String>,
+    /// The serial number of the printer.
+    pub serial: Option<String>,
 }
 
 /// Network printer manufacturer.

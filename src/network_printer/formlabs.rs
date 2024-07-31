@@ -38,6 +38,7 @@ impl NetworkPrinter for Formlabs {
                     port: response.port(),
                     manufacturer: NetworkPrinterManufacturer::Formlabs,
                     model: None,
+                    serial: None,
                 };
                 self.printers.insert(addr.to_string(), printer);
             } else {
