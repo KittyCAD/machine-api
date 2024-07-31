@@ -154,14 +154,14 @@
             "description": "The job id used for this print.",
             "type": "string"
           },
-          "printer_id": {
-            "description": "The printer id used for this print.",
+          "machine_id": {
+            "description": "The machine id used for this print.",
             "type": "string"
           }
         },
         "required": [
           "job_id",
-          "printer_id"
+          "machine_id"
         ],
         "type": "object"
       }
@@ -205,17 +205,17 @@
     },
     "/machines": {
       "get": {
-        "operationId": "get_printers",
+        "operationId": "get_machines",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
+                  "additionalProperties": {
                     "$ref": "#/components/schemas/Machine"
                   },
-                  "title": "Array_of_Machine",
-                  "type": "array"
+                  "title": "Map_of_Machine",
+                  "type": "object"
                 }
               }
             },
