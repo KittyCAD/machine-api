@@ -30,8 +30,6 @@ impl NetworkPrinter for BambuX1Carbon {
         let mut socket_buf = [0u8; 1536];
 
         while let Ok(n) = socket.recv(&mut socket_buf).await {
-            println!("Frame");
-
             // The SSDP/UPnP frames we're looking for from Bambu printers are pure ASCII, so we don't
             // mind if we end up with garbage in the resulting string. Note that other SSDP packets from
             // e.g. macOS Bonjour(?) do contain binary data which means this conversion isn't suitable

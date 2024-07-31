@@ -17,6 +17,7 @@ use anyhow::{bail, Result};
 use clap::Parser;
 use gcode::GcodeSequence;
 use machine::Machine;
+use network_printer::NetworkPrinterManufacturer;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
@@ -197,6 +198,24 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             //
             let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
 
+            println!("Discovering printers...");
+            let cloned_api_context = api_context.clone();
+            // We don't care if it times out, we just want to wait for the discovery tasks to
+            // finish.
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(5), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
             let machines = api_context.list_machines()?;
             for (id, machine) in machines.iter() {
                 println!("{}: {:?}", id, machine);
@@ -221,6 +240,24 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             // Now connect to first printer we find over serial port
             //
             let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
+
+            println!("Discovering printers...");
+            // Start all the discovery tasks.
+            let cloned_api_context = api_context.clone();
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(5), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
             let machine = api_context
                 .find_machine_by_id(printer_id)?
                 .expect("Printer not found by given ID");
