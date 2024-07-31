@@ -202,7 +202,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             let cloned_api_context = api_context.clone();
             // We don't care if it times out, we just want to wait for the discovery tasks to
             // finish.
-            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(5), async move {
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
                 let form_labs = cloned_api_context
                     .network_printers
                     .get(&NetworkPrinterManufacturer::Formlabs)
@@ -244,7 +244,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             println!("Discovering printers...");
             // Start all the discovery tasks.
             let cloned_api_context = api_context.clone();
-            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(5), async move {
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
                 let form_labs = cloned_api_context
                     .network_printers
                     .get(&NetworkPrinterManufacturer::Formlabs)
