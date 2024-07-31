@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use crate::{network_printer::NetworkPrinterInfo, usb_printer::UsbPrinterInfo};
 
 /// Details for a 3d printer connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
+#[derive(Debug, Clone, JsonSchema, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum Machine {
     UsbPrinter(UsbPrinterInfo),
@@ -29,5 +29,24 @@ impl Machine {
             Machine::UsbPrinter(printer) => printer.id.clone(),
             Machine::NetworkPrinter(printer) => printer.hostname.clone().unwrap_or_else(|| printer.ip.to_string()),
         }
+    }
+}
+
+/// A handle for machines with their client traits.
+#[derive(Clone)]
+pub enum MachineHandle {
+    UsbPrinter(crate::usb_printer::UsbPrinterInfo),
+    NetworkPrinter(crate::network_printer::NetworkPrinterHandle),
+}
+
+impl From<UsbPrinterInfo> for MachineHandle {
+    fn from(printer: UsbPrinterInfo) -> Self {
+        MachineHandle::UsbPrinter(printer)
+    }
+}
+
+impl From<crate::network_printer::NetworkPrinterHandle> for MachineHandle {
+    fn from(printer: crate::network_printer::NetworkPrinterHandle) -> Self {
+        MachineHandle::NetworkPrinter(printer)
     }
 }
