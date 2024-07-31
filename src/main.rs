@@ -20,7 +20,7 @@ use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
 use slog::Drain;
-use tracing_subscriber::{prelude::*, Layer};
+use tracing_subscriber::prelude::*;
 use usb_printer::UsbPrinter;
 
 /// This doc string acts as a help message when the user runs '--help'
@@ -114,12 +114,6 @@ pub struct Server {
 async fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
-    let level_filter = if opts.debug {
-        tracing_subscriber::filter::LevelFilter::DEBUG
-    } else {
-        tracing_subscriber::filter::LevelFilter::INFO
-    };
-
     // Format fields using the provided closure.
     // We want to make this very consise otherwise the logs are not able to be read by humans.
     let format = tracing_subscriber::fmt::format::debug_fn(|writer, field, value| {
@@ -135,20 +129,9 @@ async fn main() -> Result<()> {
     .delimited(", ");
 
     let (json, plain) = if opts.json {
-        (
-            Some(tracing_subscriber::fmt::layer().json().with_filter(level_filter)),
-            None,
-        )
+        (Some(tracing_subscriber::fmt::layer().json()), None)
     } else {
-        (
-            None,
-            Some(
-                tracing_subscriber::fmt::layer()
-                    .pretty()
-                    .fmt_fields(format)
-                    .with_filter(level_filter),
-            ),
-        )
+        (None, Some(tracing_subscriber::fmt::layer().pretty().fmt_fields(format)))
     };
 
     let otlp_host = match std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT") {
@@ -166,12 +149,11 @@ async fn main() -> Result<()> {
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)?;
 
-    let telemetry = tracing_opentelemetry::layer()
-        .with_tracer(tracer)
-        .with_filter(level_filter);
+    let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
     // Initialize tracing.
     tracing_subscriber::registry()
+        .with(tracing_subscriber::EnvFilter::from_default_env())
         .with(json)
         .with(plain)
         .with(telemetry)
