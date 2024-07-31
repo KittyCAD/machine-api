@@ -861,7 +861,7 @@ dependencies = [
  "hyper 0.14.27",
  "indexmap 2.2.6",
  "multer",
- "openapiv3 2.0.0",
+ "openapiv3",
  "paste",
  "percent-encoding",
  "rustls 0.22.4",
@@ -1551,7 +1551,6 @@ checksum = "bd070e393353796e801d209ad339e89596eb4c8d430d18ede6a1cced8fafbd99"
 dependencies = [
  "autocfg",
  "hashbrown 0.12.3",
- "serde",
 ]
 
 [[package]]
@@ -1767,7 +1766,7 @@ dependencies = [
  "libmdns",
  "mdns",
  "multer",
- "openapiv3 1.0.3",
+ "openapiv3",
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry_sdk",
@@ -2030,17 +2029,6 @@ name = "once_cell"
 version = "1.18.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
-
-[[package]]
-name = "openapiv3"
-version = "1.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75e56d5c441965b6425165b7e3223cc933ca469834f4a8b4786817a1f9dc4f13"
-dependencies = [
- "indexmap 1.9.3",
- "serde",
- "serde_json",
-]
 
 [[package]]
 name = "openapiv3"
