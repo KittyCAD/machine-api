@@ -21,6 +21,11 @@
             extensions = [ "rustfmt" "llvm-tools-preview" ];
           };
         })
+        (self: super: {
+	  cargo-llvm-cov = super.cargo-llvm-cov.overrideAttrs(oa: {
+            doCheck = false; doInstallCheck = false;
+          });
+        })
       ];
 
       # Systems supported
@@ -33,7 +38,7 @@
 
       # Helper to provide system-specific attributes
       forAllSystems = f: nixpkgs.lib.genAttrs allSystems (system: f {
-        pkgs = import nixpkgs { inherit overlays system; };
+        pkgs = import nixpkgs { inherit overlays system; config.allowBroken = true; };
       });
 
     in
@@ -53,6 +58,7 @@
             # dependencies for machine-api
             just
             pkg-config
+          ]) ++ pkgs.lib.optionals pkgs.stdenv.isLinux (with pkgs; [
             udev
           ]) ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
             libiconv 
