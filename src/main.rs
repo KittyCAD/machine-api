@@ -11,14 +11,16 @@ mod server;
 mod tests;
 mod usb_printer;
 
-use std::ffi::OsStr;
+use std::{ffi::OsStr, sync::Arc};
 
 use anyhow::{bail, Result};
 use clap::Parser;
 use gcode::GcodeSequence;
+use machine::Machine;
 use opentelemetry::KeyValue;
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
+use server::context::Context;
 use slog::Drain;
 use tracing_subscriber::prelude::*;
 use usb_printer::UsbPrinter;
@@ -103,7 +105,7 @@ pub enum SubCommand {
 }
 
 /// A subcommand for running the server.
-#[derive(Parser, Clone, Debug)]
+#[derive(Parser, Clone, Debug, Default)]
 pub struct Server {
     /// IP address and port that the server should listen
     #[clap(short, long, default_value = "0.0.0.0:8080")]
@@ -215,18 +217,24 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
 
             // Now connect to first printer we find over serial port
             //
-            let printers = crate::usb_printer::UsbPrinter::list_all();
-            let printer = printers
-                .find_by_id(printer_id.to_owned())
+            let api_context =
+                Arc::new(Context::new(Default::default(), opts.create_logger("print"), Default::default()).await?);
+            let machine = api_context
+                .find_machine_by_id(printer_id)?
                 .expect("Printer not found by given ID");
-            let mut printer = UsbPrinter::new(printer);
-            printer.wait_for_start()?;
+            match machine {
+                Machine::UsbPrinter(printer) => {
+                    let mut printer = UsbPrinter::new(printer);
+                    printer.wait_for_start()?;
 
-            for line in gcode.lines.iter() {
-                let msg = format!("{}\r\n", line);
-                println!("writing: {}", line);
-                printer.writer.write_all(msg.as_bytes())?;
-                printer.wait_for_ok()?;
+                    for line in gcode.lines.iter() {
+                        let msg = format!("{}\r\n", line);
+                        println!("writing: {}", line);
+                        printer.writer.write_all(msg.as_bytes())?;
+                        printer.wait_for_ok()?;
+                    }
+                }
+                _ => bail!("network printers not yet supported"),
             }
         }
     }

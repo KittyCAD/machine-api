@@ -1,4 +1,4 @@
-use std::io::BufRead;
+use std::{collections::HashMap, io::BufRead};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -9,24 +9,6 @@ pub struct UsbPrinter {
     pub writer: Box<dyn serialport::SerialPort>,
 }
 
-/// List of 3d printers connected over USB.
-#[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
-pub struct UsbPrinterList(Vec<UsbPrinterInfo>);
-
-impl IntoIterator for UsbPrinterList {
-    type Item = UsbPrinterInfo;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl UsbPrinterList {
-    pub fn find_by_id(&self, id: String) -> Option<UsbPrinterInfo> {
-        self.0.iter().find(|printer| printer.id == id.trim()).cloned()
-    }
-}
 /// Details for a 3d printer connected over USB.
 #[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
 pub struct UsbPrinterInfo {
@@ -38,25 +20,25 @@ pub struct UsbPrinterInfo {
 
 impl UsbPrinter {
     // List all 3d printers connected over USB.
-    pub fn list_all() -> UsbPrinterList {
-        UsbPrinterList(
-            serialport::available_ports()
-                .expect("No ports found!")
-                .iter()
-                .filter_map(|p| {
-                    if let SerialPortType::UsbPort(usb) = p.port_type.clone() {
-                        Some(UsbPrinterInfo {
-                            port: p.port_name.clone(),
-                            id: usb.serial_number.unwrap_or("Unknown".to_string()),
-                            manufacturer: usb.manufacturer.unwrap_or("Unknown manufacturer".to_string()),
-                            model: usb.product.unwrap_or("Unknown product".to_string()),
-                        })
-                    } else {
-                        None
-                    }
-                })
-                .collect(),
-        )
+    pub fn list_all() -> HashMap<String, UsbPrinterInfo> {
+        let list: Vec<UsbPrinterInfo> = serialport::available_ports()
+            .expect("No ports found!")
+            .iter()
+            .filter_map(|p| {
+                if let SerialPortType::UsbPort(usb) = p.port_type.clone() {
+                    Some(UsbPrinterInfo {
+                        port: p.port_name.clone(),
+                        id: usb.serial_number.unwrap_or("Unknown".to_string()),
+                        manufacturer: usb.manufacturer.unwrap_or("Unknown manufacturer".to_string()),
+                        model: usb.product.unwrap_or("Unknown product".to_string()),
+                    })
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        list.into_iter().map(|p| (p.id.clone(), p)).collect()
     }
 
     pub fn new(printer: UsbPrinterInfo) -> Self {

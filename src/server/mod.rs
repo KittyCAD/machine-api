@@ -18,7 +18,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
         api.register(crate::server::endpoints::ping).unwrap();
         api.register(crate::server::endpoints::api_get_schema).unwrap();
         api.register(crate::server::endpoints::print_file).unwrap();
-        api.register(crate::server::endpoints::get_printers).unwrap();
+        api.register(crate::server::endpoints::get_machines).unwrap();
 
         // YOUR ENDPOINTS HERE!
 

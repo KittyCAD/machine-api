@@ -1,4 +1,4 @@
-use std::{path::Path, sync::Arc};
+use std::{collections::HashMap, path::Path, sync::Arc};
 
 use dropshot::{endpoint, HttpError, HttpResponseOk, RequestContext};
 use schemars::JsonSchema;
@@ -45,25 +45,14 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
     path = "/machines",
     tags = ["print"],
 }]
-pub async fn get_printers(
+pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<Vec<crate::machine::Machine>>, HttpError> {
+) -> Result<HttpResponseOk<HashMap<String, crate::machine::Machine>>, HttpError> {
     let ctx = rqctx.context();
-    let mut machines: Vec<crate::machine::Machine> = ctx
-        .usb_printers
-        .clone()
-        .into_iter()
-        .map(|printer| printer.into())
-        .collect();
-    for (_, np) in ctx.network_printers.iter() {
-        machines.extend(
-            np.list()
-                .map_err(|_| HttpError::for_internal_error("failed to list network printers".to_owned()))?
-                .into_iter()
-                .map(|printer| printer.into())
-                .collect::<Vec<_>>(),
-        );
-    }
+    let machines = ctx.list_machines().map_err(|e| {
+        tracing::error!("failed to list machines: {:?}", e);
+        HttpError::for_internal_error("failed to list machines".to_string())
+    })?;
     Ok(HttpResponseOk(machines))
 }
 
@@ -73,8 +62,8 @@ pub struct PrintJobResponse {
     /// The job id used for this print.
     pub job_id: String,
 
-    /// The printer id used for this print.
-    pub printer_id: String,
+    /// The machine id used for this print.
+    pub machine_id: String,
 }
 
 /** Print a given file. File must be a sliceable 3D model. */
@@ -90,18 +79,22 @@ pub(crate) async fn print_file(
     let mut multipart = body_param.content;
     let (file, params) = parse_multipart_print_request(&mut multipart).await?;
     let ctx = rqctx.context().clone();
-    let printer_id = params.printer_id.clone();
-    let printer = match ctx.usb_printers.find_by_id(printer_id.clone()) {
-        Some(printer) => printer,
+    let machine_id = params.machine_id.clone();
+    let machine = ctx.find_machine_by_id(&machine_id).map_err(|e| {
+        tracing::error!("failed to find machine by id: {:?}", e);
+        HttpError::for_internal_error("failed to find machine by id".to_string())
+    })?;
+    let machine = match machine {
+        Some(machine) => machine,
         None => {
             return Err(HttpError::for_bad_request(
                 None,
-                "printer_id must match a connected printer".to_string(),
+                "machine_id must match a connected machine".to_string(),
             ))
         }
     };
     let gcode_task = tokio::task::spawn_blocking(move || {
-        let dir = tempdir::TempDir::new(&printer_id)?;
+        let dir = tempdir::TempDir::new(&machine_id)?;
         let slicer_config_path = Path::new("/home/iterion/Development/machine-api/mk3.ini");
         let stl_path = dir.path().join(file.file_name.unwrap_or("print.stl".to_string()));
         std::fs::write(&stl_path, file.content)?;
@@ -119,13 +112,13 @@ pub(crate) async fn print_file(
         }
     };
     let job_id = uuid::Uuid::new_v4();
-    let print_job = PrintJob::new(gcode, params).spawn().await;
+    let print_job = PrintJob::new(gcode, machine.clone()).spawn().await;
     let mut active_jobs = ctx.active_jobs.lock().await;
     active_jobs.insert(job_id.to_string(), print_job);
 
     Ok(HttpResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
-        printer_id: printer.id.clone(),
+        machine_id: machine.id(),
     }))
 }
 
@@ -137,7 +130,7 @@ pub(crate) struct FileAttachment {
 /// Parameters for printing.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 pub(crate) struct PrintParameters {
-    pub printer_id: String,
+    pub machine_id: String,
 }
 
 /// Possible errors returned by print endpoints.

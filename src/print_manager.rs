@@ -1,33 +1,34 @@
-use crate::{gcode::GcodeSequence, server::endpoints::PrintParameters, usb_printer::UsbPrinter};
+use crate::{gcode::GcodeSequence, machine::Machine, usb_printer::UsbPrinter};
 
 pub struct PrintJob {
     gcode: GcodeSequence,
-    params: PrintParameters,
+    machine: Machine,
 }
 
 impl PrintJob {
-    pub fn new(gcode: GcodeSequence, params: PrintParameters) -> Self {
-        Self { gcode, params }
+    pub fn new(gcode: GcodeSequence, machine: Machine) -> Self {
+        Self { gcode, machine }
     }
 
     pub async fn spawn(&self) -> tokio::task::JoinHandle<anyhow::Result<()>> {
-        let printer_id = self.params.printer_id.clone();
         let gcode = self.gcode.clone();
+        let machine = self.machine.clone();
         tokio::task::spawn_blocking(move || {
-            let printers = UsbPrinter::list_all();
-            let printer = printers
-                .find_by_id(printer_id.to_owned())
-                .expect("Printer not found by given ID");
-            let mut printer = UsbPrinter::new(printer);
-            printer.wait_for_start()?;
+            if let Machine::UsbPrinter(printer) = &machine {
+                let mut printer = UsbPrinter::new(printer.clone());
+                printer.wait_for_start()?;
 
-            for line in gcode.lines.iter() {
-                let msg = format!("{}\r\n", line);
-                println!("writing: {}", line);
-                printer.writer.write_all(msg.as_bytes())?;
-                printer.wait_for_ok()?;
+                for line in gcode.lines.iter() {
+                    let msg = format!("{}\r\n", line);
+                    println!("writing: {}", line);
+                    printer.writer.write_all(msg.as_bytes())?;
+                    printer.wait_for_ok()?;
+                }
+
+                Ok(())
+            } else {
+                Err(anyhow::anyhow!("network printers not yet supported"))
             }
-            Ok(())
         })
     }
 }

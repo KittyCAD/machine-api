@@ -22,3 +22,12 @@ impl From<NetworkPrinterInfo> for Machine {
         Machine::NetworkPrinter(printer)
     }
 }
+
+impl Machine {
+    pub fn id(&self) -> String {
+        match self {
+            Machine::UsbPrinter(printer) => printer.id.clone(),
+            Machine::NetworkPrinter(printer) => printer.hostname.clone().unwrap_or_else(|| printer.ip.to_string()),
+        }
+    }
+}
