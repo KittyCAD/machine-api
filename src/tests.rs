@@ -54,7 +54,6 @@ impl ServerContext {
     }
 }
 
-#[async_trait::async_trait]
 impl AsyncTestContext for ServerContext {
     async fn setup() -> Self {
         ServerContext::new().await.unwrap()
