@@ -89,8 +89,8 @@ impl Command {
             led_mode,
             led_on_time: 500,
             led_off_time: 500,
-            loop_times: 0,
-            interval_time: 0,
+            loop_times: 1,
+            interval_time: 1000,
         }))
     }
 
@@ -257,6 +257,8 @@ pub struct Ledctrl {
 pub enum LedNode {
     /// The chamber light.
     ChamberLight,
+    /// The work light.
+    WorkLight,
 }
 
 /// The mode for the led.
@@ -268,6 +270,8 @@ pub enum LedMode {
     On,
     /// Turn the LED off.
     Off,
+    /// Flash the LED.
+    Flashing,
 }
 
 impl From<bool> for LedMode {

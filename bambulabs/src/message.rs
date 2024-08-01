@@ -1,5 +1,7 @@
 //! A message from the printer.
 
+use std::collections::BTreeMap;
+
 use parse_display::{Display, FromStr};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -151,6 +153,8 @@ pub struct Print {
     pub upgrade_state: Option<PrintUpgradeState>,
     /// The message.
     pub msg: Option<i64>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A print command.
@@ -335,6 +339,8 @@ pub struct Info {
     pub result: String,
     /// The reason of the info command.
     pub reason: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// An info command.
@@ -372,10 +378,10 @@ pub struct System {
     pub sequence_id: SequenceId,
     /// The system command.
     pub command: SystemCommand,
-    /// The access code.
-    pub access_code: Option<String>,
     /// The result of the system command.
     pub result: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A system command.
