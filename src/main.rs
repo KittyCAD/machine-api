@@ -222,7 +222,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             }
         }
         SubCommand::SliceFile { config_file, file } => {
-            let gcode = GcodeSequence::from_stl_path(config_file, file)?;
+            let gcode = GcodeSequence::from_stl_path(crate::gcode::Slicer::Prusa, config_file, file)?;
             println!("Parsed {} lines of gcode", gcode.lines.len());
         }
         SubCommand::PrintFile {
@@ -232,7 +232,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
         } => {
             let extension = file.extension().unwrap_or(OsStr::new("stl"));
             let gcode = if extension != "gcode" {
-                GcodeSequence::from_stl_path(config_file, file)?
+                GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, config_file, file)?
             } else {
                 GcodeSequence::from_file_path(file)?
             };
