@@ -25,7 +25,7 @@ http = "0.2.8"
 libmdns = "0.8.0"
 mdns = "3.0.0"
 multer = { version = "3.1.0", features = ["json"] }
-opentelemetry = "0.21.0"
+opentelemetry = "0.24.0"
 opentelemetry-otlp = "0.14.0"
 opentelemetry_sdk = { version = "0.21.2", features = ["rt-tokio"] }
 reqwest = { version = "0.11", default-features = false, features = ["json", "rustls-tls"] }
