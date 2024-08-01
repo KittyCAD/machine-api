@@ -18,7 +18,7 @@ use clap::Parser;
 use gcode::GcodeSequence;
 use machine::Machine;
 use network_printer::NetworkPrinterManufacturer;
-use opentelemetry::KeyValue;
+use opentelemetry::{trace::TracerProvider, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
 use opentelemetry_sdk::Resource;
 use server::context::Context;
@@ -143,14 +143,16 @@ async fn main() -> Result<()> {
     };
 
     // otel uses async runtime, so it must be started after the runtime
-    let tracer = opentelemetry_otlp::new_pipeline()
+    let provider = opentelemetry_otlp::new_pipeline()
         .tracing()
         .with_exporter(opentelemetry_otlp::new_exporter().tonic().with_endpoint(otlp_host))
         .with_trace_config(
-            opentelemetry_sdk::trace::config()
+            opentelemetry_sdk::trace::Config::default()
                 .with_resource(Resource::new(vec![KeyValue::new("service.name", "machine-api")])),
         )
         .install_batch(opentelemetry_sdk::runtime::Tokio)?;
+    opentelemetry::global::set_tracer_provider(provider.clone());
+    let tracer = provider.tracer("tracing-otel-subscriber");
 
     let telemetry = tracing_opentelemetry::layer().with_tracer(tracer);
 
