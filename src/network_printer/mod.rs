@@ -30,6 +30,18 @@ pub trait NetworkPrinter: Send + Sync {
     /// Get the status of a printer.
     async fn status(&self) -> Result<Message>;
 
+    /// Pause the current print.
+    async fn pause(&self) -> Result<Message>;
+
+    /// Resume the current print.
+    async fn resume(&self) -> Result<Message>;
+
+    /// Stop the current print.
+    async fn stop(&self) -> Result<Message>;
+
+    /// Set the led on or off.
+    async fn set_led(&self, on: bool) -> Result<Message>;
+
     /// Print a file.
     async fn print(&self, file: &str) -> Result<()>;
 }

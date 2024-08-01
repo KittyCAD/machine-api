@@ -207,6 +207,37 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
         Ok(status.into())
     }
 
+    /// Pause the current print.
+    async fn pause(&self) -> Result<Message> {
+        // Pause the printer.
+        let pause = self.client.publish(Command::pause()).await?;
+
+        Ok(pause.into())
+    }
+
+    /// Resume the current print.
+    async fn resume(&self) -> Result<Message> {
+        // Resume the printer.
+        let resume = self.client.publish(Command::resume()).await?;
+
+        Ok(resume.into())
+    }
+
+    /// Stop the current print.
+    async fn stop(&self) -> Result<Message> {
+        // Stop the printer.
+        let stop = self.client.publish(Command::stop()).await?;
+
+        Ok(stop.into())
+    }
+
+    /// Set the led on or off.
+    async fn set_led(&self, on: bool) -> Result<Message> {
+        let light = self.client.publish(Command::set_chamber_light(on.into())).await?;
+
+        Ok(light.into())
+    }
+
     /// Print a file.
     async fn print(&self, _file: &str) -> Result<()> {
         unimplemented!()

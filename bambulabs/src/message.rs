@@ -1,5 +1,6 @@
 //! A message from the printer.
 
+use parse_display::{Display, FromStr};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -38,6 +39,10 @@ impl Message {
 /// A print message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Print {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The command.
+    pub command: PrintCommand,
     /// The upload.
     pub upload: Option<PrintUpload>,
     /// The nozzle temperature.
@@ -144,12 +149,17 @@ pub struct Print {
     pub lights_report: Option<Vec<PrintLightsReport>>,
     /// The upgrade state.
     pub upgrade_state: Option<PrintUpgradeState>,
-    /// The command.
-    pub command: Option<String>,
     /// The message.
     pub msg: Option<i64>,
-    /// The sequence id.
-    pub sequence_id: SequenceId,
+}
+
+/// A print command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
+#[serde(rename_all = "snake_case")]
+#[display(style = "snake_case")]
+pub enum PrintCommand {
+    /// The status of the print.
+    PushStatus,
 }
 
 /// The print upload.
@@ -313,16 +323,25 @@ pub struct PrintUpgradeState {
 /// A info message.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Info {
-    /// The info command.
-    pub command: String,
     /// The sequence id.
     pub sequence_id: SequenceId,
+    /// The info command.
+    pub command: InfoCommand,
     /// The info module.
     pub module: Vec<InfoModule>,
     /// The result of the info command.
     pub result: String,
     /// The reason of the info command.
     pub reason: String,
+}
+
+/// An info command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
+#[serde(rename_all = "snake_case")]
+#[display(style = "snake_case")]
+pub enum InfoCommand {
+    /// Get the version.
+    GetVersion,
 }
 
 /// An info module.
@@ -347,14 +366,23 @@ pub struct InfoModule {
 /// A system message.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct System {
-    /// The system command.
-    pub command: String,
     /// The sequence id.
     pub sequence_id: SequenceId,
+    /// The system command.
+    pub command: SystemCommand,
     /// The access code.
     pub access_code: Option<String>,
     /// The result of the system command.
     pub result: String,
+}
+
+/// A system command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, FromStr, Display)]
+#[serde(rename_all = "snake_case")]
+#[display(style = "snake_case")]
+pub enum SystemCommand {
+    /// Led control.
+    LedCntl,
 }
 
 #[cfg(test)]

@@ -82,6 +82,26 @@ impl NetworkPrinter for FormlabsPrinter {
         unimplemented!()
     }
 
+    /// Pause the current print.
+    async fn pause(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
+    /// Resume the current print.
+    async fn resume(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
+    /// Stop the current print.
+    async fn stop(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
+    /// Set the led on or off.
+    async fn set_led(&self, _on: bool) -> Result<Message> {
+        unimplemented!()
+    }
+
     /// Print a file.
     async fn print(&self, _file: &str) -> Result<()> {
         unimplemented!()

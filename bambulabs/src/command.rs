@@ -37,10 +37,68 @@ impl Command {
         }))
     }
 
-    /// Result a command to push all data.
+    /// Return a command to push all data.
     pub fn push_all() -> Self {
         Command::Pushing(Pushing::Pushall(Pushall {
             sequence_id: SequenceId::new(),
+        }))
+    }
+
+    /// Return a command to pause the current print.
+    pub fn pause() -> Self {
+        Command::Print(Print::Pause(Pause {
+            sequence_id: SequenceId::new(),
+        }))
+    }
+
+    /// Return a command to resume the current print.
+    pub fn resume() -> Self {
+        Command::Print(Print::Resume(Resume {
+            sequence_id: SequenceId::new(),
+        }))
+    }
+
+    /// Return a command to stop the current print.
+    pub fn stop() -> Self {
+        Command::Print(Print::Stop(Stop {
+            sequence_id: SequenceId::new(),
+        }))
+    }
+
+    /// Return a command to set the speed profile.
+    pub fn set_speed_profile(profile: SpeedProfile) -> Self {
+        Command::Print(Print::PrintSpeed(PrintSpeed {
+            sequence_id: SequenceId::new(),
+            param: profile,
+        }))
+    }
+
+    /// Return a command to send a GCode line.
+    pub fn send_gcode_line(line: &str) -> Self {
+        Command::Print(Print::GcodeLine(GcodeLine {
+            sequence_id: SequenceId::new(),
+            param: line.to_string(),
+        }))
+    }
+
+    /// Return a command to set the chamber light.
+    pub fn set_chamber_light(led_mode: LedMode) -> Self {
+        Command::System(System::Ledctrl(Ledctrl {
+            sequence_id: SequenceId::new(),
+            led_node: LedNode::ChamberLight,
+            led_mode,
+            led_on_time: 500,
+            led_off_time: 500,
+            loop_times: 0,
+            interval_time: 0,
+        }))
+    }
+
+    /// Return a command to get accessories.
+    pub fn get_accessories() -> Self {
+        Command::System(System::GetAccessories(GetAccessories {
+            sequence_id: SequenceId::new(),
+            accessory_type: AccessoryType::None,
         }))
     }
 }
@@ -210,6 +268,16 @@ pub enum LedMode {
     On,
     /// Turn the LED off.
     Off,
+}
+
+impl From<bool> for LedMode {
+    fn from(on: bool) -> Self {
+        if on {
+            LedMode::On
+        } else {
+            LedMode::Off
+        }
+    }
 }
 
 /// The payload for setting the speed profile.
