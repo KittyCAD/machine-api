@@ -81,7 +81,6 @@ impl Client {
         let message = parse_message(&msg_opt);
 
         if let Some(sequence_id) = message.sequence_id() {
-            println!("Received message {}: {:?}", sequence_id, message);
             self.responses.insert(sequence_id, message);
             return Ok(());
         }
