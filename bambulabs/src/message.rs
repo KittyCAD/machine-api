@@ -160,6 +160,8 @@ pub struct Print {
 pub enum PrintCommand {
     /// The status of the print.
     PushStatus,
+    /// The gcode line.
+    GcodeLine,
 }
 
 /// The print upload.
@@ -382,7 +384,7 @@ pub struct System {
 #[display(style = "snake_case")]
 pub enum SystemCommand {
     /// Led control.
-    LedCntl,
+    Ledctrl,
 }
 
 #[cfg(test)]
