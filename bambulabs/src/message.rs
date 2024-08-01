@@ -385,6 +385,8 @@ pub struct System {
 pub enum SystemCommand {
     /// Led control.
     Ledctrl,
+    /// Get accessories.
+    GetAccessories,
 }
 
 #[cfg(test)]
