@@ -1754,7 +1754,7 @@ dependencies = [
  "futures",
  "futures-util",
  "git_rev",
- "http 0.2.12",
+ "http 1.1.0",
  "libmdns",
  "mdns",
  "multer",

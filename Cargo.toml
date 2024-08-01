@@ -22,7 +22,7 @@ dropshot = "0.10"
 futures = "0.3.28"
 futures-util = "0.3.30"
 git_rev = "0.1.0"
-http = "0.2.8"
+http = "1.1.0"
 libmdns = "0.8.0"
 mdns = "3.0.0"
 multer = { version = "3.1.0", features = ["json"] }
