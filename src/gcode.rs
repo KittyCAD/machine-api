@@ -1,9 +1,9 @@
+use anyhow::Context;
 use std::{
     path::{Path, PathBuf},
     process::Command,
     sync::Arc,
 };
-use anyhow::Context;
 
 // Use Arc for shared ownership.
 #[derive(Clone)]
@@ -38,12 +38,21 @@ fn slice_stl_with_prusa_slicer(config_path: &Path, stl_path: &Path) -> anyhow::R
 
     let args: Vec<String> = vec![
         "--load".to_string(),
-        config_path.to_str().ok_or_else(|| anyhow::anyhow!("Invalid slicer config path"))?.to_string(),
+        config_path
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path"))?
+            .to_string(),
         "--support-material".to_string(),
         "--export-gcode".to_string(),
-        stl_path.to_str().ok_or_else(|| anyhow::anyhow!("Invalid STL path"))?.to_string(),
+        stl_path
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid STL path"))?
+            .to_string(),
         "--output".to_string(),
-        gcode_path.to_str().ok_or_else(|| anyhow::anyhow!("Invalid G-code path"))?.to_string(),
+        gcode_path
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid G-code path"))?
+            .to_string(),
     ];
 
     let output = Command::new("prusa-slicer")
