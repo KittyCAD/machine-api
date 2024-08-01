@@ -1,22 +1,29 @@
 //! Formlabs backend for the [`crate::network_printer::NetworkPrinter`] trait.
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use dashmap::DashMap;
 use futures_util::{pin_mut, stream::StreamExt};
 
-use crate::network_printer::{NetworkPrinter, NetworkPrinterInfo, NetworkPrinterManufacturer};
+use crate::{
+    config::FormLabsConfig,
+    network_printer::{
+        Message, NetworkPrinter, NetworkPrinterHandle, NetworkPrinterInfo, NetworkPrinterManufacturer, NetworkPrinters,
+    },
+};
 
 /// The hostname formlabs printers.
 const SERVICE_NAME: &str = "_formlabs_formule._tcp.local";
 
 /// Formlabs printer backend.
 pub struct Formlabs {
-    pub printers: DashMap<String, NetworkPrinterInfo>,
+    pub printers: DashMap<String, NetworkPrinterHandle>,
 }
 
 impl Formlabs {
     /// Create a new Formlabs printer backend.
-    pub fn new() -> Self {
+    pub fn new(_config: &FormLabsConfig) -> Self {
         Self {
             printers: DashMap::new(),
         }
@@ -24,7 +31,7 @@ impl Formlabs {
 }
 
 #[async_trait::async_trait]
-impl NetworkPrinter for Formlabs {
+impl NetworkPrinters for Formlabs {
     async fn discover(&self) -> Result<()> {
         // Iterate through responses from each Cast device, asking for new devices every 15s
         let stream = mdns::discover::all(SERVICE_NAME, std::time::Duration::from_secs(15))?.listen();
@@ -32,7 +39,7 @@ impl NetworkPrinter for Formlabs {
 
         while let Some(Ok(response)) = stream.next().await {
             if let Some(addr) = response.ip_addr() {
-                let printer = NetworkPrinterInfo {
+                let info = NetworkPrinterInfo {
                     hostname: response.hostname().map(|name| name.to_string()),
                     ip: addr,
                     port: response.port(),
@@ -40,7 +47,11 @@ impl NetworkPrinter for Formlabs {
                     model: None,
                     serial: None,
                 };
-                self.printers.insert(addr.to_string(), printer);
+                let handle = NetworkPrinterHandle {
+                    info,
+                    client: Arc::new(Box::new(FormlabsPrinter {})),
+                };
+                self.printers.insert(addr.to_string(), handle);
             } else {
                 println!("formlabs printer does not advertise address: {:#?}", response);
             }
@@ -50,6 +61,29 @@ impl NetworkPrinter for Formlabs {
     }
 
     fn list(&self) -> Result<Vec<NetworkPrinterInfo>> {
+        Ok(self
+            .printers
+            .iter()
+            .map(|printer| printer.value().info.clone())
+            .collect())
+    }
+
+    fn list_handles(&self) -> Result<Vec<NetworkPrinterHandle>> {
         Ok(self.printers.iter().map(|printer| printer.value().clone()).collect())
+    }
+}
+
+pub struct FormlabsPrinter {}
+
+#[async_trait::async_trait]
+impl NetworkPrinter for FormlabsPrinter {
+    /// Get the status of a printer.
+    async fn status(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
+    /// Print a file.
+    async fn print(&self, _file: &str) -> Result<()> {
+        unimplemented!()
     }
 }

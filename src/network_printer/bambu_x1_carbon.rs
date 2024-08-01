@@ -1,24 +1,38 @@
-use super::{NetworkPrinter, NetworkPrinterInfo, NetworkPrinterManufacturer};
-use dashmap::DashSet;
-use std::net::Ipv4Addr;
+use std::{
+    net::{IpAddr, Ipv4Addr},
+    sync::Arc,
+};
+
+use anyhow::Result;
+use bambulabs::command::Command;
+use dashmap::DashMap;
 use tokio::net::UdpSocket;
+
+use crate::{
+    config::BambuLabsConfig,
+    network_printer::{
+        Message, NetworkPrinter, NetworkPrinterHandle, NetworkPrinterInfo, NetworkPrinterManufacturer, NetworkPrinters,
+    },
+};
 
 const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
 
 pub struct BambuX1Carbon {
-    pub printers: DashSet<NetworkPrinterInfo>,
+    pub printers: DashMap<String, NetworkPrinterHandle>,
+    pub config: BambuLabsConfig,
 }
 
 impl BambuX1Carbon {
-    pub fn new() -> Self {
+    pub fn new(config: &BambuLabsConfig) -> Self {
         Self {
-            printers: DashSet::new(),
+            printers: DashMap::new(),
+            config: config.clone(),
         }
     }
 }
 
 #[async_trait::async_trait]
-impl NetworkPrinter for BambuX1Carbon {
+impl NetworkPrinters for BambuX1Carbon {
     async fn discover(&self) -> anyhow::Result<()> {
         tracing::info!("Spawning Bambu discovery task");
 
@@ -64,7 +78,7 @@ impl NetworkPrinter for BambuX1Carbon {
 
             let mut urn = None;
             let mut name = None;
-            let mut ip = None;
+            let mut ip: Option<IpAddr> = None;
             let mut serial = None;
             // TODO: This is probably the secure MQTT port 8883 but we need to test that assumption
             #[allow(unused_mut)]
@@ -116,30 +130,85 @@ impl NetworkPrinter for BambuX1Carbon {
                 continue;
             }
 
+            if self.printers.contains_key(&ip.to_string()) {
+                tracing::debug!("Printer already discovered, skipping");
+                continue;
+            }
+
+            let Some(name) = name else {
+                tracing::warn!("No name found for printer at {}", ip);
+                continue;
+            };
+
+            // Get the access code from the config.
+            let Some(access_code) = self.config.get_access_code(&name.to_string()) else {
+                tracing::warn!("No access code found for printer at {}", ip);
+                continue;
+            };
+
+            // Add a mqtt client for this printer.
+            let serial = serial.as_deref().unwrap_or_default();
+
+            let client = bambulabs::client::Client::new(ip.to_string(), access_code.to_string(), serial.to_string())?;
+            let mut cloned_client = client.clone();
+            tokio::spawn(async move {
+                cloned_client.run().await.unwrap();
+            });
+
             // At this point, we have a valid (as long as the parsing above is strict enough lmao)
             // collection of data that represents a Bambu X1 Carbon.
             let info = NetworkPrinterInfo {
-                hostname: name,
+                hostname: Some(name),
                 ip,
                 port,
                 manufacturer: NetworkPrinterManufacturer::Bambu,
                 // We can hard code this for now as we check the URN above (and assume the URN is
                 // unique to the X1 carbon)
                 model: Some(String::from("Bambu Lab X1 Carbon")),
-                serial,
+                serial: Some(serial.to_string()),
             };
 
-            if self.printers.insert(info.clone()) {
-                tracing::info!("Found printer {:?} at IP {:?}", info.hostname, info.ip);
-
-                tracing::debug!("--> Full printer details {:?}", info);
-            }
+            let handle = NetworkPrinterHandle {
+                info,
+                client: Arc::new(Box::new(BambuX1CarbonPrinter {
+                    client: Arc::new(client),
+                })),
+            };
+            self.printers.insert(ip.to_string(), handle);
         }
 
         Ok(())
     }
 
     fn list(&self) -> anyhow::Result<Vec<NetworkPrinterInfo>> {
-        Ok(self.printers.iter().map(|item| item.clone()).collect())
+        Ok(self
+            .printers
+            .iter()
+            .map(|printer| printer.value().info.clone())
+            .collect())
+    }
+
+    fn list_handles(&self) -> Result<Vec<NetworkPrinterHandle>> {
+        Ok(self.printers.iter().map(|printer| printer.value().clone()).collect())
+    }
+}
+
+pub struct BambuX1CarbonPrinter {
+    pub client: Arc<bambulabs::client::Client>,
+}
+
+#[async_trait::async_trait]
+impl NetworkPrinter for BambuX1CarbonPrinter {
+    /// Get the status of a printer.
+    async fn status(&self) -> Result<Message> {
+        // Get the status of the printer.
+        let status = self.client.publish(Command::get_version()).await?;
+
+        Ok(status.into())
+    }
+
+    /// Print a file.
+    async fn print(&self, _file: &str) -> Result<()> {
+        unimplemented!()
     }
 }

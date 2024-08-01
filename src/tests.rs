@@ -6,6 +6,8 @@ use pretty_assertions::assert_eq;
 use test_context::{test_context, AsyncTestContext};
 use testresult::TestResult;
 
+use crate::config::Config;
+
 struct ServerContext {
     config: crate::Server,
     server: dropshot::HttpServer<Arc<crate::server::context::Context>>,
@@ -21,13 +23,16 @@ impl ServerContext {
         };
 
         // Create the server in debug mode.
+        let config_file: Config = Default::default();
         let (server, _context) = crate::server::create_server(
             &config,
             &crate::Opts {
                 debug: true,
                 json: false,
                 subcmd: crate::SubCommand::Server(config.clone()),
+                config: Default::default(),
             },
+            &config_file,
         )
         .await?;
 

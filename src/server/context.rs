@@ -3,7 +3,10 @@ use std::{collections::HashMap, sync::Arc};
 use anyhow::Result;
 use tokio::sync::Mutex;
 
-use crate::network_printer::{NetworkPrinter, NetworkPrinterManufacturer};
+use crate::{
+    config::Config,
+    network_printer::{NetworkPrinterManufacturer, NetworkPrinters},
+};
 
 /**
  * Application-specific context (state shared by handler functions)
@@ -12,7 +15,7 @@ pub struct Context {
     pub schema: serde_json::Value,
     pub logger: slog::Logger,
     pub usb_printers: Arc<HashMap<String, crate::usb_printer::UsbPrinterInfo>>,
-    pub network_printers: Arc<HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>>>,
+    pub network_printers: Arc<HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinters>>>,
     pub active_jobs: Mutex<HashMap<String, tokio::task::JoinHandle<anyhow::Result<()>>>>,
 }
 
@@ -20,20 +23,26 @@ impl Context {
     /**
      * Return a new Context.
      */
-    pub async fn new(schema: serde_json::Value, logger: slog::Logger) -> Result<Context> {
-        let mut network_printers: HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinter>> = HashMap::new();
+    pub async fn new(config: &Config, schema: serde_json::Value, logger: slog::Logger) -> Result<Context> {
+        let mut network_printers: HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinters>> = HashMap::new();
 
-        // Add formlabs backend.
-        network_printers.insert(
-            NetworkPrinterManufacturer::Formlabs,
-            Box::new(crate::network_printer::formlabs::Formlabs::new()),
-        );
+        if let Some(formlabs_config) = &config.formlabs {
+            // Add formlabs backend.
+            network_printers.insert(
+                NetworkPrinterManufacturer::Formlabs,
+                Box::new(crate::network_printer::formlabs::Formlabs::new(formlabs_config)),
+            );
+        }
 
-        // Add Bambu Lab backend.
-        network_printers.insert(
-            NetworkPrinterManufacturer::Bambu,
-            Box::new(crate::network_printer::bambu_x1_carbon::BambuX1Carbon::new()),
-        );
+        if let Some(bambulabs_config) = &config.bambulabs {
+            // Add Bambu Lab backend.
+            network_printers.insert(
+                NetworkPrinterManufacturer::Bambu,
+                Box::new(crate::network_printer::bambu_x1_carbon::BambuX1Carbon::new(
+                    bambulabs_config,
+                )),
+            );
+        }
 
         // Create the context.
         Ok(Context {
@@ -62,7 +71,28 @@ impl Context {
         Ok(machines)
     }
 
+    pub fn list_machine_handles(&self) -> Result<HashMap<String, crate::machine::MachineHandle>> {
+        let mut machines: HashMap<String, crate::machine::MachineHandle> = HashMap::new();
+        for (_, np) in self.network_printers.iter() {
+            for np in np.list_handles()? {
+                if let Some(hostname) = np.info.hostname.clone() {
+                    machines.insert(hostname, np.into());
+                } else {
+                    machines.insert(np.info.ip.to_string(), np.into());
+                }
+            }
+        }
+        for (_, up) in self.usb_printers.iter() {
+            machines.insert(up.id.clone(), up.clone().into());
+        }
+        Ok(machines)
+    }
+
     pub fn find_machine_by_id(&self, id: &str) -> Result<Option<crate::machine::Machine>> {
         self.list_machines().map(|machines| machines.get(id).cloned())
+    }
+
+    pub fn find_machine_handle_by_id(&self, id: &str) -> Result<Option<crate::machine::MachineHandle>> {
+        self.list_machine_handles().map(|machines| machines.get(id).cloned())
     }
 }

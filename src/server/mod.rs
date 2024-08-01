@@ -10,7 +10,7 @@ use signal_hook::{
     iterator::Signals,
 };
 
-use crate::{network_printer::NetworkPrinterManufacturer, server::context::Context};
+use crate::{config::Config, network_printer::NetworkPrinterManufacturer, server::context::Context};
 
 /// Create an API description for the server.
 pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
@@ -39,6 +39,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
 pub async fn create_server(
     s: &crate::Server,
     opts: &crate::Opts,
+    config: &Config,
 ) -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
     let mut api = create_api_description()?;
     let schema = get_openapi(&mut api)?;
@@ -52,7 +53,7 @@ pub async fn create_server(
     let logger = opts.create_logger("server");
     let dropshot_logger = logger.new(slog::o!("component" => "dropshot"));
 
-    let api_context = Arc::new(Context::new(schema, logger).await?);
+    let api_context = Arc::new(Context::new(config, schema, logger).await?);
 
     let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &dropshot_logger)
         .map_err(|error| anyhow!("failed to create server: {}", error))?
@@ -73,8 +74,8 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
         .map_err(|e| e.into())
 }
 
-pub async fn server(s: &crate::Server, opts: &crate::Opts) -> Result<()> {
-    let (server, api_context) = create_server(s, opts).await?;
+pub async fn server(s: &crate::Server, opts: &crate::Opts, config: &Config) -> Result<()> {
+    let (server, api_context) = create_server(s, opts, config).await?;
     let addr: SocketAddr = s.address.parse()?;
 
     let responder = libmdns::Responder::new().unwrap();

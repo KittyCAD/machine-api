@@ -1,7 +1,8 @@
-//! machine-api
+//! An API server for controlling various machines.
 
 #![deny(missing_docs)]
 
+mod config;
 mod gcode;
 mod machine;
 mod network_printer;
@@ -15,8 +16,9 @@ use std::{ffi::OsStr, sync::Arc};
 
 use anyhow::{bail, Result};
 use clap::Parser;
+use config::Config;
 use gcode::GcodeSequence;
-use machine::Machine;
+use machine::{Machine, MachineHandle};
 use network_printer::NetworkPrinterManufacturer;
 use opentelemetry::{trace::TracerProvider, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
@@ -42,6 +44,10 @@ pub struct Opts {
     /// The subcommand to run.
     #[clap(subcommand)]
     pub subcmd: SubCommand,
+
+    /// Path to config file.
+    #[clap(short, long, default_value = "config.toml")]
+    pub config: std::path::PathBuf,
 }
 
 impl Opts {
@@ -94,14 +100,20 @@ pub enum SubCommand {
 
     /// Print the given `file` with config from `config_file`
     PrintFile {
-        /// Id for a printer
-        printer_id: String,
+        /// Id for a machine
+        machine_id: String,
 
         /// Path to config file for slice
         config_file: std::path::PathBuf,
 
         /// File path to slice
         file: std::path::PathBuf,
+    },
+
+    /// Get machine metrics.
+    GetMetrics {
+        /// Id for a machine
+        machine_id: String,
     },
 }
 
@@ -183,22 +195,24 @@ async fn main() -> Result<()> {
         delouse::init()?;
     }
 
-    if let Err(err) = run_cmd(&opts).await {
+    let config = config::Config::from_file(&opts.config)?;
+
+    if let Err(err) = run_cmd(&opts, &config).await {
         bail!("running cmd `{:?}` failed: {:?}", &opts.subcmd, err);
     }
 
     Ok(())
 }
 
-async fn run_cmd(opts: &Opts) -> Result<()> {
+async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
     match &opts.subcmd {
         SubCommand::Server(s) => {
-            crate::server::server(s, opts).await?;
+            crate::server::server(s, opts, config).await?;
         }
         SubCommand::ListMachines => {
             // Now connect to first printer we find over serial port
             //
-            let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
 
             println!("Discovering printers...");
             let cloned_api_context = api_context.clone();
@@ -228,7 +242,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             println!("Parsed {} lines of gcode", gcode.lines.len());
         }
         SubCommand::PrintFile {
-            printer_id,
+            machine_id,
             config_file,
             file,
         } => {
@@ -241,7 +255,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
 
             // Now connect to first printer we find over serial port
             //
-            let api_context = Arc::new(Context::new(Default::default(), opts.create_logger("print")).await?);
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
 
             println!("Discovering printers...");
             // Start all the discovery tasks.
@@ -261,7 +275,7 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
             .await;
 
             let machine = api_context
-                .find_machine_by_id(printer_id)?
+                .find_machine_by_id(machine_id)?
                 .expect("Printer not found by given ID");
             match machine {
                 Machine::UsbPrinter(printer) => {
@@ -277,6 +291,40 @@ async fn run_cmd(opts: &Opts) -> Result<()> {
                 }
                 _ => bail!("network printers not yet supported"),
             }
+        }
+        SubCommand::GetMetrics { machine_id } => {
+            // Now connect to first printer we find over serial port
+            //
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
+
+            println!("Discovering printers...");
+            // Start all the discovery tasks.
+            let cloned_api_context = api_context.clone();
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
+            let machine = api_context
+                .find_machine_handle_by_id(machine_id)?
+                .expect("Printer not found by given ID");
+
+            let MachineHandle::NetworkPrinter(machine) = machine else {
+                bail!("usb printers not yet supported");
+            };
+
+            let status = machine.client.status().await?;
+
+            println!("{:?}", status);
         }
     }
 

@@ -1,0 +1,23 @@
+[package]
+name = "bambulabs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1.0.86"
+dashmap = "6.0.1"
+format_serde_error = { version = "0.3.0", default-features = false, features = ["serde_json"] }
+lazy_static = "1.5.0"
+nanoid = "0.4.0"
+parse-display = "0.9.1"
+rumqttc = "0.24.0"
+rustls = "0.22"
+schemars = { version = "0.8.21", features = ["uuid"] }
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.121"
+tokio = { version = "1.39.2", features = ["sync"] }
+tracing = "0.1.40"
+uuid = { version = "1.10.0", features = ["serde", "v1", "v4"] }
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
