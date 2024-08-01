@@ -3,6 +3,7 @@ use std::{
     process::Command,
     sync::Arc,
 };
+use anyhow::Context;
 
 // Use Arc for shared ownership.
 #[derive(Clone)]
