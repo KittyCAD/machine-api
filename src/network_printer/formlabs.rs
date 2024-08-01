@@ -102,6 +102,11 @@ impl NetworkPrinter for FormlabsPrinter {
         unimplemented!()
     }
 
+    /// Get the accessories.
+    async fn accessories(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
     /// Print a file.
     async fn print(&self, _file: &str) -> Result<()> {
         unimplemented!()

@@ -42,6 +42,9 @@ pub trait NetworkPrinter: Send + Sync {
     /// Set the led on or off.
     async fn set_led(&self, on: bool) -> Result<Message>;
 
+    /// Get the accessories.
+    async fn accessories(&self) -> Result<Message>;
+
     /// Print a file.
     async fn print(&self, file: &str) -> Result<()>;
 }

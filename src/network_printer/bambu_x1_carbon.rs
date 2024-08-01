@@ -238,6 +238,14 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
         Ok(light.into())
     }
 
+    /// Get the accessories.
+    async fn accessories(&self) -> Result<Message> {
+        // Get the accessories of the printer.
+        let accessories = self.client.publish(Command::get_accessories()).await?;
+
+        Ok(accessories.into())
+    }
+
     /// Print a file.
     async fn print(&self, _file: &str) -> Result<()> {
         unimplemented!()
