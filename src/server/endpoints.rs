@@ -93,12 +93,19 @@ pub(crate) async fn print_file(
             ))
         }
     };
+
+    let slicer_machine = machine.clone();
     let gcode_task = tokio::task::spawn_blocking(move || {
         let dir = tempdir::TempDir::new(&machine_id)?;
-        let slicer_config_path = Path::new("/home/iterion/Development/machine-api/mk3.ini");
+        let (slicer_config_path, slicer) = match slicer_machine {
+            crate::machine::Machine::NetworkPrinter(_) => {
+                (Path::new("../config/prusa/mk3.ini"), crate::gcode::Slicer::Prusa)
+            }
+            crate::machine::Machine::UsbPrinter(_) => (Path::new("../config/bambu/"), crate::gcode::Slicer::Orca),
+        };
         let stl_path = dir.path().join(file.file_name.unwrap_or("print.stl".to_string()));
         std::fs::write(&stl_path, file.content)?;
-        GcodeSequence::from_stl_path(slicer_config_path, &stl_path)
+        GcodeSequence::from_stl_path(slicer, slicer_config_path, &stl_path)
     })
     .await
     .map_err(|_| HttpError::for_internal_error("failed to convert Gcode".to_owned()))?;
