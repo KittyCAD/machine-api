@@ -8,10 +8,10 @@
         "url": "https://docs.zoo.dev/api/meta"
       }
     },
-    "print": {
-      "description": "Utilities for printing and discovering printers.",
+    "machines": {
+      "description": "Utilities for making parts and discovering machines.",
       "external_docs": {
-        "url": "https://docs.zoo.dev/api/print"
+        "url": "https://docs.zoo.dev/api/machines"
       }
     }
   }

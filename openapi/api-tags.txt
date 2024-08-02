@@ -1,10 +1,11 @@
+API operations found with tag "machines"
+OPERATION ID                             URL PATH
+get_machine                              /machines/{id}
+get_machines                             /machines
+print_file                               /print
+
 API operations found with tag "meta"
 OPERATION ID                             URL PATH
 api_get_schema                           /
 ping                                     /ping
-
-API operations found with tag "print"
-OPERATION ID                             URL PATH
-get_machines                             /machines
-print_file                               /print
 

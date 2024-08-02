@@ -53,6 +53,20 @@ impl MachineHandle {
         }
         Ok(())
     }
+
+    pub async fn status(&self) -> anyhow::Result<Message> {
+        match self {
+            MachineHandle::UsbPrinter(printer) => {
+                let machine = crate::usb_printer::UsbPrinter::new(printer.clone());
+                let status = machine.status()?;
+                Ok(status.into())
+            }
+            MachineHandle::NetworkPrinter(printer) => {
+                let status = printer.client.status().await?;
+                Ok(status.into())
+            }
+        }
+    }
 }
 
 impl From<MachineHandle> for Machine {
@@ -73,5 +87,24 @@ impl From<UsbPrinterInfo> for MachineHandle {
 impl From<crate::network_printer::NetworkPrinterHandle> for MachineHandle {
     fn from(printer: crate::network_printer::NetworkPrinterHandle) -> Self {
         MachineHandle::NetworkPrinter(printer)
+    }
+}
+
+/// A message from a machine.
+#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
+pub enum Message {
+    UsbPrinter(crate::usb_printer::Message),
+    NetworkPrinter(crate::network_printer::Message),
+}
+
+impl From<crate::usb_printer::Message> for Message {
+    fn from(msg: crate::usb_printer::Message) -> Self {
+        Message::UsbPrinter(msg)
+    }
+}
+
+impl From<crate::network_printer::Message> for Message {
+    fn from(msg: crate::network_printer::Message) -> Self {
+        Message::NetworkPrinter(msg)
     }
 }

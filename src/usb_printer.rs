@@ -123,4 +123,12 @@ impl UsbPrinter {
         let gcode = self.slice(file)?;
         self.print(&gcode)
     }
+
+    pub fn status(&self) -> Result<Message> {
+        todo!()
+    }
 }
+
+/// A message from the printer.
+#[derive(Debug, Clone, JsonSchema, Serialize, Deserialize)]
+pub enum Message {}

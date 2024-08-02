@@ -1,6 +1,6 @@
 use std::{collections::HashMap, sync::Arc};
 
-use dropshot::{endpoint, HttpError, HttpResponseOk, RequestContext};
+use dropshot::{endpoint, HttpError, HttpResponseOk, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -43,7 +43,7 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
 #[endpoint {
     method = GET,
     path = "/machines",
-    tags = ["print"],
+    tags = ["machines"],
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
@@ -54,6 +54,44 @@ pub async fn get_machines(
         HttpError::for_internal_error("failed to list machines".to_string())
     })?;
     Ok(HttpResponseOk(machines))
+}
+
+/// The path parameters for performing operations on an machine.
+#[derive(Deserialize, Debug, JsonSchema, Serialize)]
+pub struct MachinePathParams {
+    /// The machine ID.
+    pub id: String,
+}
+
+/** Get the status of a specific machine */
+#[endpoint {
+    method = GET,
+    path = "/machines/{id}",
+    tags = ["machines"],
+}]
+pub async fn get_machine(
+    rqctx: RequestContext<Arc<Context>>,
+    path_params: Path<MachinePathParams>,
+) -> Result<HttpResponseOk<crate::machine::Message>, HttpError> {
+    let params = path_params.into_inner();
+    let ctx = rqctx.context();
+    let machine = ctx
+        .find_machine_handle_by_id(&params.id)
+        .map_err(|e| {
+            tracing::error!("failed to find machine by id: {:?}", e);
+            HttpError::for_internal_error("failed to find machine by id".to_string())
+        })?
+        .ok_or_else(|| {
+            tracing::error!("machine not found by id: {:?}", params.id);
+            HttpError::for_internal_error("machine not found".to_string())
+        })?;
+
+    let message = machine.status().await.map_err(|e| {
+        tracing::error!("failed to get machine status: {:?}", e);
+        HttpError::for_internal_error("failed to get machine status".to_string())
+    })?;
+
+    Ok(HttpResponseOk(message))
 }
 
 /// The response from the `/print` endpoint.
@@ -70,7 +108,7 @@ pub struct PrintJobResponse {
 #[endpoint {
     method = POST,
     path = "/print",
-    tags = ["print"],
+    tags = ["machines"],
 }]
 pub(crate) async fn print_file(
     rqctx: RequestContext<Arc<Context>>,
