@@ -265,23 +265,7 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
                 .expect("Printer not found by given ID");
             match machine {
                 MachineHandle::UsbPrinter(_printer) => {
-                    /*let mut printer = UsbPrinter::new(printer);
-                    printer.wait_for_start()?;
-
-                    let extension = file.extension().unwrap_or(OsStr::new("stl"));
-                    let gcode = if extension != "gcode" {
-                        GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, config_file, file)?
-                    } else {
-                        GcodeSequence::from_file_path(file)?
-                    };
-
-                    for line in gcode.lines.iter() {
-                        let msg = format!("{}\r\n", line);
-                        println!("writing: {}", line);
-                        printer.writer.write_all(msg.as_bytes())?;
-                        printer.wait_for_ok()?;
-                    }*/
-                    todo!("usb printer needs config file support for reading slicer config")
+                    todo!("usb printer needs config file support for reading slicer config and nice trait for slice and print like network printer has")
                 }
                 MachineHandle::NetworkPrinter(printer) => {
                     let result = printer.client.slice_and_print(file).await?;
