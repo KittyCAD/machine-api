@@ -166,6 +166,8 @@ pub enum PrintCommand {
     PushStatus,
     /// The gcode line.
     GcodeLine,
+    /// Project file.
+    ProjectFile,
 }
 
 /// The print upload.
