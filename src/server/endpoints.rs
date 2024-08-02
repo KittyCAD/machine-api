@@ -138,14 +138,28 @@ pub(crate) async fn print_file(
         HttpError::for_bad_request(None, "failed to write stl file".to_string())
     })?;
 
-    let print_job = PrintJob {
-        file: filepath,
-        machine,
-        job_name: params.job_name.to_string(),
-    };
-    let handle = print_job.spawn().await;
-    let mut active_jobs = ctx.active_jobs.lock().await;
-    active_jobs.insert(job_id.to_string(), handle);
+    match machine {
+        crate::machine::MachineHandle::UsbPrinter(_) => {
+            let print_job = PrintJob {
+                file: filepath,
+                machine,
+                job_name: params.job_name.to_string(),
+            };
+            let handle = print_job.spawn().await;
+            let mut active_jobs = ctx.active_jobs.lock().await;
+            active_jobs.insert(job_id.to_string(), handle);
+        }
+        crate::machine::MachineHandle::NetworkPrinter(printer) => {
+            printer
+                .client
+                .slice_and_print(&params.job_name, &filepath)
+                .await
+                .map_err(|e| {
+                    tracing::error!("failed to print file: {:?}", e);
+                    HttpError::for_bad_request(None, "failed to print file".to_string())
+                })?;
+        }
+    }
 
     Ok(HttpResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),

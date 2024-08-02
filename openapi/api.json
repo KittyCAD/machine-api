@@ -112,6 +112,7 @@
           },
           "project_name": {
             "description": "The project name.",
+            "nullable": true,
             "type": "string"
           },
           "sn": {
@@ -126,7 +127,6 @@
         "required": [
           "hw_ver",
           "name",
-          "project_name",
           "sn",
           "sw_ver"
         ],

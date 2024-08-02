@@ -380,7 +380,7 @@ pub struct InfoModule {
     /// The module name.
     pub name: String,
     /// The project name.
-    pub project_name: String,
+    pub project_name: Option<String>,
     /// The software version.
     pub sw_ver: String,
     /// The hardware version.
