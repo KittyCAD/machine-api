@@ -251,7 +251,8 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
                     .unwrap()
             });
 
-            machine.slice_and_print(job_name, file).await?;
+            let result = machine.slice_and_print(job_name, file).await?;
+            println!("{:#?}", result);
         }
         SubCommand::GetStatus { machine_id } => {
             // Now connect to first printer we find over serial port
