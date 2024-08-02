@@ -50,12 +50,12 @@ pub trait NetworkPrinter: Send + Sync {
     async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf>;
 
     /// Print a file.
-    async fn print(&self, file: &std::path::Path) -> Result<Message>;
+    async fn print(&self, job_name: &str, file: &std::path::Path) -> Result<Message>;
 
     /// Slice and print a file.
-    async fn slice_and_print(&self, file: &std::path::Path) -> Result<Message> {
+    async fn slice_and_print(&self, job_name: &str, file: &std::path::Path) -> Result<Message> {
         let sliced = self.slice(file).await?;
-        self.print(&sliced).await
+        self.print(job_name, &sliced).await
     }
 }
 

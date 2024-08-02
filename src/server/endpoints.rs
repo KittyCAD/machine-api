@@ -100,9 +100,14 @@ pub(crate) async fn print_file(
         HttpError::for_internal_error("failed to write stl file".to_string())
     })?;
 
-    let print_job = PrintJob::new(filepath, machine.clone()).spawn().await;
+    let print_job = PrintJob {
+        file: filepath,
+        machine,
+        job_name: params.job_name.to_string(),
+    };
+    let handle = print_job.spawn().await;
     let mut active_jobs = ctx.active_jobs.lock().await;
-    active_jobs.insert(job_id.to_string(), print_job);
+    active_jobs.insert(job_id.to_string(), handle);
 
     Ok(HttpResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
@@ -118,7 +123,11 @@ pub(crate) struct FileAttachment {
 /// Parameters for printing.
 #[derive(Serialize, Deserialize, Debug, JsonSchema, Clone)]
 pub(crate) struct PrintParameters {
+    /// The machine id to print to.
     pub machine_id: String,
+
+    /// The name for the job.
+    pub job_name: String,
 }
 
 /// Possible errors returned by print endpoints.

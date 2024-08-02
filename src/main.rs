@@ -95,6 +95,11 @@ pub enum SubCommand {
 
         /// File path to slice
         file: std::path::PathBuf,
+
+        /// The name of the job.
+        /// If not given, the file name will be used.
+        #[clap(long)]
+        job_name: Option<String>,
     },
 
     /// Get machine metrics.
@@ -224,7 +229,11 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
                 println!("{}: {:?}", id, machine);
             }
         }
-        SubCommand::PrintFile { machine_id, file } => {
+        SubCommand::PrintFile {
+            machine_id,
+            file,
+            job_name,
+        } => {
             // Now connect to first printer we find over serial port
             let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
 
@@ -234,7 +243,15 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
                 .find_machine_handle_by_id(machine_id)?
                 .expect("Printer not found by given ID");
 
-            machine.slice_and_print(file).await?;
+            let job_name = job_name.as_deref().unwrap_or_else(|| {
+                file.file_name()
+                    .ok_or_else(|| anyhow::anyhow!("file name not found"))
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+            });
+
+            machine.slice_and_print(job_name, file).await?;
         }
         SubCommand::GetMetrics { machine_id } => {
             // Now connect to first printer we find over serial port

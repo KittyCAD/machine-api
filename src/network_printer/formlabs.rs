@@ -114,7 +114,7 @@ impl NetworkPrinter for FormlabsPrinter {
     }
 
     /// Print a file.
-    async fn print(&self, _file: &std::path::Path) -> Result<Message> {
+    async fn print(&self, _job_name: &str, _file: &std::path::Path) -> Result<Message> {
         unimplemented!()
     }
 }

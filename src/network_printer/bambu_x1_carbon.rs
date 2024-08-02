@@ -261,7 +261,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     }
 
     /// Print a file.
-    async fn print(&self, file: &std::path::Path) -> Result<Message> {
+    async fn print(&self, job_name: &str, file: &std::path::Path) -> Result<Message> {
         // Upload the file to the printer.
         self.client.upload_file(file).await?;
 
@@ -272,7 +272,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Bad filename: {}", file.display()))?;
 
-        let response = self.client.publish(Command::print_file(filename)).await?;
+        let response = self.client.publish(Command::print_file(job_name, filename)).await?;
 
         Ok(response.into())
     }

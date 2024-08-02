@@ -177,11 +177,17 @@
       "PrintParameters": {
         "description": "Parameters for printing.",
         "properties": {
+          "job_name": {
+            "description": "The name for the job.",
+            "type": "string"
+          },
           "machine_id": {
+            "description": "The machine id to print to.",
             "type": "string"
           }
         },
         "required": [
+          "job_name",
           "machine_id"
         ],
         "type": "object"
