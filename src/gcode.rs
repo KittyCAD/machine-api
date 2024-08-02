@@ -92,7 +92,7 @@ async fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyho
         "--load-filaments".to_string(),
         filament_config,
         "--slice".to_string(),
-        "1".to_string(),
+        "0".to_string(),
         "--orient".to_string(),
         "1".to_string(),
         "--export-3mf".to_string(),
