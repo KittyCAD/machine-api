@@ -858,6 +858,13 @@
               "project_file"
             ],
             "type": "string"
+          },
+          {
+            "description": "Stop the print.",
+            "enum": [
+              "stop"
+            ],
+            "type": "string"
           }
         ]
       },

@@ -186,6 +186,8 @@ pub enum PrintCommand {
     GcodeLine,
     /// Project file.
     ProjectFile,
+    /// Stop the print.
+    Stop,
 }
 
 /// The print upload.
