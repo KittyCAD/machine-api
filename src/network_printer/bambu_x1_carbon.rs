@@ -253,7 +253,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     /// Returns the path to the sliced file.
     async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
         let extension = file.extension().unwrap_or(std::ffi::OsStr::new("stl"));
-        let gcode = if extension != "gcode" {
+        let gcode = if extension != "3mf" {
             GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file)?
         } else {
             GcodeSequence::from_file_path(file)?
@@ -261,7 +261,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
 
         // Save the gcode to a temp file.
         let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(&format!("{}.gcode", uid));
+        let gcode_path = std::env::temp_dir().join(&format!("{}.3mf", uid));
         tokio::fs::write(&gcode_path, gcode.as_bytes()).await?;
         tracing::info!("Saved gcode to {}", gcode_path.display());
 
