@@ -39,6 +39,11 @@ impl BambuLabsConfig {
     pub fn get_access_code(&self, id: &str) -> Option<String> {
         self.machines.iter().find(|m| m.id == id).map(|m| m.access_code.clone())
     }
+
+    // Get the machine config for the given id.
+    pub fn get_machine_config(&self, id: &str) -> Option<&BambuLabsMachineConfig> {
+        self.machines.iter().find(|m| m.id == id)
+    }
 }
 
 /// The configuration for a single bambu labs machine.
@@ -48,6 +53,8 @@ pub struct BambuLabsMachineConfig {
     pub id: String,
     /// The access code for the machine.
     pub access_code: String,
+    /// The slicer configuration for the machine.
+    pub slicer_config: PathBuf,
 }
 
 /// The configuration for formlabs machines.
@@ -63,9 +70,10 @@ mod tests {
         let config = r#"
             [bambulabs]
             machines = [
-                { id = "1", access_code = "1234" },
-                { id = "2", access_code = "5678" },
+                { id = "1", access_code = "1234", slicer_config = "./config/bambu" },
+                { id = "2", access_code = "5678", slicer_config = "./config/bambu"},
             ]
+            slicer_config = "./config/bambu"
         "#;
         let config = Config::from_str(config).unwrap();
         assert!(config.bambulabs.is_some());
@@ -82,9 +90,10 @@ mod tests {
     fn test_config_from_str_with_formlabs() {
         let config = r#"[bambulabs]
 machines = [
-    { id = "1", access_code = "1234" },
-    { id = "2", access_code = "5678" },
+    { id = "1", access_code = "1234", slicer_config = "./config/bambu" },
+    { id = "2", access_code = "5678", slicer_config = "./config/bambu"},
 ]
+
 
 [formlabs] 
         "#;

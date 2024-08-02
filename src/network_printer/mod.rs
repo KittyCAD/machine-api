@@ -45,6 +45,10 @@ pub trait NetworkPrinter: Send + Sync {
     /// Get the accessories.
     async fn accessories(&self) -> Result<Message>;
 
+    /// Slice a file.
+    /// Returns the path to the sliced file.
+    async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf>;
+
     /// Print a file.
     async fn print(&self, file: &std::path::Path) -> Result<Message>;
 }

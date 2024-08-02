@@ -9,7 +9,8 @@ use dashmap::DashMap;
 use tokio::net::UdpSocket;
 
 use crate::{
-    config::BambuLabsConfig,
+    config::{BambuLabsConfig, BambuLabsMachineConfig},
+    gcode::GcodeSequence,
     network_printer::{
         Message, NetworkPrinter, NetworkPrinterHandle, NetworkPrinterInfo, NetworkPrinterManufacturer, NetworkPrinters,
     },
@@ -140,16 +141,16 @@ impl NetworkPrinters for BambuX1Carbon {
                 continue;
             };
 
-            // Get the access code from the config.
-            let Some(access_code) = self.config.get_access_code(&name.to_string()) else {
-                tracing::warn!("No access code found for printer at {}", ip);
+            let Some(config) = self.config.get_machine_config(&name.to_string()) else {
+                tracing::warn!("No config found for printer at {}", ip);
                 continue;
             };
 
             // Add a mqtt client for this printer.
             let serial = serial.as_deref().unwrap_or_default();
 
-            let client = bambulabs::client::Client::new(ip.to_string(), access_code.to_string(), serial.to_string())?;
+            let client =
+                bambulabs::client::Client::new(ip.to_string(), config.access_code.to_string(), serial.to_string())?;
             let mut cloned_client = client.clone();
             tokio::spawn(async move {
                 cloned_client.run().await.unwrap();
@@ -172,6 +173,7 @@ impl NetworkPrinters for BambuX1Carbon {
                 info,
                 client: Arc::new(Box::new(BambuX1CarbonPrinter {
                     client: Arc::new(client),
+                    config: config.clone(),
                 })),
             };
             self.printers.insert(ip.to_string(), handle);
@@ -195,6 +197,7 @@ impl NetworkPrinters for BambuX1Carbon {
 
 pub struct BambuX1CarbonPrinter {
     pub client: Arc<bambulabs::client::Client>,
+    pub config: BambuLabsMachineConfig,
 }
 
 #[async_trait::async_trait]
@@ -244,6 +247,25 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
         let accessories = self.client.publish(Command::get_accessories()).await?;
 
         Ok(accessories.into())
+    }
+
+    /// Slice a file.
+    /// Returns the path to the sliced file.
+    async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
+        let extension = file.extension().unwrap_or(std::ffi::OsStr::new("stl"));
+        let gcode = if extension != "gcode" {
+            GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file)?
+        } else {
+            GcodeSequence::from_file_path(file)?
+        };
+
+        // Save the gcode to a temp file.
+        let uid = uuid::Uuid::new_v4();
+        let gcode_path = std::env::temp_dir().join(&format!("{}.gcode", uid));
+        tokio::fs::write(&gcode_path, gcode.as_bytes()).await?;
+        tracing::info!("Saved gcode to {}", gcode_path.display());
+
+        Ok(gcode_path)
     }
 
     /// Print a file.

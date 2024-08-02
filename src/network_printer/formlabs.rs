@@ -107,6 +107,12 @@ impl NetworkPrinter for FormlabsPrinter {
         unimplemented!()
     }
 
+    /// Slice a file.
+    /// Returns the path to the sliced file.
+    async fn slice(&self, _file: &std::path::Path) -> Result<std::path::PathBuf> {
+        unimplemented!()
+    }
+
     /// Print a file.
     async fn print(&self, _file: &std::path::Path) -> Result<Message> {
         unimplemented!()

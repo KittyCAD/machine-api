@@ -34,6 +34,10 @@ impl GcodeSequence {
         }?;
         Self::from_file_path(&gcode_path)
     }
+
+    pub fn as_bytes(&self) -> Vec<u8> {
+        self.lines.join("\n").into_bytes()
+    }
 }
 
 #[derive(Clone, Copy)]
