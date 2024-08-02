@@ -51,6 +51,12 @@ pub trait NetworkPrinter: Send + Sync {
 
     /// Print a file.
     async fn print(&self, file: &std::path::Path) -> Result<Message>;
+
+    /// Slice and print a file.
+    async fn slice_and_print(&self, file: &std::path::Path) -> Result<Message> {
+        let sliced = self.slice(file).await?;
+        self.print(&sliced).await
+    }
 }
 
 /// Handle for a 3d printer.

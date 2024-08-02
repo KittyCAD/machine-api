@@ -12,13 +12,12 @@ mod server;
 mod tests;
 mod usb_printer;
 
-use std::{ffi::OsStr, sync::Arc};
+use std::sync::Arc;
 
 use anyhow::{bail, Result};
 use clap::Parser;
 use config::Config;
-use gcode::GcodeSequence;
-use machine::{Machine, MachineHandle};
+use machine::MachineHandle;
 use network_printer::NetworkPrinterManufacturer;
 use opentelemetry::{trace::TracerProvider, KeyValue};
 use opentelemetry_otlp::WithExportConfig;
@@ -26,7 +25,6 @@ use opentelemetry_sdk::Resource;
 use server::context::Context;
 use slog::Drain;
 use tracing_subscriber::prelude::*;
-use usb_printer::UsbPrinter;
 
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields.
@@ -89,22 +87,10 @@ pub enum SubCommand {
     /// List all available machines on the network or over USB.
     ListMachines,
 
-    /// Slice the given `file` with config from `config_file`
-    SliceFile {
-        /// Path to config file for slice
-        config_file: std::path::PathBuf,
-
-        /// File path to slice
-        file: std::path::PathBuf,
-    },
-
     /// Print the given `file` with config from `config_file`
     PrintFile {
         /// Id for a machine
         machine_id: String,
-
-        /// Path to config file for slice
-        config_file: std::path::PathBuf,
 
         /// File path to slice
         file: std::path::PathBuf,
@@ -253,24 +239,8 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
                 println!("{}: {:?}", id, machine);
             }
         }
-        SubCommand::SliceFile { config_file, file } => {
-            let gcode = GcodeSequence::from_stl_path(crate::gcode::Slicer::Prusa, config_file, file)?;
-            println!("Parsed {} lines of gcode", gcode.lines.len());
-        }
-        SubCommand::PrintFile {
-            machine_id,
-            config_file,
-            file,
-        } => {
-            let extension = file.extension().unwrap_or(OsStr::new("stl"));
-            let gcode = if extension != "gcode" {
-                GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, config_file, file)?
-            } else {
-                GcodeSequence::from_file_path(file)?
-            };
-
+        SubCommand::PrintFile { machine_id, file } => {
             // Now connect to first printer we find over serial port
-            //
             let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
 
             println!("Discovering printers...");
@@ -291,21 +261,32 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
             .await;
 
             let machine = api_context
-                .find_machine_by_id(machine_id)?
+                .find_machine_handle_by_id(machine_id)?
                 .expect("Printer not found by given ID");
             match machine {
-                Machine::UsbPrinter(printer) => {
-                    let mut printer = UsbPrinter::new(printer);
+                MachineHandle::UsbPrinter(_printer) => {
+                    /*let mut printer = UsbPrinter::new(printer);
                     printer.wait_for_start()?;
+
+                    let extension = file.extension().unwrap_or(OsStr::new("stl"));
+                    let gcode = if extension != "gcode" {
+                        GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, config_file, file)?
+                    } else {
+                        GcodeSequence::from_file_path(file)?
+                    };
 
                     for line in gcode.lines.iter() {
                         let msg = format!("{}\r\n", line);
                         println!("writing: {}", line);
                         printer.writer.write_all(msg.as_bytes())?;
                         printer.wait_for_ok()?;
-                    }
+                    }*/
+                    todo!("usb printer needs config file support for reading slicer config")
                 }
-                _ => bail!("network printers not yet supported"),
+                MachineHandle::NetworkPrinter(printer) => {
+                    let result = printer.client.slice_and_print(file).await?;
+                    println!("{:?}", result);
+                }
             }
         }
         SubCommand::GetMetrics { machine_id } => {
