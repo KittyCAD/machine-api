@@ -47,6 +47,9 @@ pub trait NetworkPrinter: Send + Sync {
 
     /// Print a file.
     async fn print(&self, file: &str) -> Result<()>;
+
+    /// Upload a file.
+    async fn upload_file(&self, file: &std::path::Path) -> Result<()>;
 }
 
 /// Handle for a 3d printer.

@@ -2,7 +2,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use dashmap::DashMap;
 use tokio::sync::Mutex;
 
@@ -144,5 +144,38 @@ impl Client {
         }
 
         anyhow::bail!("Timeout waiting for response to command: {:?}", command)
+    }
+
+    /// Upload a file.
+    pub async fn upload_file(&self, path: &std::path::Path) -> Result<()> {
+        let host_url = url::Url::parse(&self.host)?;
+        let host = host_url
+            .host_str()
+            .ok_or(anyhow::anyhow!("not a valid hostname"))?
+            .to_string();
+        let access_code = self.access_code.clone();
+        let path = path.to_path_buf();
+        tokio::task::spawn_blocking(move || {
+            let args: Vec<String> = vec![
+                "--upload-file".to_string(),
+                path.to_str()
+                    .ok_or_else(|| anyhow::anyhow!("Invalid file path"))?
+                    .to_string(),
+                "--ftp-pasv".to_string(),
+                "--insecure".to_string(),
+                format!("ftps://{}/", host).to_string(),
+                "--user".to_string(),
+                format!("bblp:{}", access_code).to_string(),
+            ];
+            let output = std::process::Command::new("curl")
+                .args(&args)
+                .output()
+                .context("Failed to upload file")?;
+            println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
+            println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);
+
+            Ok(())
+        })
+        .await?
     }
 }

@@ -250,4 +250,9 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     async fn print(&self, _file: &str) -> Result<()> {
         unimplemented!()
     }
+
+    /// Upload a file.
+    async fn upload_file(&self, file: &std::path::Path) -> Result<()> {
+        Ok(self.client.upload_file(file).await?)
+    }
 }
