@@ -2,10 +2,8 @@
 
 use std::{sync::Arc, time::Duration};
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use dashmap::DashMap;
-use suppaftp::native_tls::{TlsConnector, TlsStream};
-use suppaftp::{NativeTlsConnector, NativeTlsFtpStream};
 use tokio::sync::Mutex;
 
 use crate::{command::Command, message::Message, parser::parse_message, sequence_id::SequenceId};
@@ -151,37 +149,27 @@ impl Client {
             .host_str()
             .ok_or(anyhow::anyhow!("not a valid hostname"))?
             .to_string();
-        println!("host: {}", &host);
-        println!("access_code: {}", &self.access_code);
-        let ac = self.access_code.clone();
-        let p = path.to_path_buf();
+        let access_code = self.access_code.clone();
+        let path = path.to_path_buf();
         tokio::task::spawn_blocking(move || {
-            //let ssl_config = Arc::new(
-            //    suppaftp::rustls::ClientConfig::builder()
-            //        .with_safe_defaults()
-            //        .with_custom_certificate_verifier(Arc::new(crate::no_auth::SuppaNoAuth::new()))
-            //        .with_no_client_auth(),
-            //);
-            let ctx = NativeTlsConnector::from(TlsConnector::builder().danger_accept_invalid_certs(true).build()?);
-            let mut ftp_stream =
-                NativeTlsFtpStream::connect_secure_implicit(format!("{}:990", host), ctx, "localhost")?;
-            println!("connected");
-            ftp_stream.login("bblp", &ac).unwrap();
-            println!("authed");
-            let bytes = std::fs::read(p)?;
-            println!("file");
-            let feats = ftp_stream.feat()?;
-            println!("feats: {:?}", feats);
+            let args: Vec<String> = vec![
+                "--upload-file".to_string(),
+                path.to_str()
+                    .ok_or_else(|| anyhow::anyhow!("Invalid file path"))?
+                    .to_string(),
+                "--ftp-pasv".to_string(),
+                "--insecure".to_string(),
+                format!("ftps://{}/", host).to_string(),
+                "--user".to_string(),
+                format!("bblp:{}", access_code).to_string(),
+            ];
+            let output = std::process::Command::new("curl")
+                .args(&args)
+                .output()
+                .context("Failed to upload file")?;
+            println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
+            println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);
 
-            let mut writer = ftp_stream.put_with_stream("upload.3mf")?;
-            use std::io::Write;
-            println!("put1");
-            let _ = writer.write(&bytes)?;
-            println!("put2");
-            let _ = ftp_stream.finalize_put_stream(writer)?;
-            println!("put3");
-            // Terminate the connection to the server.
-            let _ = ftp_stream.quit();
             Ok(())
         })
         .await?
