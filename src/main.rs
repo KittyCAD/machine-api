@@ -103,7 +103,7 @@ pub enum SubCommand {
     },
 
     /// Get machine metrics.
-    GetMetrics {
+    GetStatus {
         /// Id for a machine
         machine_id: String,
     },
@@ -253,7 +253,7 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
 
             machine.slice_and_print(job_name, file).await?;
         }
-        SubCommand::GetMetrics { machine_id } => {
+        SubCommand::GetStatus { machine_id } => {
             // Now connect to first printer we find over serial port
             //
             let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
@@ -270,7 +270,7 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
 
             let status = machine.client.status().await?;
 
-            println!("{:?}", status);
+            println!("{:#?}", status);
         }
         SubCommand::LedControl { machine_id, on } => {
             // Now connect to first printer we find over serial port
