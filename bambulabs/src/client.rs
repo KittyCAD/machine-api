@@ -180,6 +180,7 @@ impl Client {
         let access_code = self.access_code.clone();
         let path = path.to_path_buf();
         let args: Vec<String> = vec![
+            "--silent".to_string(),
             "--upload-file".to_string(),
             path.to_str()
                 .ok_or_else(|| anyhow::anyhow!("Invalid file path"))?
