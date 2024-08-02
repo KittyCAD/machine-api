@@ -119,5 +119,10 @@ async fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyho
         anyhow::bail!("Failed to : {:?}\nstdout:\n{}stderr:{}", output, stdout, stderr);
     }
 
+    // Make sure the G-code file was created.
+    if !gcode_path.exists() {
+        anyhow::bail!("Failed to create G-code file");
+    }
+
     Ok(gcode_path.to_path_buf())
 }
