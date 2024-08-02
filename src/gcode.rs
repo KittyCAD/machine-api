@@ -112,8 +112,12 @@ async fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyho
         .await
         .context("Failed to execute orca-slicer command")?;
 
-    println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
-    println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);
+    // Make sure the command was successful.
+    if !output.status.success() {
+        let stdout = std::str::from_utf8(&output.stdout)?;
+        let stderr = std::str::from_utf8(&output.stderr)?;
+        anyhow::bail!("Failed to : {:?}\nstdout:\n{}stderr:{}", output, stdout, stderr);
+    }
 
     Ok(gcode_path.to_path_buf())
 }
