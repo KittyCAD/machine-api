@@ -106,7 +106,10 @@ async fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyho
             .to_string(),
     ];
 
-    let output = Command::new("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer")
+    // Find the orcaslicer executable path.
+    let orca_slicer_path = find_orca_slicer()?;
+
+    let output = Command::new(orca_slicer_path)
         .args(&args)
         .output()
         .await
@@ -125,4 +128,37 @@ async fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyho
     }
 
     Ok(gcode_path.to_path_buf())
+}
+
+// Find the orcaslicer executable path on macOS.
+#[cfg(target_os = "macos")]
+fn find_orca_slicer() -> anyhow::Result<PathBuf> {
+    let app_path = std::path::PathBuf::from("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer");
+    if app_path.exists() {
+        Ok(app_path)
+    } else {
+        anyhow::bail!("OrcaSlicer not found")
+    }
+}
+
+// Find the orcaslicer executable path on Windows.
+#[cfg(target_os = "windows")]
+fn find_orca_slicer() -> anyhow::Result<PathBuf> {
+    let app_path = std::path::PathBuf::from("C:\\Program Files\\OrcaSlicer\\OrcaSlicer.exe");
+    if app_path.exists() {
+        Ok(app_path)
+    } else {
+        anyhow::bail!("OrcaSlicer not found")
+    }
+}
+
+// Find the orcaslicer executable path on Linux.
+#[cfg(target_os = "linux")]
+fn find_orca_slicer() -> anyhow::Result<PathBuf> {
+    let app_path = std::path::PathBuf::from("/usr/bin/orca-slicer");
+    if app_path.exists() {
+        Ok(app_path)
+    } else {
+        anyhow::bail!("OrcaSlicer not found")
+    }
 }
