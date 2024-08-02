@@ -85,6 +85,10 @@ impl Client {
             return Ok(());
         }
 
+        if let Message::Unknown(None) = message {
+            return Ok(());
+        }
+
         tracing::error!("Received message AND COULD NOT INSERT: {:?}", message);
 
         Ok(())
