@@ -33,6 +33,11 @@ impl SequenceId {
         }
     }
 
+    /// Create a new status sequence id.
+    pub fn status() -> Self {
+        Self::String("status".to_string())
+    }
+
     /// Get the sequence id as a u32.
     pub fn as_u32(&self) -> Result<u32> {
         match self {

@@ -38,6 +38,24 @@ impl Message {
     }
 }
 
+impl From<Print> for Message {
+    fn from(print: Print) -> Self {
+        Message::Print(print)
+    }
+}
+
+impl From<Info> for Message {
+    fn from(info: Info) -> Self {
+        Message::Info(info)
+    }
+}
+
+impl From<System> for Message {
+    fn from(system: System) -> Self {
+        Message::System(system)
+    }
+}
+
 /// A print message.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Print {

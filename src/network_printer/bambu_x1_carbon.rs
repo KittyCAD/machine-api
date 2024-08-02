@@ -200,12 +200,40 @@ pub struct BambuX1CarbonPrinter {
     pub config: BambuLabsMachineConfig,
 }
 
+impl BambuX1CarbonPrinter {
+    /// Get the latest status of the printer.
+    pub fn get_status(&self) -> Result<Option<bambulabs::message::Print>> {
+        self.client.get_status()
+    }
+
+    /// Check if the printer has an AMS.
+    pub fn has_ams(&self) -> Result<bool> {
+        let Some(status) = self.client.get_status()? else {
+            return Ok(false);
+        };
+
+        let Some(ams) = status.ams else {
+            return Ok(false);
+        };
+
+        let Some(ams_exists) = ams.ams_exist_bits else {
+            return Ok(false);
+        };
+
+        Ok(ams_exists != "0")
+    }
+}
+
 #[async_trait::async_trait]
 impl NetworkPrinter for BambuX1CarbonPrinter {
     /// Get the status of a printer.
     async fn status(&self) -> Result<Message> {
         // Get the status of the printer.
-        let status = self.client.publish(Command::get_version()).await?;
+        let Some(status) = self.get_status()? else {
+            anyhow::bail!("No status found");
+        };
+
+        let status: bambulabs::message::Message = status.into();
 
         Ok(status.into())
     }
@@ -272,7 +300,14 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Bad filename: {}", file.display()))?;
 
-        let response = self.client.publish(Command::print_file(job_name, filename)).await?;
+        // Check if the printer has an AMS.
+        let has_ams = self.has_ams()?;
+        println!("Has AMS: {}", has_ams);
+
+        let response = self
+            .client
+            .publish(Command::print_file(job_name, filename, has_ams))
+            .await?;
 
         Ok(response.into())
     }

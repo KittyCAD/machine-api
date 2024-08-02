@@ -6,7 +6,12 @@ use anyhow::{Context, Result};
 use dashmap::DashMap;
 use tokio::sync::Mutex;
 
-use crate::{command::Command, message::Message, parser::parse_message, sequence_id::SequenceId};
+use crate::{
+    command::Command,
+    message::{Message, Print, PrintCommand},
+    parser::parse_message,
+    sequence_id::SequenceId,
+};
 
 /// The Bambu MQTT client.
 #[derive(Clone)]
@@ -81,6 +86,13 @@ impl Client {
         let message = parse_message(&msg_opt);
 
         if let Some(sequence_id) = message.sequence_id() {
+            // If the message is a push status, make the sequence id "status".
+            if let Message::Print(msg) = &message {
+                if msg.command == PrintCommand::PushStatus {
+                    self.responses.insert(SequenceId::status(), message);
+                    return Ok(());
+                }
+            }
             self.responses.insert(sequence_id, message);
             return Ok(());
         }
@@ -92,6 +104,18 @@ impl Client {
         tracing::error!("Received message AND COULD NOT INSERT: {:?}", message);
 
         Ok(())
+    }
+
+    /// Get the latest status of the printer.
+    pub fn get_status(&self) -> Result<Option<Print>> {
+        let response = self.responses.get(&SequenceId::status());
+        if let Some(response) = response {
+            if let Message::Print(print) = response.value() {
+                return Ok(Some(print.clone()));
+            }
+        }
+
+        Ok(None)
     }
 
     async fn subscribe_to_device_report(&self) -> Result<()> {

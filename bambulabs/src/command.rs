@@ -103,7 +103,7 @@ impl Command {
     }
 
     /// Return a command to print a file on the ftp server.
-    pub fn print_file(job_name: &str, filename: &str) -> Self {
+    pub fn print_file(job_name: &str, filename: &str, use_ams: bool) -> Self {
         Command::Print(Print::ProjectFile(ProjectFile {
             sequence_id: SequenceId::new(),
             // This string comes from https://github.com/mattcar15/bambu-connect/blob/main/bambu_connect/ExecuteClient.py#L47C31-L47C53, I have no idea what it means or if this correct.
@@ -116,9 +116,7 @@ impl Command {
             flow_calibration: true,
             vibration_calibration: true,
             layer_inspect: false,
-            // Likely we want to disable this if they don't have an ams as a setting.
-            // But for ours we do so it's fine for now.
-            use_ams: true,
+            use_ams,
             // I have no idea if we should set the below but in the python lib, they just made
             // them all zeroes.
             profile_id: "0".to_string(),
@@ -752,7 +750,7 @@ mod tests {
 
     #[test]
     fn test_print_file() {
-        let command = Command::print_file("myjob", "thing.3mf");
+        let command = Command::print_file("myjob", "thing.3mf", true);
         let payload = serde_json::to_string(&command).unwrap();
         assert_eq!(
             payload,
