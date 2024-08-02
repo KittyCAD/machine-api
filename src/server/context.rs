@@ -96,3 +96,24 @@ impl Context {
         self.list_machine_handles().map(|machines| machines.get(id).cloned())
     }
 }
+
+pub async fn discovery(ctx: Arc<Context>, dur: tokio::time::Duration) -> Result<()> {
+    println!("Discovering printers...");
+    // We don't care if it times out, we just want to wait for the discovery tasks to
+    // finish.
+    let _ = tokio::time::timeout(dur, async move {
+        let form_labs = ctx
+            .network_printers
+            .get(&NetworkPrinterManufacturer::Formlabs)
+            .expect("No formlabs discover task registered");
+        let bambu = ctx
+            .network_printers
+            .get(&NetworkPrinterManufacturer::Bambu)
+            .expect("No Bambu discover task registered");
+
+        tokio::join!(form_labs.discover(), bambu.discover())
+    })
+    .await;
+
+    Ok(())
+}
