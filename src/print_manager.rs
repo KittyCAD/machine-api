@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use crate::machine::MachineHandle;
+use anyhow::Result;
+
+use crate::machine::{MachineHandle, Message};
 
 pub struct PrintJob {
     pub file: PathBuf,
@@ -9,14 +11,14 @@ pub struct PrintJob {
 }
 
 impl PrintJob {
-    pub async fn spawn(&self) -> tokio::task::JoinHandle<anyhow::Result<()>> {
+    pub async fn spawn(&self) -> tokio::task::JoinHandle<Result<Message>> {
         let file = self.file.clone();
         let machine = self.machine.clone();
         let job_name = self.job_name.clone();
         tokio::task::spawn(async move {
-            machine.slice_and_print(&job_name, &file).await?;
+            let result = machine.slice_and_print(&job_name, &file).await?;
 
-            Ok(())
+            Ok(result)
         })
     }
 }

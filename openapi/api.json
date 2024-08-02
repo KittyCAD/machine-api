@@ -251,6 +251,9 @@
       },
       "Message2": {
         "description": "A message from the printer.",
+        "enum": [
+          "ok"
+        ],
         "type": "string"
       },
       "Message3": {

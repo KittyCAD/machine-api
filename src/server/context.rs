@@ -16,7 +16,7 @@ pub struct Context {
     pub logger: slog::Logger,
     pub usb_printers: Arc<HashMap<String, crate::usb_printer::UsbPrinterInfo>>,
     pub network_printers: Arc<HashMap<NetworkPrinterManufacturer, Box<dyn NetworkPrinters>>>,
-    pub active_jobs: Mutex<HashMap<String, tokio::task::JoinHandle<anyhow::Result<()>>>>,
+    pub active_jobs: Mutex<HashMap<String, tokio::task::JoinHandle<Result<crate::machine::Message>>>>,
 }
 
 impl Context {

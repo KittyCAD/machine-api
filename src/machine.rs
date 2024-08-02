@@ -40,18 +40,18 @@ pub enum MachineHandle {
 }
 
 impl MachineHandle {
-    pub async fn slice_and_print(&self, job_name: &str, file: &std::path::Path) -> anyhow::Result<()> {
+    pub async fn slice_and_print(&self, job_name: &str, file: &std::path::Path) -> anyhow::Result<Message> {
         match self {
             MachineHandle::UsbPrinter(printer) => {
                 let mut machine = crate::usb_printer::UsbPrinter::new(printer.clone());
-                machine.slice_and_print(file)?;
+                let result = machine.slice_and_print(file).await?;
+                Ok(result.into())
             }
             MachineHandle::NetworkPrinter(printer) => {
                 let result = printer.client.slice_and_print(job_name, file).await?;
-                println!("{:?}", result);
+                Ok(result.into())
             }
         }
-        Ok(())
     }
 
     pub async fn status(&self) -> anyhow::Result<Message> {

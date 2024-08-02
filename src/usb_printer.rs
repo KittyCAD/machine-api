@@ -12,6 +12,9 @@ pub struct UsbPrinter {
     pub writer: Box<dyn serialport::SerialPort>,
 }
 
+unsafe impl Send for UsbPrinter {}
+unsafe impl Sync for UsbPrinter {}
+
 /// Details for a 3d printer connected over USB.
 #[derive(Clone, Debug, JsonSchema, Serialize, Deserialize)]
 pub struct UsbPrinterInfo {
@@ -82,18 +85,19 @@ impl UsbPrinter {
         }
     }
 
-    fn slice(&self, file: &std::path::Path) -> Result<PathBuf> {
+    async fn slice(&self, file: &std::path::Path) -> Result<PathBuf> {
         // TODO: make this a configurable path.
         let gcode = GcodeFile::from_stl_path(
             crate::gcode::Slicer::Prusa,
             std::path::Path::new("../config/prusa/mk3.ini"),
             file,
-        )?;
+        )
+        .await?;
 
         Ok(gcode.path)
     }
 
-    fn print(&mut self, file: &std::path::Path) -> Result<()> {
+    fn print(&mut self, file: &std::path::Path) -> Result<Message> {
         // Read the gcode file.
         let lines: Vec<String> = std::fs::read_to_string(file)?
             .lines() // split the string into an iterator of string slices
@@ -116,11 +120,11 @@ impl UsbPrinter {
             self.wait_for_ok()?;
         }
 
-        Ok(())
+        Ok(Message::Ok)
     }
 
-    pub fn slice_and_print(&mut self, file: &std::path::Path) -> Result<()> {
-        let gcode = self.slice(file)?;
+    pub async fn slice_and_print(&mut self, file: &std::path::Path) -> Result<Message> {
+        let gcode = self.slice(file).await?;
         self.print(&gcode)
     }
 
@@ -131,4 +135,7 @@ impl UsbPrinter {
 
 /// A message from the printer.
 #[derive(Debug, Clone, JsonSchema, Serialize, Deserialize)]
-pub enum Message {}
+#[serde(rename_all = "snake_case")]
+pub enum Message {
+    Ok,
+}

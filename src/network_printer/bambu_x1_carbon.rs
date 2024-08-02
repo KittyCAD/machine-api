@@ -280,7 +280,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     /// Slice a file.
     /// Returns the path to the sliced file.
     async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
-        let file = GcodeFile::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file)?;
+        let file = GcodeFile::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file).await?;
 
         // Save the gcode to a temp file.
         println!("Saved gcode to {}", file.path.display());

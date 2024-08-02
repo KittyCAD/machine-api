@@ -179,27 +179,35 @@ impl Client {
             .to_string();
         let access_code = self.access_code.clone();
         let path = path.to_path_buf();
-        tokio::task::spawn_blocking(move || {
-            let args: Vec<String> = vec![
-                "--upload-file".to_string(),
-                path.to_str()
-                    .ok_or_else(|| anyhow::anyhow!("Invalid file path"))?
-                    .to_string(),
-                "--ftp-pasv".to_string(),
-                "--insecure".to_string(),
-                format!("ftps://{}/", host).to_string(),
-                "--user".to_string(),
-                format!("bblp:{}", access_code).to_string(),
-            ];
-            let output = std::process::Command::new("curl")
-                .args(&args)
-                .output()
-                .context("Failed to upload file")?;
-            println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
-            println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);
+        let args: Vec<String> = vec![
+            "--upload-file".to_string(),
+            path.to_str()
+                .ok_or_else(|| anyhow::anyhow!("Invalid file path"))?
+                .to_string(),
+            "--ftp-pasv".to_string(),
+            "--insecure".to_string(),
+            format!("ftps://{}/", host).to_string(),
+            "--user".to_string(),
+            format!("bblp:{}", access_code).to_string(),
+        ];
+        let output = tokio::process::Command::new("curl")
+            .args(&args)
+            .output()
+            .await
+            .context("Failed to upload file")?;
 
-            Ok(())
-        })
-        .await?
+        // Make sure the command was successful.
+        if !output.status.success() {
+            let stdout = std::str::from_utf8(&output.stdout)?;
+            let stderr = std::str::from_utf8(&output.stderr)?;
+            anyhow::bail!(
+                "Failed to upload file: {:?}\nstdout:\n{}stderr:{}",
+                output,
+                stdout,
+                stderr
+            );
+        }
+
+        Ok(())
     }
 }
