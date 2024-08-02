@@ -53,6 +53,7 @@
           },
           "reason": {
             "description": "The reason of the info command.",
+            "nullable": true,
             "type": "string"
           },
           "result": {
@@ -72,7 +73,6 @@
         "required": [
           "command",
           "module",
-          "reason",
           "sequence_id"
         ],
         "type": "object"
@@ -859,6 +859,13 @@
             "description": "Project file.",
             "enum": [
               "project_file"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Resume the print.",
+            "enum": [
+              "resume"
             ],
             "type": "string"
           },

@@ -186,6 +186,8 @@ pub enum PrintCommand {
     GcodeLine,
     /// Project file.
     ProjectFile,
+    /// Resume the print.
+    Resume,
     /// Stop the print.
     Stop,
     /// Extrusion calibration get.
@@ -362,7 +364,7 @@ pub struct Info {
     /// The result of the info command.
     pub result: Option<String>,
     /// The reason of the info command.
-    pub reason: String,
+    pub reason: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
