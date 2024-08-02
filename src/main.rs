@@ -25,7 +25,7 @@ use server::context::{discovery, Context};
 use slog::Drain;
 use tracing_subscriber::prelude::*;
 
-const TIMEOUT_DURATION: std::time::Duration = std::time::Duration::from_secs(30);
+const TIMEOUT_DURATION: std::time::Duration = std::time::Duration::from_secs(10);
 
 /// This doc string acts as a help message when the user runs '--help'
 /// as do all doc strings on fields.
