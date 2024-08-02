@@ -1,12 +1,14 @@
-use std::{collections::HashMap, io::BufRead};
+use std::{collections::HashMap, io::BufRead, path::PathBuf};
 
+use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serialport::SerialPortType;
 
+use crate::gcode::GcodeFile;
+
 pub struct UsbPrinter {
     pub reader: std::io::BufReader<Box<dyn serialport::SerialPort>>,
-    #[allow(dead_code)]
     pub writer: Box<dyn serialport::SerialPort>,
 }
 
@@ -52,7 +54,7 @@ impl UsbPrinter {
         Self { reader, writer: port }
     }
 
-    pub fn wait_for_start(&mut self) -> anyhow::Result<()> {
+    pub fn wait_for_start(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
             if let Err(e) = self.reader.read_line(&mut line) {
@@ -66,7 +68,7 @@ impl UsbPrinter {
         }
     }
 
-    pub fn wait_for_ok(&mut self) -> anyhow::Result<()> {
+    pub fn wait_for_ok(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
             if let Err(e) = self.reader.read_line(&mut line) {
@@ -78,5 +80,47 @@ impl UsbPrinter {
                 }
             }
         }
+    }
+
+    fn slice(&self, file: &std::path::Path) -> Result<PathBuf> {
+        // TODO: make this a configurable path.
+        let gcode = GcodeFile::from_stl_path(
+            crate::gcode::Slicer::Prusa,
+            std::path::Path::new("../config/prusa/mk3.ini"),
+            file,
+        )?;
+
+        Ok(gcode.path)
+    }
+
+    fn print(&mut self, file: &std::path::Path) -> Result<()> {
+        // Read the gcode file.
+        let lines: Vec<String> = std::fs::read_to_string(file)?
+            .lines() // split the string into an iterator of string slices
+            .map(|s| {
+                let s = String::from(s);
+                match s.split_once(';') {
+                    Some((command, _)) => command.trim().to_string(),
+                    None => s.trim().to_string(),
+                }
+            })
+            .filter(|s| !s.is_empty()) // make each slice into a string
+            .collect();
+
+        self.wait_for_start()?;
+
+        for line in lines.iter() {
+            let msg = format!("{}\r\n", line);
+            println!("writing: {}", line);
+            self.writer.write_all(msg.as_bytes())?;
+            self.wait_for_ok()?;
+        }
+
+        Ok(())
+    }
+
+    pub fn slice_and_print(&mut self, file: &std::path::Path) -> Result<()> {
+        let gcode = self.slice(file)?;
+        self.print(&gcode)
     }
 }

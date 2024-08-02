@@ -39,6 +39,22 @@ pub enum MachineHandle {
     NetworkPrinter(crate::network_printer::NetworkPrinterHandle),
 }
 
+impl MachineHandle {
+    pub async fn slice_and_print(&self, file: &std::path::Path) -> anyhow::Result<()> {
+        match self {
+            MachineHandle::UsbPrinter(printer) => {
+                let mut machine = crate::usb_printer::UsbPrinter::new(printer.clone());
+                machine.slice_and_print(file)?;
+            }
+            MachineHandle::NetworkPrinter(printer) => {
+                let result = printer.client.slice_and_print(file).await?;
+                println!("{:?}", result);
+            }
+        }
+        Ok(())
+    }
+}
+
 impl From<MachineHandle> for Machine {
     fn from(handle: MachineHandle) -> Self {
         match handle {

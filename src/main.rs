@@ -263,15 +263,8 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
             let machine = api_context
                 .find_machine_handle_by_id(machine_id)?
                 .expect("Printer not found by given ID");
-            match machine {
-                MachineHandle::UsbPrinter(_printer) => {
-                    todo!("usb printer needs config file support for reading slicer config and nice trait for slice and print like network printer has")
-                }
-                MachineHandle::NetworkPrinter(printer) => {
-                    let result = printer.client.slice_and_print(file).await?;
-                    println!("{:?}", result);
-                }
-            }
+
+            machine.slice_and_print(file).await?;
         }
         SubCommand::GetMetrics { machine_id } => {
             // Now connect to first printer we find over serial port

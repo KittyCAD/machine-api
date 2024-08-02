@@ -16,15 +16,8 @@ impl PrintJob {
         let file = self.file.clone();
         let machine = self.machine.clone();
         tokio::task::spawn(async move {
-            match machine {
-                MachineHandle::UsbPrinter(_printer) => {
-                    todo!("usb printer needs config file support for reading slicer config and nice trait for slice and print like network printer has")
-                }
-                MachineHandle::NetworkPrinter(printer) => {
-                    let result = printer.client.slice_and_print(&file).await?;
-                    println!("{:?}", result);
-                }
-            }
+            machine.slice_and_print(&file).await?;
+
             Ok(())
         })
     }
