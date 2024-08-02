@@ -114,7 +114,7 @@ impl NetworkPrinters for BambuX1Carbon {
             }
 
             let Some(ip) = ip else {
-                tracing::debug!("No IP address present for printer name {:?} (URN {:?})", name, urn);
+                tracing::warn!("No IP address present for printer name {:?} (URN {:?})", name, urn);
 
                 continue;
             };
