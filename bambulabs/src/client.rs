@@ -4,6 +4,8 @@ use std::{sync::Arc, time::Duration};
 
 use anyhow::Result;
 use dashmap::DashMap;
+use suppaftp::native_tls::{TlsConnector, TlsStream};
+use suppaftp::{NativeTlsConnector, NativeTlsFtpStream};
 use tokio::sync::Mutex;
 
 use crate::{command::Command, message::Message, parser::parse_message, sequence_id::SequenceId};
@@ -140,5 +142,48 @@ impl Client {
         }
 
         anyhow::bail!("Timeout waiting for response to command: {:?}", command)
+    }
+
+    /// Upload a file.
+    pub async fn upload_file(&self, path: &std::path::Path) -> Result<()> {
+        let host_url = url::Url::parse(&self.host)?;
+        let host = host_url
+            .host_str()
+            .ok_or(anyhow::anyhow!("not a valid hostname"))?
+            .to_string();
+        println!("host: {}", &host);
+        println!("access_code: {}", &self.access_code);
+        let ac = self.access_code.clone();
+        let p = path.to_path_buf();
+        tokio::task::spawn_blocking(move || {
+            //let ssl_config = Arc::new(
+            //    suppaftp::rustls::ClientConfig::builder()
+            //        .with_safe_defaults()
+            //        .with_custom_certificate_verifier(Arc::new(crate::no_auth::SuppaNoAuth::new()))
+            //        .with_no_client_auth(),
+            //);
+            let ctx = NativeTlsConnector::from(TlsConnector::builder().danger_accept_invalid_certs(true).build()?);
+            let mut ftp_stream =
+                NativeTlsFtpStream::connect_secure_implicit(format!("{}:990", host), ctx, "localhost")?;
+            println!("connected");
+            ftp_stream.login("bblp", &ac).unwrap();
+            println!("authed");
+            let bytes = std::fs::read(p)?;
+            println!("file");
+            let feats = ftp_stream.feat()?;
+            println!("feats: {:?}", feats);
+
+            let mut writer = ftp_stream.put_with_stream("upload.3mf")?;
+            use std::io::Write;
+            println!("put1");
+            let _ = writer.write(&bytes)?;
+            println!("put2");
+            let _ = ftp_stream.finalize_put_stream(writer)?;
+            println!("put3");
+            // Terminate the connection to the server.
+            let _ = ftp_stream.quit();
+            Ok(())
+        })
+        .await?
     }
 }

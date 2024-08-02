@@ -122,6 +122,15 @@ pub enum SubCommand {
         machine_id: String,
     },
 
+    /// Upload a file to a given machine.
+    FileUpload {
+        /// Id for a machine
+        machine_id: String,
+
+        /// File path to upload
+        file: std::path::PathBuf,
+    },
+
     /// Turn off/on the machine led.
     LedControl {
         /// Id for a machine
@@ -409,6 +418,34 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
             let status = machine.client.accessories().await?;
 
             println!("{:?}", status);
+        }
+        SubCommand::FileUpload { machine_id, file } => {
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
+
+            let cloned_api_context = api_context.clone();
+            let _ = tokio::time::timeout(tokio::time::Duration::from_secs(10), async move {
+                let form_labs = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Formlabs)
+                    .expect("No formlabs discover task registered");
+                let bambu = cloned_api_context
+                    .network_printers
+                    .get(&NetworkPrinterManufacturer::Bambu)
+                    .expect("No Bambu discover task registered");
+
+                tokio::join!(form_labs.discover(), bambu.discover())
+            })
+            .await;
+
+            let machine = api_context
+                .find_machine_handle_by_id(machine_id)?
+                .expect("Printer not found by given ID");
+
+            let MachineHandle::NetworkPrinter(machine) = machine else {
+                bail!("usb printers not yet supported");
+            };
+
+            machine.client.upload_file(file).await?;
         }
     }
 
