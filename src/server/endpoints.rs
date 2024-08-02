@@ -51,7 +51,7 @@ pub async fn get_machines(
     let ctx = rqctx.context();
     let machines = ctx.list_machines().map_err(|e| {
         tracing::error!("failed to list machines: {:?}", e);
-        HttpError::for_internal_error("failed to list machines".to_string())
+        HttpError::for_bad_request(None, "failed to list machines".to_string())
     })?;
     Ok(HttpResponseOk(machines))
 }
@@ -79,16 +79,16 @@ pub async fn get_machine(
         .find_machine_handle_by_id(&params.id)
         .map_err(|e| {
             tracing::error!("failed to find machine by id: {:?}", e);
-            HttpError::for_internal_error("failed to find machine by id".to_string())
+            HttpError::for_bad_request(None, format!("machine not found by id: {:?}", params.id))
         })?
         .ok_or_else(|| {
             tracing::error!("machine not found by id: {:?}", params.id);
-            HttpError::for_internal_error("machine not found".to_string())
+            HttpError::for_not_found(None, format!("machine not found by id: {:?}", params.id))
         })?;
 
     let message = machine.status().await.map_err(|e| {
         tracing::error!("failed to get machine status: {:?}", e);
-        HttpError::for_internal_error("failed to get machine status".to_string())
+        HttpError::for_bad_request(None, "failed to get machine status".to_string())
     })?;
 
     Ok(HttpResponseOk(message))
@@ -124,18 +124,18 @@ pub(crate) async fn print_file(
         .find_machine_handle_by_id(&machine_id)
         .map_err(|e| {
             tracing::error!("failed to find machine by id: {:?}", e);
-            HttpError::for_internal_error("failed to find machine by id".to_string())
+            HttpError::for_bad_request(None, format!("machine not found by id: {:?}", machine_id))
         })?
         .ok_or_else(|| {
             tracing::error!("machine not found by id: {:?}", machine_id);
-            HttpError::for_internal_error("machine not found".to_string())
+            HttpError::for_not_found(None, format!("machine not found by id: {:?}", machine_id))
         })?;
     let filepath = std::env::temp_dir().join(format!("{}-{}", job_id, file.file_name.unwrap_or("file".to_string())));
     // TODO: we likely want to use the kittycad api to convert the file to the right format if its
     // not already an stl file.
     tokio::fs::write(&filepath, file.content).await.map_err(|e| {
         tracing::error!("failed to write stl file: {:?}", e);
-        HttpError::for_internal_error("failed to write stl file".to_string())
+        HttpError::for_bad_request(None, "failed to write stl file".to_string())
     })?;
 
     let print_job = PrintJob {
