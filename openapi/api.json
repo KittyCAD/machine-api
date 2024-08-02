@@ -57,6 +57,7 @@
           },
           "result": {
             "description": "The result of the info command.",
+            "nullable": true,
             "type": "string"
           },
           "sequence_id": {
@@ -72,7 +73,6 @@
           "command",
           "module",
           "reason",
-          "result",
           "sequence_id"
         ],
         "type": "object"
@@ -866,6 +866,13 @@
             "description": "Stop the print.",
             "enum": [
               "stop"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "Extrusion calibration get.",
+            "enum": [
+              "extrusion_cali_get"
             ],
             "type": "string"
           }
