@@ -2,46 +2,33 @@ use anyhow::Context;
 use std::{
     path::{Path, PathBuf},
     process::Command,
-    sync::Arc,
 };
 
 // Use Arc for shared ownership.
 #[derive(Clone)]
-pub struct GcodeSequence {
-    pub lines: Arc<Vec<String>>,
+pub struct GcodeFile {
+    pub path: PathBuf,
 }
 
-impl GcodeSequence {
-    pub fn from_file_path(path: &Path) -> anyhow::Result<Self> {
-        let lines = std::fs::read_to_string(path)?
-            .lines() // split the string into an iterator of string slices
-            .map(|s| {
-                let s = String::from(s);
-                match s.split_once(';') {
-                    Some((command, _)) => command.trim().to_string(),
-                    None => s.trim().to_string(),
-                }
-            })
-            .filter(|s| !s.is_empty()) // make each slice into a string
-            .collect();
-        Ok(Self { lines: Arc::new(lines) })
-    }
-
+impl GcodeFile {
     pub fn from_stl_path(slicer: Slicer, slicer_config_path: &Path, stl_path: &Path) -> anyhow::Result<Self> {
-        let gcode_path = match slicer {
-            Slicer::Prusa => slice_stl_with_prusa_slicer(slicer_config_path, stl_path),
-            Slicer::Orca => slice_stl_with_orca_slicer(slicer_config_path, stl_path),
-        }?;
-        Self::from_file_path(&gcode_path)
-    }
+        // Get the absolute path of the config file.
+        let abs_path = slicer_config_path
+            .canonicalize()
+            .context("Failed to get the absolute path of the STL file")?;
 
-    pub fn as_bytes(&self) -> Vec<u8> {
-        self.lines.join("\n").into_bytes()
+        let gcode_path = match slicer {
+            Slicer::Prusa => slice_stl_with_prusa_slicer(&abs_path, stl_path),
+            Slicer::Orca => slice_stl_with_orca_slicer(&abs_path, stl_path),
+        }?;
+
+        Ok(Self { path: gcode_path })
     }
 }
 
 #[derive(Clone, Copy)]
 pub enum Slicer {
+    #[allow(dead_code)]
     Prusa,
     Orca,
 }
@@ -80,7 +67,8 @@ fn slice_stl_with_prusa_slicer(config_path: &Path, stl_path: &Path) -> anyhow::R
 }
 
 fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyhow::Result<PathBuf> {
-    let gcode_path = stl_path.with_extension("3mf");
+    let uid = uuid::Uuid::new_v4();
+    let gcode_path = std::env::temp_dir().join(format!("{}.3mf", uid));
     let process_config = config_dir
         .join("process.json")
         .to_str()
@@ -118,10 +106,10 @@ fn slice_stl_with_orca_slicer(config_dir: &Path, stl_path: &Path) -> anyhow::Res
             .to_string(),
     ];
 
-    let output = Command::new("orca-slicer")
+    let output = Command::new("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer")
         .args(&args)
         .output()
-        .context("Failed to execute prusa-slicer command")?;
+        .context("Failed to execute orca-slicer command")?;
 
     println!("STDOUT: {}", std::str::from_utf8(&output.stdout)?);
     println!("STDERR: {}", std::str::from_utf8(&output.stderr)?);

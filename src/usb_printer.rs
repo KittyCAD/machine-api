@@ -6,6 +6,7 @@ use serialport::SerialPortType;
 
 pub struct UsbPrinter {
     pub reader: std::io::BufReader<Box<dyn serialport::SerialPort>>,
+    #[allow(dead_code)]
     pub writer: Box<dyn serialport::SerialPort>,
 }
 

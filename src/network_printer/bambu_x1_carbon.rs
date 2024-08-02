@@ -10,7 +10,7 @@ use tokio::net::UdpSocket;
 
 use crate::{
     config::{BambuLabsConfig, BambuLabsMachineConfig},
-    gcode::GcodeSequence,
+    gcode::GcodeFile,
     network_printer::{
         Message, NetworkPrinter, NetworkPrinterHandle, NetworkPrinterInfo, NetworkPrinterManufacturer, NetworkPrinters,
     },
@@ -252,20 +252,12 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     /// Slice a file.
     /// Returns the path to the sliced file.
     async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
-        let extension = file.extension().unwrap_or(std::ffi::OsStr::new("stl"));
-        let gcode = if extension != "3mf" {
-            GcodeSequence::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file)?
-        } else {
-            GcodeSequence::from_file_path(file)?
-        };
+        let file = GcodeFile::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file)?;
 
         // Save the gcode to a temp file.
-        let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(&format!("{}.3mf", uid));
-        tokio::fs::write(&gcode_path, gcode.as_bytes()).await?;
-        tracing::info!("Saved gcode to {}", gcode_path.display());
+        println!("Saved gcode to {}", file.path.display());
 
-        Ok(gcode_path)
+        Ok(file.path)
     }
 
     /// Print a file.

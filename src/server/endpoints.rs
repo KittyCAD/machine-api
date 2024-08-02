@@ -1,10 +1,10 @@
-use std::{collections::HashMap, path::Path, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 
 use dropshot::{endpoint, HttpError, HttpResponseOk, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::{gcode::GcodeSequence, print_manager::PrintJob, server::context::Context};
+use crate::{print_manager::PrintJob, server::context::Context};
 
 /**
  * Return the OpenAPI schema in JSON format.
@@ -80,46 +80,27 @@ pub(crate) async fn print_file(
     let (file, params) = parse_multipart_print_request(&mut multipart).await?;
     let ctx = rqctx.context().clone();
     let machine_id = params.machine_id.clone();
-    let machine = ctx.find_machine_by_id(&machine_id).map_err(|e| {
-        tracing::error!("failed to find machine by id: {:?}", e);
-        HttpError::for_internal_error("failed to find machine by id".to_string())
-    })?;
-    let machine = match machine {
-        Some(machine) => machine,
-        None => {
-            return Err(HttpError::for_bad_request(
-                None,
-                "machine_id must match a connected machine".to_string(),
-            ))
-        }
-    };
-
-    let slicer_machine = machine.clone();
-    let gcode_task = tokio::task::spawn_blocking(move || {
-        let dir = tempdir::TempDir::new(&machine_id)?;
-        let (slicer_config_path, slicer) = match slicer_machine {
-            crate::machine::Machine::NetworkPrinter(_) => {
-                (Path::new("../config/prusa/mk3.ini"), crate::gcode::Slicer::Prusa)
-            }
-            crate::machine::Machine::UsbPrinter(_) => (Path::new("../config/bambu/"), crate::gcode::Slicer::Orca),
-        };
-        let stl_path = dir.path().join(file.file_name.unwrap_or("print.stl".to_string()));
-        std::fs::write(&stl_path, file.content)?;
-        GcodeSequence::from_stl_path(slicer, slicer_config_path, &stl_path)
-    })
-    .await
-    .map_err(|_| HttpError::for_internal_error("failed to convert Gcode".to_owned()))?;
-    let gcode = match gcode_task {
-        Ok(gcode) => gcode,
-        Err(err) => {
-            return Err(HttpError::for_bad_request(
-                None,
-                format!("failed to convert file to gcode: {}", err),
-            ))
-        }
-    };
     let job_id = uuid::Uuid::new_v4();
-    let print_job = PrintJob::new(gcode, machine.clone()).spawn().await;
+
+    let machine = ctx
+        .find_machine_handle_by_id(&machine_id)
+        .map_err(|e| {
+            tracing::error!("failed to find machine by id: {:?}", e);
+            HttpError::for_internal_error("failed to find machine by id".to_string())
+        })?
+        .ok_or_else(|| {
+            tracing::error!("machine not found by id: {:?}", machine_id);
+            HttpError::for_internal_error("machine not found".to_string())
+        })?;
+    let filepath = std::env::temp_dir().join(format!("{}-{}", job_id, file.file_name.unwrap_or("file".to_string())));
+    // TODO: we likely want to use the kittycad api to convert the file to the right format if its
+    // not already an stl file.
+    tokio::fs::write(&filepath, file.content).await.map_err(|e| {
+        tracing::error!("failed to write stl file: {:?}", e);
+        HttpError::for_internal_error("failed to write stl file".to_string())
+    })?;
+
+    let print_job = PrintJob::new(filepath, machine.clone()).spawn().await;
     let mut active_jobs = ctx.active_jobs.lock().await;
     active_jobs.insert(job_id.to_string(), print_job);
 

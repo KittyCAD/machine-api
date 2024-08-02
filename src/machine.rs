@@ -39,6 +39,15 @@ pub enum MachineHandle {
     NetworkPrinter(crate::network_printer::NetworkPrinterHandle),
 }
 
+impl From<MachineHandle> for Machine {
+    fn from(handle: MachineHandle) -> Self {
+        match handle {
+            MachineHandle::UsbPrinter(printer) => Machine::UsbPrinter(printer),
+            MachineHandle::NetworkPrinter(printer) => Machine::NetworkPrinter(printer.info),
+        }
+    }
+}
+
 impl From<UsbPrinterInfo> for MachineHandle {
     fn from(printer: UsbPrinterInfo) -> Self {
         MachineHandle::UsbPrinter(printer)
