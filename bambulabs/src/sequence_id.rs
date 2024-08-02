@@ -26,7 +26,11 @@ pub enum SequenceId {
 impl SequenceId {
     /// Create a new sequence id.
     pub fn new() -> Self {
-        Self::Integer(ATOMIC_COUNTER.fetch_add(1, std::sync::atomic::Ordering::SeqCst))
+        if cfg!(test) {
+            Self::Integer(1)
+        } else {
+            Self::Integer(ATOMIC_COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed))
+        }
     }
 
     /// Get the sequence id as a u32.

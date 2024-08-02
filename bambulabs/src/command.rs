@@ -101,6 +101,32 @@ impl Command {
             accessory_type: AccessoryType::None,
         }))
     }
+
+    /// Return a command to print a file on the ftp server.
+    pub fn print_file(filename: &str) -> Self {
+        Command::Print(Print::ProjectFile(ProjectFile {
+            sequence_id: SequenceId::new(),
+            // This string comes from https://github.com/mattcar15/bambu-connect/blob/main/bambu_connect/ExecuteClient.py#L47C31-L47C53, I have no idea what it means or if this correct.
+            param: "Metadata/plate_1.gcode".to_string(),
+            subtask_name: filename.to_string(),
+            url: format!("ftp://{}", filename),
+            bed_type: BedType::Auto,
+            timelapsed: true,
+            bed_leveling: true,
+            flow_calibration: true,
+            vibration_calibration: true,
+            layer_inspect: false,
+            // Likely we want to disable this if they don't have an ams as a setting.
+            // But for ours we do so it's fine for now.
+            use_ams: true,
+            // I have no idea if we should set the below but in the python lib, they just made
+            // them all zeroes.
+            profile_id: "0".to_string(),
+            project_id: "0".to_string(),
+            subtask_id: "0".to_string(),
+            task_id: "0".to_string(),
+        }))
+    }
 }
 
 /// An information command.
@@ -134,6 +160,8 @@ pub enum Print {
     PrintSpeed(PrintSpeed),
     /// Send a GCode file.
     GcodeLine(GcodeLine),
+    /// Start a print with a file on the ftp server.
+    ProjectFile(ProjectFile),
 }
 
 impl Print {
@@ -145,6 +173,7 @@ impl Print {
             Print::Stop(Stop { sequence_id }) => sequence_id,
             Print::PrintSpeed(PrintSpeed { sequence_id, .. }) => sequence_id,
             Print::GcodeLine(GcodeLine { sequence_id, .. }) => sequence_id,
+            Print::ProjectFile(ProjectFile { sequence_id, .. }) => sequence_id,
         }
     }
 }
@@ -215,6 +244,50 @@ pub struct Resume {
 pub struct Stop {
     /// The sequence ID.
     pub sequence_id: SequenceId,
+}
+
+/// The payload for starting a print with a file on the ftp server.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct ProjectFile {
+    /// The sequence ID.
+    pub sequence_id: SequenceId,
+    /// The param.
+    pub param: String,
+    /// The subtask name.
+    pub subtask_name: String,
+    /// The url for the file.
+    pub url: String,
+    /// The bed type.
+    pub bed_type: BedType,
+    /// Timelapsed.
+    pub timelapsed: bool,
+    /// Bed leveling.
+    pub bed_leveling: bool,
+    /// Flow calibration.
+    pub flow_calibration: bool,
+    /// Vibration calibration.
+    pub vibration_calibration: bool,
+    /// Layer inspect.
+    pub layer_inspect: bool,
+    /// Use ams.
+    pub use_ams: bool,
+    /// The profile id.
+    pub profile_id: String,
+    /// The project id.
+    pub project_id: String,
+    /// The subtask id.
+    pub subtask_id: String,
+    /// The task id.
+    pub task_id: String,
+}
+
+/// The type of bed.
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq)]
+#[display(style = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum BedType {
+    /// Automatic.
+    Auto,
 }
 
 /// The payload for getting all device information.
@@ -504,6 +577,184 @@ mod tests {
         assert_eq!(
             payload,
             format!(r#"{{"print":{{"command":"pause","sequence_id":{uid}}}}}"#, uid = uid)
+        );
+    }
+
+    #[test]
+    fn test_serialize_resume() {
+        let uid = SequenceId::new();
+        let command = Command::Print(Print::Resume(Resume {
+            sequence_id: uid.clone(),
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(r#"{{"print":{{"command":"resume","sequence_id":{uid}}}}}"#, uid = uid)
+        );
+    }
+
+    #[test]
+    fn test_serialize_stop() {
+        let uid = SequenceId::new();
+        let command = Command::Print(Print::Stop(Stop {
+            sequence_id: uid.clone(),
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(r#"{{"print":{{"command":"stop","sequence_id":{uid}}}}}"#, uid = uid)
+        );
+    }
+
+    #[test]
+    fn test_serialize_pushall() {
+        let uid = SequenceId::new();
+        let command = Command::Pushing(Pushing::Pushall(Pushall {
+            sequence_id: uid.clone(),
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(
+                r#"{{"pushing":{{"command":"pushall","sequence_id":{uid}}}}}"#,
+                uid = uid
+            )
+        );
+    }
+
+    #[test]
+    fn test_serialize_start() {
+        let uid = SequenceId::new();
+        let command = Command::Pushing(Pushing::Start(Start {
+            sequence_id: uid.clone(),
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(r#"{{"pushing":{{"command":"start","sequence_id":{uid}}}}}"#, uid = uid)
+        );
+    }
+
+    #[test]
+    fn test_serialize_ledctrl() {
+        let uid = SequenceId::new();
+        let command = Command::System(System::Ledctrl(Ledctrl {
+            sequence_id: uid.clone(),
+            led_node: LedNode::ChamberLight,
+            led_mode: LedMode::On,
+            led_on_time: 500,
+            led_off_time: 500,
+            loop_times: 0,
+            interval_time: 0,
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(
+                r#"{{"system":{{"command":"ledctrl","sequence_id":{uid},"led_node":"chamber_light","led_mode":"on","led_on_time":500,"led_off_time":500,"loop_times":0,"interval_time":0}}}}"#,
+                uid = uid
+            )
+        );
+    }
+
+    #[test]
+    fn test_serialize_print_speed() {
+        let uid = SequenceId::new();
+        let command = Command::Print(Print::PrintSpeed(PrintSpeed {
+            sequence_id: uid.clone(),
+            param: SpeedProfile::Standard,
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(
+                r#"{{"print":{{"command":"print_speed","sequence_id":{uid},"param":"standard"}}}}"#,
+                uid = uid
+            )
+        );
+    }
+
+    #[test]
+    fn test_serialize_gcode_line() {
+        let uid = SequenceId::new();
+        let command = Command::Print(Print::GcodeLine(GcodeLine {
+            sequence_id: uid.clone(),
+            param: "G28".to_string(),
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(
+                r#"{{"print":{{"command":"gcode_line","sequence_id":{uid},"param":"G28"}}}}"#,
+                uid = uid
+            )
+        );
+    }
+
+    #[test]
+    fn test_serialize_get_accessories() {
+        let uid = SequenceId::new();
+        let command = Command::System(System::GetAccessories(GetAccessories {
+            sequence_id: uid.clone(),
+            accessory_type: AccessoryType::None,
+        }));
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            format!(
+                r#"{{"system":{{"command":"get_accessories","sequence_id":{uid},"accessory_type":"none"}}}}"#,
+                uid = uid
+            )
+        );
+    }
+
+    #[test]
+    fn test_set_speed_profile() {
+        let command = Command::set_speed_profile(SpeedProfile::Standard);
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            r#"{"print":{"command":"print_speed","sequence_id":1,"param":"standard"}}"#
+        );
+    }
+
+    #[test]
+    fn test_send_gcode_line() {
+        let command = Command::send_gcode_line("G28");
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            r#"{"print":{"command":"gcode_line","sequence_id":1,"param":"G28"}}"#
+        );
+    }
+
+    #[test]
+    fn test_set_chamber_light() {
+        let command = Command::set_chamber_light(LedMode::On);
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            r#"{"system":{"command":"ledctrl","sequence_id":1,"led_node":"chamber_light","led_mode":"on","led_on_time":500,"led_off_time":500,"loop_times":1,"interval_time":1000}}"#
+        );
+    }
+
+    #[test]
+    fn test_get_accessories() {
+        let command = Command::get_accessories();
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            r#"{"system":{"command":"get_accessories","sequence_id":1,"accessory_type":"none"}}"#
+        );
+    }
+
+    #[test]
+    fn test_print_file() {
+        let command = Command::print_file("thing.3mf");
+        let payload = serde_json::to_string(&command).unwrap();
+        assert_eq!(
+            payload,
+            r#"{"print":{"command":"project_file","sequence_id":1,"param":"Metadata/plate_1.gcode","subtask_name":"thing.3mf","url":"ftp://thing.3mf","bed_type":"auto","timelapsed":true,"bed_leveling":true,"flow_calibration":true,"vibration_calibration":true,"layer_inspect":false,"use_ams":true,"profile_id":"0","project_id":"0","subtask_id":"0","task_id":"0"}}"#
         );
     }
 }
