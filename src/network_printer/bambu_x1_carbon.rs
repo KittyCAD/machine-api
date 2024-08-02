@@ -302,7 +302,6 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
 
         // Check if the printer has an AMS.
         let has_ams = self.has_ams()?;
-        println!("Has AMS: {}", has_ams);
 
         let response = self
             .client
