@@ -247,8 +247,10 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     }
 
     /// Print a file.
-    async fn print(&self, _file: &str) -> Result<()> {
-        unimplemented!()
+    async fn print(&self, file: &str) -> Result<Message> {
+        let response = self.client.publish(Command::print_file(file)).await?;
+
+        Ok(response.into())
     }
 
     /// Upload a file.

@@ -46,7 +46,7 @@ pub trait NetworkPrinter: Send + Sync {
     async fn accessories(&self) -> Result<Message>;
 
     /// Print a file.
-    async fn print(&self, file: &str) -> Result<()>;
+    async fn print(&self, file: &str) -> Result<Message>;
 
     /// Upload a file.
     async fn upload_file(&self, file: &std::path::Path) -> Result<()>;
