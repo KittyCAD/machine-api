@@ -188,6 +188,8 @@ pub enum PrintCommand {
     ProjectFile,
     /// Stop the print.
     Stop,
+    /// Extrusion calibration get.
+    ExtrusionCaliGet,
 }
 
 /// The print upload.
@@ -358,7 +360,7 @@ pub struct Info {
     /// The info module.
     pub module: Vec<InfoModule>,
     /// The result of the info command.
-    pub result: String,
+    pub result: Option<String>,
     /// The reason of the info command.
     pub reason: String,
     #[serde(flatten)]
