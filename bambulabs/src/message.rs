@@ -455,10 +455,9 @@ mod tests {
         let message = format!(
             r#"{{
                 "system": {{
-                  "command": "get_access_code",
-                  "sequence_id": {},
-                  "access_code": "12312312",
-                  "result": "success"
+                  "command": "ledctrl",
+                  "result": "success",
+                  "sequence_id": {}
                 }}
               }}"#,
             2
