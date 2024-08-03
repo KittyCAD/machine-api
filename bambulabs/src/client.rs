@@ -118,7 +118,7 @@ impl Client {
                 return Ok(());
             }
 
-            println!("{:#?}", message);
+            //println!("{:#?}", message);
             self.responses.insert(sequence_id, message);
             return Ok(());
         }
