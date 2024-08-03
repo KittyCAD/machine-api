@@ -2,6 +2,23 @@
 
 This API intends to provide a standardized local interface to any machines used for manufacturing physical things.
 
+## Config file
+
+Here is a sample config file:
+
+```
+[bambulabs]
+machines = [
+    { id = "YOUR_ID_HERE", access_code = "YOUR_ACCESS_CODE_HERE", slicer_config = "./config/bambu/" },
+    { id = "YOUR_ID_HERE", access_code = "YOUR_ACCESS_CODE_HERE", slicer_config = "./config/bambu/" },
+]
+
+[formlabs]
+```
+
+The cli looks by default for a file called `machine-api.toml` in the current
+directory. You can also specify a different file with the `--config` flag.
+
 
 ## Running machine API
 

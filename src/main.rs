@@ -45,7 +45,7 @@ pub struct Opts {
     pub subcmd: SubCommand,
 
     /// Path to config file.
-    #[clap(short, long, default_value = "config.toml")]
+    #[clap(short, long, default_value = "machine-api.toml")]
     pub config: std::path::PathBuf,
 }
 
