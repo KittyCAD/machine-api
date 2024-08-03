@@ -293,7 +293,7 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
         // Save the gcode to a temp file.
         tracing::info!("Saved gcode to {}", gcode.display());
 
-        Ok(file.to_path_buf())
+        Ok(gcode.to_path_buf())
     }
 
     /// Print a file.
