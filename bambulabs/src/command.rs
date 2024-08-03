@@ -106,12 +106,10 @@ impl Command {
     pub fn print_file(job_name: &str, filename: &str, use_ams: bool) -> Self {
         Command::Print(Print::ProjectFile(ProjectFile {
             sequence_id: SequenceId::new(),
-            // TODO: do we need to actually figure out the right plate deterministically?
             param: format!("Metadata/plate_{}.gcode", 1),
             subtask_name: job_name.to_string(),
             url: format!("ftp://{}", filename),
-            // TODO: do we need to actually figure out the right bed type deterministically?
-            bed_type: BedType::Pte,
+            bed_type: BedType::Auto,
             timelapsed: true,
             bed_leveling: true,
             flow_calibration: true,
@@ -764,7 +762,7 @@ mod tests {
         let payload = serde_json::to_string(&command).unwrap();
         assert_eq!(
             payload,
-            r#"{"print":{"command":"project_file","sequence_id":1,"param":"Metadata/plate_1.gcode","subtask_name":"myjob","url":"ftp://thing.3mf","bed_type":"pte","timelapsed":true,"bed_leveling":true,"flow_calibration":true,"vibration_calibration":true,"layer_inspect":false,"use_ams":true,"profile_id":"0","project_id":"0","subtask_id":"0","task_id":"0"}}"#
+            r#"{"print":{"command":"project_file","sequence_id":1,"param":"Metadata/plate_1.gcode","subtask_name":"myjob","url":"ftp://thing.3mf","bed_type":"auto","timelapsed":true,"bed_leveling":true,"flow_calibration":true,"vibration_calibration":true,"layer_inspect":false,"use_ams":true,"profile_id":"0","project_id":"0","subtask_id":"0","task_id":"0"}}"#
         );
     }
 }
