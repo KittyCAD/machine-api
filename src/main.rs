@@ -151,7 +151,7 @@ pub struct Server {
     pub address: String,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "multi_thread", worker_threads = 128)]
 async fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
@@ -221,7 +221,7 @@ async fn main() -> Result<()> {
         delouse::init()?;
     }
 
-    let config = config::Config::from_file(&opts.config)?;
+    let config = config::Config::from_file(&opts.config).await?;
 
     if let Err(err) = run_cmd(&opts, &config).await {
         bail!("running cmd `{:?}` failed: {:?}", &opts.subcmd, err);
@@ -244,7 +244,7 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
 
             let machines = api_context.list_machines()?;
             for (id, machine) in machines.iter() {
-                println!("{}: {:?}", id, machine);
+                println!("{}: {:#?}\n", id, machine);
             }
         }
         SubCommand::PrintFile {

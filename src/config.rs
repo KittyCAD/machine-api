@@ -16,8 +16,8 @@ pub struct Config {
 
 impl Config {
     /// Parse a configuration from a toml file.
-    pub fn from_file(file: &PathBuf) -> Result<Self> {
-        let config = std::fs::read_to_string(file)?;
+    pub async fn from_file(file: &PathBuf) -> Result<Self> {
+        let config = tokio::fs::read_to_string(file).await?;
         Self::from_str(&config)
     }
 

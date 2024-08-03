@@ -13,34 +13,51 @@ use crate::{
     sequence_id::SequenceId,
 };
 
+const MQTT_PORT: u16 = 8883;
+const MAX_PACKET_SIZE: usize = 1024 * 1024;
+
 /// The Bambu MQTT client.
 #[derive(Clone)]
 pub struct Client {
-    /// The MQTT host.
-    pub host: String,
+    /// The IP address of the MQTT host.
+    pub ip: String,
     /// The access code.
     pub access_code: String,
     /// The serial number.
     pub serial: String,
 
-    client: rumqttc::AsyncClient,
+    topic_device_request: String,
+    topic_device_report: String,
+
+    client: Arc<rumqttc::AsyncClient>,
     event_loop: Arc<Mutex<rumqttc::EventLoop>>,
 
     responses: Arc<DashMap<SequenceId, Message>>,
-
-    topic_device_request: String,
-    topic_device_report: String,
 }
-
-const MAX_PACKET_SIZE: usize = 1024 * 1024;
 
 impl Client {
     /// Creates a new Bambu printer MQTT client.
     pub fn new<S: Into<String> + Clone>(ip: S, access_code: S, serial: S) -> Result<Self> {
         let access_code = access_code.into();
+        let ip = ip.into();
         let serial = serial.into();
-        let host = format!("mqtts://{}:8883", ip.clone().into());
 
+        let opts = Self::get_config(&ip, &access_code)?;
+        let (client, event_loop) = rumqttc::AsyncClient::new(opts, 25);
+
+        Ok(Self {
+            ip,
+            access_code,
+            topic_device_request: format!("device/{}/request", &serial),
+            topic_device_report: format!("device/{}/report", &serial),
+            serial,
+            client: Arc::new(client),
+            event_loop: Arc::new(Mutex::new(event_loop)),
+            responses: Arc::new(DashMap::new()),
+        })
+    }
+
+    fn get_config(ip: &str, access_code: &str) -> Result<rumqttc::MqttOptions> {
         let client_id = format!("bambu-api-{}", nanoid::nanoid!(8));
 
         let ssl_config = rustls::ClientConfig::builder()
@@ -48,26 +65,15 @@ impl Client {
             .with_custom_certificate_verifier(Arc::new(crate::no_auth::NoAuth::new()))
             .with_no_client_auth();
 
-        let mut opts = rumqttc::MqttOptions::new(client_id, ip, 8883);
+        let mut opts = rumqttc::MqttOptions::new(client_id, ip, MQTT_PORT);
         opts.set_max_packet_size(MAX_PACKET_SIZE, MAX_PACKET_SIZE);
         opts.set_keep_alive(Duration::from_secs(5));
-        opts.set_credentials("bblp", &access_code);
+        opts.set_credentials("bblp", access_code);
         opts.set_transport(rumqttc::Transport::Tls(rumqttc::TlsConfiguration::Rustls(Arc::new(
             ssl_config,
         ))));
 
-        let (client, event_loop) = rumqttc::AsyncClient::new(opts, 25);
-
-        Ok(Self {
-            host,
-            access_code,
-            topic_device_request: format!("device/{}/request", &serial),
-            topic_device_report: format!("device/{}/report", &serial),
-            serial,
-            client,
-            event_loop: Arc::new(Mutex::new(event_loop)),
-            responses: Arc::new(DashMap::new()),
-        })
+        Ok(opts)
     }
 
     /// Polls for a message from the MQTT event loop.
@@ -81,7 +87,27 @@ impl Client {
     ///
     /// Returns an error if there was a problem polling for a message or parsing the event.
     async fn poll(&mut self) -> Result<()> {
-        let msg_opt = self.event_loop.lock().await.poll().await?;
+        let mut ep = self.event_loop.lock().await;
+        let msg_opt = match ep.poll().await {
+            Ok(msg_opt) => msg_opt,
+            Err(err) => {
+                if let rumqttc::ConnectionError::MqttState(rumqttc::StateError::Io(err)) = err {
+                    tracing::error!("Error polling for message: {:?}", err);
+                    tracing::warn!("Reconnecting...");
+                    // We are in a bad state and should reconnect.
+                    let opts = Self::get_config(&self.ip, &self.access_code)?;
+                    let (client, event_loop) = rumqttc::AsyncClient::new(opts, 25);
+                    drop(ep);
+                    self.client = Arc::new(client);
+                    self.event_loop = Arc::new(Mutex::new(event_loop));
+                    tracing::warn!("Reconnected.");
+                    return Ok(());
+                }
+
+                tracing::error!("Error polling for message: {:?}", err);
+                return Ok(());
+            }
+        };
 
         let message = parse_message(&msg_opt);
 
@@ -163,6 +189,8 @@ impl Client {
             if let Some(response) = self.responses.get(sequence_id) {
                 return Ok(response.value().clone());
             }
+            // This sleep is important since it frees up the thread.
+            tokio::time::sleep(Duration::from_secs(1)).await;
         }
 
         anyhow::bail!("Timeout waiting for response to command: {:?}", command)
@@ -170,7 +198,7 @@ impl Client {
 
     /// Upload a file.
     pub async fn upload_file(&self, path: &std::path::Path) -> Result<()> {
-        let host_url = url::Url::parse(&self.host)?;
+        let host_url = url::Url::parse(&format!("mqtts://{}:{}", self.ip, MQTT_PORT))?;
         let host = host_url
             .host_str()
             .ok_or(anyhow::anyhow!("not a valid hostname"))?

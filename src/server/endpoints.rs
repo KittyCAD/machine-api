@@ -150,7 +150,7 @@ pub(crate) async fn print_file(
             active_jobs.insert(job_id.to_string(), handle);
         }
         crate::machine::MachineHandle::NetworkPrinter(printer) => {
-            printer
+            let result = printer
                 .client
                 .slice_and_print(&params.job_name, &filepath)
                 .await
@@ -158,6 +158,8 @@ pub(crate) async fn print_file(
                     tracing::error!("failed to print file: {:?}", e);
                     HttpError::for_bad_request(None, "failed to print file".to_string())
                 })?;
+
+            tracing::info!("result: {:?}", result);
         }
     }
 

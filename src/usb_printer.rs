@@ -96,9 +96,10 @@ impl UsbPrinter {
         Ok(gcode)
     }
 
-    fn print(&mut self, file: &std::path::Path) -> Result<Message> {
+    async fn print(&mut self, file: &std::path::Path) -> Result<Message> {
         // Read the gcode file.
-        let lines: Vec<String> = std::fs::read_to_string(file)?
+        let lines: Vec<String> = tokio::fs::read_to_string(file)
+            .await?
             .lines() // split the string into an iterator of string slices
             .map(|s| {
                 let s = String::from(s);
@@ -124,7 +125,7 @@ impl UsbPrinter {
 
     pub async fn slice_and_print(&mut self, file: &std::path::Path) -> Result<Message> {
         let gcode = self.slice(file).await?;
-        self.print(&gcode)
+        self.print(&gcode).await
     }
 
     pub fn status(&self) -> Result<Message> {
