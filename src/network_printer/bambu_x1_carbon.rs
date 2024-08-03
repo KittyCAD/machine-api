@@ -238,6 +238,14 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
         Ok(status.into())
     }
 
+    /// Get the version of the printer.
+    async fn version(&self) -> Result<Message> {
+        // Get the version of the printer.
+        let version = self.client.publish(Command::get_version()).await?;
+
+        Ok(version.into())
+    }
+
     /// Pause the current print.
     async fn pause(&self) -> Result<Message> {
         // Pause the printer.

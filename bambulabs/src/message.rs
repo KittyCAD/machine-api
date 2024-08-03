@@ -34,7 +34,7 @@ impl Message {
     pub fn sequence_id(&self) -> Option<SequenceId> {
         match self {
             Message::Print(print) => Some(print.sequence_id()),
-            Message::Info(info) => Some(info.sequence_id.clone()),
+            Message::Info(info) => Some(info.sequence_id()),
             Message::System(system) => Some(system.sequence_id()),
             Message::Json(_) | Message::Unknown(_) => None,
         }
@@ -205,10 +205,16 @@ pub struct ExtrusionCaliGet {
 pub struct PushStatus {
     /// The sequence id.
     pub sequence_id: SequenceId,
+    /// The aux part fan.
+    pub aux_part_fan: Option<bool>,
     /// The upload.
     pub upload: Option<PrintUpload>,
+    /// The nozzle diameter.
+    pub nozzle_diameter: Option<String>,
     /// The nozzle temperature.
     pub nozzle_temper: Option<f64>,
+    /// The nozzle type.
+    pub nozzle_type: Option<NozzleType>,
     /// The target nozzle temperature.
     pub nozzle_target_temper: Option<f64>,
     /// The bed temperature.
@@ -326,6 +332,8 @@ pub struct PrintUpload {
     pub progress: i64,
     /// The message.
     pub message: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The print online.
@@ -337,6 +345,8 @@ pub struct PrintOnline {
     pub rfid: Option<bool>,
     /// The version.
     pub version: i64,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The print ams.
@@ -366,6 +376,8 @@ pub struct PrintAms {
     pub insert_flag: Option<bool>,
     /// The power on flag.
     pub power_on_flag: Option<bool>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The print ams data.
@@ -379,6 +391,8 @@ pub struct PrintAmsData {
     pub temp: String,
     /// The tray.
     pub tray: Vec<PrintTray>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The print tray.
@@ -424,6 +438,8 @@ pub struct PrintTray {
     pub k: Option<f64>,
     /// The tray n.
     pub n: Option<i64>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The print ipcam.
@@ -437,15 +453,19 @@ pub struct PrintIpcam {
     pub timelapse: Option<String>,
     /// The mode bits.
     pub mode_bits: Option<i64>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A print lights report.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct PrintLightsReport {
     /// The node.
-    pub node: String,
+    pub node: LedNode,
     /// The mode.
-    pub mode: String,
+    pub mode: LedMode,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A print upgrade state.
@@ -473,32 +493,40 @@ pub struct PrintUpgradeState {
     pub new_version_state: Option<i64>,
     /// The new version list.
     pub new_ver_list: Option<Vec<Value>>,
-}
-
-/// A info message.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-pub struct Info {
-    /// The sequence id.
-    pub sequence_id: SequenceId,
-    /// The info command.
-    pub command: InfoCommand,
-    /// The info module.
-    pub module: Vec<InfoModule>,
-    /// The result of the info command.
-    pub result: Option<String>,
-    /// The reason of the info command.
-    pub reason: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
 
 /// An info command.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
-#[serde(rename_all = "snake_case")]
-#[display(style = "snake_case")]
-pub enum InfoCommand {
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum Info {
     /// Get the version.
-    GetVersion,
+    GetVersion(GetVersion),
+}
+
+impl Info {
+    /// Returns the sequence id of the message.
+    pub fn sequence_id(&self) -> SequenceId {
+        match self {
+            Info::GetVersion(get_version) => get_version.sequence_id.clone(),
+        }
+    }
+}
+
+/// A get version message.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct GetVersion {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The info module.
+    pub module: Vec<InfoModule>,
+    /// The result of the info command.
+    pub result: Result,
+    /// The reason of the info command.
+    pub reason: Option<Reason>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// An info module.

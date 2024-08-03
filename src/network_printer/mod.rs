@@ -30,6 +30,9 @@ pub trait NetworkPrinter: Send + Sync {
     /// Get the status of a printer.
     async fn status(&self) -> Result<Message>;
 
+    /// Get the version of the printer.
+    async fn version(&self) -> Result<Message>;
+
     /// Pause the current print.
     async fn pause(&self) -> Result<Message>;
 

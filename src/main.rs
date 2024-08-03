@@ -102,8 +102,14 @@ pub enum SubCommand {
         job_name: Option<String>,
     },
 
-    /// Get machine metrics.
+    /// Get machine status.
     GetStatus {
+        /// Id for a machine
+        machine_id: String,
+    },
+
+    /// Get machine version.
+    GetVersion {
         /// Id for a machine
         machine_id: String,
     },
@@ -282,6 +288,25 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
             };
 
             let status = machine.client.status().await?;
+
+            println!("{:#?}", status);
+        }
+        SubCommand::GetVersion { machine_id } => {
+            // Now connect to first printer we find over serial port
+            //
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
+
+            discovery(api_context.clone(), TIMEOUT_DURATION).await?;
+
+            let machine = api_context
+                .find_machine_handle_by_id(machine_id)?
+                .expect("Printer not found by given ID");
+
+            let MachineHandle::NetworkPrinter(machine) = machine else {
+                bail!("usb printers not yet supported");
+            };
+
+            let status = machine.client.version().await?;
 
             println!("{:#?}", status);
         }

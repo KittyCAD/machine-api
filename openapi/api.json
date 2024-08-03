@@ -45,59 +45,58 @@
         "type": "object"
       },
       "Info": {
-        "additionalProperties": true,
-        "description": "A info message.",
-        "properties": {
-          "command": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/InfoCommand"
-              }
-            ],
-            "description": "The info command."
-          },
-          "module": {
-            "description": "The info module.",
-            "items": {
-              "$ref": "#/components/schemas/InfoModule"
-            },
-            "type": "array"
-          },
-          "reason": {
-            "description": "The reason of the info command.",
-            "nullable": true,
-            "type": "string"
-          },
-          "result": {
-            "description": "The result of the info command.",
-            "nullable": true,
-            "type": "string"
-          },
-          "sequence_id": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/SequenceId"
-              }
-            ],
-            "description": "The sequence id."
-          }
-        },
-        "required": [
-          "command",
-          "module",
-          "sequence_id"
-        ],
-        "type": "object"
-      },
-      "InfoCommand": {
         "description": "An info command.",
         "oneOf": [
           {
+            "additionalProperties": true,
             "description": "Get the version.",
-            "enum": [
-              "get_version"
+            "properties": {
+              "command": {
+                "enum": [
+                  "get_version"
+                ],
+                "type": "string"
+              },
+              "module": {
+                "description": "The info module.",
+                "items": {
+                  "$ref": "#/components/schemas/InfoModule"
+                },
+                "type": "array"
+              },
+              "reason": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Reason"
+                  }
+                ],
+                "description": "The reason of the info command.",
+                "nullable": true
+              },
+              "result": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Result"
+                  }
+                ],
+                "description": "The result of the info command."
+              },
+              "sequence_id": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/SequenceId"
+                  }
+                ],
+                "description": "The sequence id."
+              }
+            },
+            "required": [
+              "command",
+              "module",
+              "result",
+              "sequence_id"
             ],
-            "type": "string"
+            "type": "object"
           }
         ]
       },
@@ -490,6 +489,11 @@
                 "nullable": true,
                 "type": "integer"
               },
+              "aux_part_fan": {
+                "description": "The aux part fan.",
+                "nullable": true,
+                "type": "boolean"
+              },
               "bed_target_temper": {
                 "description": "The target bed temperature.",
                 "format": "double",
@@ -645,6 +649,11 @@
                 "nullable": true,
                 "type": "integer"
               },
+              "nozzle_diameter": {
+                "description": "The nozzle diameter.",
+                "nullable": true,
+                "type": "string"
+              },
               "nozzle_target_temper": {
                 "description": "The target nozzle temperature.",
                 "format": "double",
@@ -656,6 +665,15 @@
                 "format": "double",
                 "nullable": true,
                 "type": "number"
+              },
+              "nozzle_type": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/NozzleType"
+                  }
+                ],
+                "description": "The nozzle type.",
+                "nullable": true
               },
               "online": {
                 "allOf": [
@@ -1038,6 +1056,7 @@
         ]
       },
       "PrintAms": {
+        "additionalProperties": true,
         "description": "The print ams.",
         "properties": {
           "ams": {
@@ -1108,6 +1127,7 @@
         "type": "object"
       },
       "PrintAmsData": {
+        "additionalProperties": true,
         "description": "The print ams data.",
         "properties": {
           "humidity": {
@@ -1139,6 +1159,7 @@
         "type": "object"
       },
       "PrintIpcam": {
+        "additionalProperties": true,
         "description": "The print ipcam.",
         "properties": {
           "ipcam_dev": {
@@ -1188,15 +1209,24 @@
         "type": "object"
       },
       "PrintLightsReport": {
+        "additionalProperties": true,
         "description": "A print lights report.",
         "properties": {
           "mode": {
-            "description": "The mode.",
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LedMode"
+              }
+            ],
+            "description": "The mode."
           },
           "node": {
-            "description": "The node.",
-            "type": "string"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LedNode"
+              }
+            ],
+            "description": "The node."
           }
         },
         "required": [
@@ -1206,6 +1236,7 @@
         "type": "object"
       },
       "PrintOnline": {
+        "additionalProperties": true,
         "description": "The print online.",
         "properties": {
           "ahb": {
@@ -1248,6 +1279,7 @@
         "type": "object"
       },
       "PrintTray": {
+        "additionalProperties": true,
         "description": "The print tray.",
         "properties": {
           "bed_temp": {
@@ -1359,6 +1391,7 @@
         "type": "object"
       },
       "PrintUpgradeState": {
+        "additionalProperties": true,
         "description": "A print upgrade state.",
         "properties": {
           "consistency_request": {
@@ -1425,6 +1458,7 @@
         "type": "object"
       },
       "PrintUpload": {
+        "additionalProperties": true,
         "description": "The print upload.",
         "properties": {
           "message": {

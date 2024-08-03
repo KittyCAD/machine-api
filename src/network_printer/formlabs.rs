@@ -82,6 +82,11 @@ impl NetworkPrinter for FormlabsPrinter {
         unimplemented!()
     }
 
+    /// Get the version of the printer.
+    async fn version(&self) -> Result<Message> {
+        unimplemented!()
+    }
+
     /// Pause the current print.
     async fn pause(&self) -> Result<Message> {
         unimplemented!()
