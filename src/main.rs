@@ -123,6 +123,18 @@ pub enum SubCommand {
         #[clap(long)]
         on: bool,
     },
+
+    /// Pause the machine.
+    Pause {
+        /// Id for a machine
+        machine_id: String,
+    },
+
+    /// Resume the machine.
+    Resume {
+        /// Id for a machine
+        machine_id: String,
+    },
 }
 
 /// A subcommand for running the server.
@@ -290,7 +302,7 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
 
             let status = machine.client.set_led(*on).await?;
 
-            println!("{:?}", status);
+            println!("{:#?}", status);
         }
         SubCommand::GetAccessories { machine_id } => {
             // Now connect to first printer we find over serial port
@@ -309,7 +321,45 @@ async fn run_cmd(opts: &Opts, config: &Config) -> Result<()> {
 
             let status = machine.client.accessories().await?;
 
-            println!("{:?}", status);
+            println!("{:#?}", status);
+        }
+        SubCommand::Pause { machine_id } => {
+            // Now connect to first printer we find over serial port
+            //
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
+
+            discovery(api_context.clone(), TIMEOUT_DURATION).await?;
+
+            let machine = api_context
+                .find_machine_handle_by_id(machine_id)?
+                .expect("Printer not found by given ID");
+
+            let MachineHandle::NetworkPrinter(machine) = machine else {
+                bail!("usb printers not yet supported");
+            };
+
+            let status = machine.client.pause().await?;
+
+            println!("{:#?}", status);
+        }
+        SubCommand::Resume { machine_id } => {
+            // Now connect to first printer we find over serial port
+            //
+            let api_context = Arc::new(Context::new(config, Default::default(), opts.create_logger("print")).await?);
+
+            discovery(api_context.clone(), TIMEOUT_DURATION).await?;
+
+            let machine = api_context
+                .find_machine_handle_by_id(machine_id)?
+                .expect("Printer not found by given ID");
+
+            let MachineHandle::NetworkPrinter(machine) = machine else {
+                bail!("usb printers not yet supported");
+            };
+
+            let status = machine.client.resume().await?;
+
+            println!("{:#?}", status);
         }
     }
 

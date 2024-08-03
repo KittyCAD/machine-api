@@ -201,13 +201,13 @@ pub struct BambuX1CarbonPrinter {
 
 impl BambuX1CarbonPrinter {
     /// Get the latest status of the printer.
-    pub fn get_status(&self) -> Result<Option<bambulabs::message::Print>> {
+    pub fn get_status(&self) -> Result<Option<bambulabs::message::PushStatus>> {
         self.client.get_status()
     }
 
     /// Check if the printer has an AMS.
     pub fn has_ams(&self) -> Result<bool> {
-        let Some(status) = self.client.get_status()? else {
+        let Some(status) = self.get_status()? else {
             return Ok(false);
         };
 
@@ -232,7 +232,8 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
             anyhow::bail!("No status found");
         };
 
-        let status: bambulabs::message::Message = status.into();
+        let status: bambulabs::message::Message =
+            bambulabs::message::Message::Print(bambulabs::message::Print::PushStatus(status));
 
         Ok(status.into())
     }

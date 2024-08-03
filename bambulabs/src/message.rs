@@ -7,7 +7,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::sequence_id::SequenceId;
+use crate::{
+    command::{AccessoryType, LedMode, LedNode},
+    sequence_id::SequenceId,
+};
 
 /// A message from/to the printer.
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone, PartialEq)]
@@ -30,9 +33,9 @@ impl Message {
     /// Returns the sequence id of the message.
     pub fn sequence_id(&self) -> Option<SequenceId> {
         match self {
-            Message::Print(print) => Some(print.sequence_id.clone()),
+            Message::Print(print) => Some(print.sequence_id()),
             Message::Info(info) => Some(info.sequence_id.clone()),
-            Message::System(system) => Some(system.sequence_id.clone()),
+            Message::System(system) => Some(system.sequence_id()),
             Message::Json(_) | Message::Unknown(_) => None,
         }
     }
@@ -56,13 +59,152 @@ impl From<System> for Message {
     }
 }
 
-/// A print message.
+/// A reason for a message.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[display(style = "SNAKE_CASE")]
+pub enum Reason {
+    /// Success.
+    #[serde(alias = "success")]
+    Success,
+    /// Fail.
+    #[serde(alias = "fail")]
+    Fail,
+    /// Some unknown string.
+    #[display("{0}")]
+    #[serde(untagged)]
+    Unknown(String),
+}
+
+/// The result of a message.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[display(style = "SNAKE_CASE")]
+pub enum Result {
+    /// Success.
+    #[serde(alias = "success")]
+    Success,
+    /// Fail.
+    #[serde(alias = "fail")]
+    Fail,
+}
+
+/// A print command.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
-pub struct Print {
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum Print {
+    /// The status of the print.
+    PushStatus(PushStatus),
+    /// The gcode line.
+    GcodeLine(GcodeLine),
+    /// Project file.
+    ProjectFile(ProjectFile),
+    /// Pause the print.
+    Pause(Pause),
+    /// Resume the print.
+    Resume(Resume),
+    /// Stop the print.
+    Stop(Stop),
+    /// Extrusion calibration get.
+    ExtrusionCaliGet(ExtrusionCaliGet),
+}
+
+impl Print {
+    /// Returns the sequence id of the message.
+    pub fn sequence_id(&self) -> SequenceId {
+        match self {
+            Print::PushStatus(push_status) => push_status.sequence_id.clone(),
+            Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
+            Print::ProjectFile(project_file) => project_file.sequence_id.clone(),
+            Print::Pause(pause) => pause.sequence_id.clone(),
+            Print::Resume(resume) => resume.sequence_id.clone(),
+            Print::Stop(stop) => stop.sequence_id.clone(),
+            Print::ExtrusionCaliGet(extrusion_cali_get) => extrusion_cali_get.sequence_id.clone(),
+        }
+    }
+}
+
+/// A gcode line.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct GcodeLine {
     /// The sequence id.
     pub sequence_id: SequenceId,
-    /// The command.
-    pub command: PrintCommand,
+    /// The gcode line.
+    pub line: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A project file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ProjectFile {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The project id.
+    pub project_id: String,
+    /// The profile id.
+    pub profile_id: String,
+    /// The task id.
+    pub task_id: String,
+    /// The subtask id.
+    pub subtask_id: String,
+    /// The subtask name.
+    pub subtask_name: String,
+    /// The gcode file.
+    pub gcode_file: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A pause command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Pause {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Reason,
+    /// The result of the command.
+    pub result: Result,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A resume command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Resume {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Reason,
+    /// The result of the command.
+    pub result: Result,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A stop command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Stop {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// An extrusion calibration get command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ExtrusionCaliGet {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A push status message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct PushStatus {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
     /// The upload.
     pub upload: Option<PrintUpload>,
     /// The nozzle temperature.
@@ -173,25 +315,6 @@ pub struct Print {
     pub msg: Option<i64>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
-}
-
-/// A print command.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Display, FromStr)]
-#[serde(rename_all = "snake_case")]
-#[display(style = "snake_case")]
-pub enum PrintCommand {
-    /// The status of the print.
-    PushStatus,
-    /// The gcode line.
-    GcodeLine,
-    /// Project file.
-    ProjectFile,
-    /// Resume the print.
-    Resume,
-    /// Stop the print.
-    Stop,
-    /// Extrusion calibration get.
-    ExtrusionCaliGet,
 }
 
 /// The print upload.
@@ -397,28 +520,80 @@ pub struct InfoModule {
     pub ota_ver: Option<String>,
 }
 
-/// A system message.
+/// A system command.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum System {
+    /// Led control.
+    Ledctrl(Ledctrl),
+    /// Get accessories.
+    GetAccessories(GetAccessories),
+}
+
+impl System {
+    /// Returns the sequence id of the message.
+    pub fn sequence_id(&self) -> SequenceId {
+        match self {
+            System::Ledctrl(ledctrl) => ledctrl.sequence_id.clone(),
+            System::GetAccessories(get_accessories) => get_accessories.sequence_id.clone(),
+        }
+    }
+}
+
+/// An led control command.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-pub struct System {
+pub struct Ledctrl {
     /// The sequence id.
     pub sequence_id: SequenceId,
-    /// The system command.
-    pub command: SystemCommand,
-    /// The result of the system command.
-    pub result: String,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
+    /// The LED node.
+    pub led_node: LedNode,
+    /// The LED mode.
+    pub led_mode: LedMode,
+    /// The LED on time.
+    pub led_on_time: u32,
+    /// The LED off time.
+    pub led_off_time: u32,
+    /// The loop times.
+    pub loop_times: u32,
+    /// The interval time.
+    pub interval_time: u32,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
 
-/// A system command.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, FromStr, Display)]
+/// A get accessories command.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct GetAccessories {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
+    /// The accessory type.
+    pub accessory_type: AccessoryType,
+    /// The aux part fan.
+    pub aux_part_fan: bool,
+    /// The nozzle diameter.
+    pub nozzle_diameter: f64,
+    /// The nozzle type.
+    pub nozzle_type: NozzleType,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A nozzle type.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-#[display(style = "snake_case")]
-pub enum SystemCommand {
-    /// Led control.
-    Ledctrl,
-    /// Get accessories.
-    GetAccessories,
+pub enum NozzleType {
+    /// Hardened steel nozzle.
+    HardenedSteel,
+    /// Stainless steel nozzle.
+    StainlessSteel,
 }
 
 #[cfg(test)]
@@ -463,7 +638,7 @@ mod tests {
                             "sn":"01S00C123400001"
                         }}
                     ],
-                    "result":"success",
+                    "result":"SUCCESS",
                     "reason":""
                 }}
             }}"#,
@@ -482,7 +657,39 @@ mod tests {
             r#"{{
                 "system": {{
                   "command": "ledctrl",
-                  "result": "success",
+                  "result": "SUCCESS",
+                  "led_node": "work_light",
+                  "led_mode": "on",
+                  "led_on_time": 1000,
+                  "led_off_time": 1000,
+                  "loop_times": 10,
+                  "interval_time": 1000,
+                  "sequence_id": {}
+                }}
+              }}"#,
+            2
+        );
+
+        let result = serde_json::from_str::<Message>(&message);
+
+        assert!(result.is_ok());
+        assert!(matches!(result.unwrap(), Message::System(_)));
+    }
+
+    #[test]
+    fn test_deserialize_message_system_with_unknown_reason() {
+        let message = format!(
+            r#"{{
+                "system": {{
+                  "command": "ledctrl",
+                  "result": "fail",
+                  "reason": "some other string",
+                  "led_node": "chamber_light",
+                  "led_mode": "on",
+                  "led_on_time": 1000,
+                  "led_off_time": 1000,
+                  "loop_times": 10,
+                  "interval_time": 1000,
                   "sequence_id": {}
                 }}
               }}"#,

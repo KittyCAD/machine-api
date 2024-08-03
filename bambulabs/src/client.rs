@@ -8,7 +8,7 @@ use tokio::sync::Mutex;
 
 use crate::{
     command::Command,
-    message::{Message, Print, PrintCommand},
+    message::{Message, Print, PushStatus},
     parser::parse_message,
     sequence_id::SequenceId,
 };
@@ -87,11 +87,9 @@ impl Client {
 
         if let Some(sequence_id) = message.sequence_id() {
             // If the message is a push status, make the sequence id "status".
-            if let Message::Print(msg) = &message {
-                if msg.command == PrintCommand::PushStatus {
-                    self.responses.insert(SequenceId::status(), message);
-                    return Ok(());
-                }
+            if let Message::Print(Print::PushStatus(_)) = &message {
+                self.responses.insert(SequenceId::status(), message);
+                return Ok(());
             }
             self.responses.insert(sequence_id, message);
             return Ok(());
@@ -107,11 +105,11 @@ impl Client {
     }
 
     /// Get the latest status of the printer.
-    pub fn get_status(&self) -> Result<Option<Print>> {
+    pub fn get_status(&self) -> Result<Option<PushStatus>> {
         let response = self.responses.get(&SequenceId::status());
         if let Some(response) = response {
-            if let Message::Print(print) = response.value() {
-                return Ok(Some(print.clone()));
+            if let Message::Print(Print::PushStatus(status)) = response.value() {
+                return Ok(Some(status.clone()));
             }
         }
 

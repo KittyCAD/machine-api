@@ -1,6 +1,7 @@
 //! The commands that can be sent to the printer.
 
 use parse_display::{Display, FromStr};
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::{sequence_id::SequenceId, speedprofile::SpeedProfile};
@@ -330,7 +331,7 @@ pub struct Ledctrl {
 }
 
 /// The node for the led.
-#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq, JsonSchema)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum LedNode {
@@ -341,7 +342,7 @@ pub enum LedNode {
 }
 
 /// The mode for the led.
-#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq, JsonSchema)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum LedMode {
@@ -391,7 +392,7 @@ pub struct GetAccessories {
 }
 
 /// The type of accessory.
-#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq, JsonSchema)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
 pub enum AccessoryType {
