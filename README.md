@@ -20,7 +20,7 @@ The cli looks by default for a file called `machine-api.toml` in the current
 directory. You can also specify a different file with the `--config` flag.
 
 
-## Running machine API
+## Running the server 
 
 You can run this server locally assuming rust is installed:
 
@@ -45,7 +45,7 @@ curl -X POST -F file=@input.stl -F 'params={"machine_id": "CZPX2418X004XK68718",
 
 Note: you may need to allow user permissions to USB devices. Alternatively, you can just run the server as root.
 
-## machine-api CLI
+## CLI
 
 You can also use machine-api as a CLI. `cargo run` with no parameters will give the available options.
 
