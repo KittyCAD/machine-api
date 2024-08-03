@@ -5,11 +5,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serialport::SerialPortType;
 
-use crate::gcode::GcodeFile;
-
 pub struct UsbPrinter {
     pub reader: std::io::BufReader<Box<dyn serialport::SerialPort>>,
     pub writer: Box<dyn serialport::SerialPort>,
+    pub slicer: Box<dyn crate::slicer::Slicer>,
 }
 
 unsafe impl Send for UsbPrinter {}
@@ -54,7 +53,13 @@ impl UsbPrinter {
             .expect("Failed to open port");
         let reader = std::io::BufReader::new(port.try_clone().expect("Split reader"));
 
-        Self { reader, writer: port }
+        Self {
+            reader,
+            writer: port,
+            slicer: Box::new(crate::slicer::prusa::PrusaSlicer::new(
+                std::path::Path::new("../config/prusa/mk3.ini").to_path_buf(),
+            )),
+        }
     }
 
     pub fn wait_for_start(&mut self) -> Result<()> {
@@ -86,15 +91,9 @@ impl UsbPrinter {
     }
 
     async fn slice(&self, file: &std::path::Path) -> Result<PathBuf> {
-        // TODO: make this a configurable path.
-        let gcode = GcodeFile::from_stl_path(
-            crate::gcode::Slicer::Prusa,
-            std::path::Path::new("../config/prusa/mk3.ini"),
-            file,
-        )
-        .await?;
+        let gcode = self.slicer.slice(file).await?;
 
-        Ok(gcode.path)
+        Ok(gcode)
     }
 
     fn print(&mut self, file: &std::path::Path) -> Result<Message> {

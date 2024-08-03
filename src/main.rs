@@ -3,11 +3,11 @@
 #![deny(missing_docs)]
 
 mod config;
-mod gcode;
 mod machine;
 mod network_printer;
 mod print_manager;
 mod server;
+mod slicer;
 #[cfg(test)]
 mod tests;
 mod usb_printer;

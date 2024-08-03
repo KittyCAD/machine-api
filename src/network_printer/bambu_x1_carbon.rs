@@ -9,8 +9,7 @@ use dashmap::DashMap;
 use tokio::net::UdpSocket;
 
 use crate::{
-    config::{BambuLabsConfig, BambuLabsMachineConfig},
-    gcode::GcodeFile,
+    config::BambuLabsConfig,
     network_printer::{
         Message, NetworkPrinter, NetworkPrinterHandle, NetworkPrinterInfo, NetworkPrinterManufacturer, NetworkPrinters,
     },
@@ -173,7 +172,7 @@ impl NetworkPrinters for BambuX1Carbon {
                 info,
                 client: Arc::new(Box::new(BambuX1CarbonPrinter {
                     client: Arc::new(client),
-                    config: config.clone(),
+                    slicer: Box::new(crate::slicer::orca::OrcaSlicer::new(config.slicer_config.clone())),
                 })),
             };
             self.printers.insert(ip.to_string(), handle);
@@ -197,7 +196,7 @@ impl NetworkPrinters for BambuX1Carbon {
 
 pub struct BambuX1CarbonPrinter {
     pub client: Arc<bambulabs::client::Client>,
-    pub config: BambuLabsMachineConfig,
+    pub slicer: Box<dyn crate::slicer::Slicer>,
 }
 
 impl BambuX1CarbonPrinter {
@@ -280,12 +279,12 @@ impl NetworkPrinter for BambuX1CarbonPrinter {
     /// Slice a file.
     /// Returns the path to the sliced file.
     async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
-        let file = GcodeFile::from_stl_path(crate::gcode::Slicer::Orca, &self.config.slicer_config, file).await?;
+        let gcode = self.slicer.slice(file).await?;
 
         // Save the gcode to a temp file.
-        tracing::info!("Saved gcode to {}", file.path.display());
+        tracing::info!("Saved gcode to {}", gcode.display());
 
-        Ok(file.path)
+        Ok(file.to_path_buf())
     }
 
     /// Print a file.
