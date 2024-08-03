@@ -40,7 +40,7 @@ The ID is what you'll use to identify the machine. You can use that ID to start 
 For example, providing both an STL as `file`, and `params` as a json object with `machine_id` the same as above:
 
 ```bash
-$ curl -X POST -F file=@input.stl -F 'params={"machine_id": "CZPX2418X004XK68718", "job_name": "my-cool-job"}' http://localhost:8585/print
+curl -X POST -F file=@input.stl -F 'params={"machine_id": "CZPX2418X004XK68718", "job_name": "my-cool-job"}' http://localhost:8585/print
 ```
 
 Note: you may need to allow user permissions to USB devices. Alternatively, you can just run the server as root.
