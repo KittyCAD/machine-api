@@ -93,6 +93,8 @@ pub enum Result {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "snake_case", tag = "command")]
 pub enum Print {
+    /// Ams control.
+    AmsControl(AmsControl),
     /// The status of the print.
     PushStatus(PushStatus),
     /// The gcode line.
@@ -113,6 +115,7 @@ impl Print {
     /// Returns the sequence id of the message.
     pub fn sequence_id(&self) -> SequenceId {
         match self {
+            Print::AmsControl(ams_ctrl) => ams_ctrl.sequence_id.clone(),
             Print::PushStatus(push_status) => push_status.sequence_id.clone(),
             Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
             Print::ProjectFile(project_file) => project_file.sequence_id.clone(),
@@ -122,6 +125,21 @@ impl Print {
             Print::ExtrusionCaliGet(extrusion_cali_get) => extrusion_cali_get.sequence_id.clone(),
         }
     }
+}
+
+/// An ams control command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AmsControl {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Reason,
+    /// The result of the command.
+    pub result: Result,
+    /// The param.
+    pub param: Option<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A gcode line.
