@@ -117,6 +117,8 @@ impl Client {
                 self.responses.insert(SequenceId::status(), message);
                 return Ok(());
             }
+
+            println!("{:#?}", message);
             self.responses.insert(sequence_id, message);
             return Ok(());
         }

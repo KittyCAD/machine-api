@@ -130,7 +130,15 @@ pub struct GcodeLine {
     /// The sequence id.
     pub sequence_id: SequenceId,
     /// The gcode line.
-    pub line: String,
+    pub param: Option<String>,
+    /// The reason for the message.
+    pub reason: Reason,
+    /// The result of the command.
+    pub result: Result,
+    /// The source.
+    pub source: Option<i64>,
+    /// The return code.
+    pub return_code: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
@@ -151,7 +159,7 @@ pub struct ProjectFile {
     /// The subtask name.
     pub subtask_name: String,
     /// The gcode file.
-    pub gcode_file: String,
+    pub gcode_file: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }

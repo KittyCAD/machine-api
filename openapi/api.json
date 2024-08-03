@@ -842,8 +842,30 @@
                 ],
                 "type": "string"
               },
-              "line": {
+              "param": {
                 "description": "The gcode line.",
+                "nullable": true,
+                "type": "string"
+              },
+              "reason": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Reason"
+                  }
+                ],
+                "description": "The reason for the message."
+              },
+              "result": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Result"
+                  }
+                ],
+                "description": "The result of the command."
+              },
+              "return_code": {
+                "description": "The return code.",
+                "nullable": true,
                 "type": "string"
               },
               "sequence_id": {
@@ -853,11 +875,18 @@
                   }
                 ],
                 "description": "The sequence id."
+              },
+              "source": {
+                "description": "The source.",
+                "format": "int64",
+                "nullable": true,
+                "type": "integer"
               }
             },
             "required": [
               "command",
-              "line",
+              "reason",
+              "result",
               "sequence_id"
             ],
             "type": "object"
@@ -874,6 +903,7 @@
               },
               "gcode_file": {
                 "description": "The gcode file.",
+                "nullable": true,
                 "type": "string"
               },
               "profile_id": {
@@ -907,7 +937,6 @@
             },
             "required": [
               "command",
-              "gcode_file",
               "profile_id",
               "project_id",
               "sequence_id",
