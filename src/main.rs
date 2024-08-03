@@ -151,7 +151,7 @@ pub struct Server {
     pub address: String,
 }
 
-#[tokio::main(flavor = "multi_thread", worker_threads = 128)]
+#[tokio::main]
 async fn main() -> Result<()> {
     let opts: Opts = Opts::parse();
 
