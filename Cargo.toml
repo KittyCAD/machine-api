@@ -64,5 +64,6 @@ debug = ["dep:delouse", "dep:console-subscriber"]
 [workspace]
 members = [
 	"bambulabs",
+	"moonraker"
 ]
 
