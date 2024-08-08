@@ -3,6 +3,7 @@ use bambulabs::client::Client;
 use std::sync::Arc;
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
+#[derive(Clone)]
 pub struct X1Carbon {
     client: Arc<Client>,
 }
