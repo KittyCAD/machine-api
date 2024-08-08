@@ -1793,6 +1793,7 @@ dependencies = [
  "http 1.1.0",
  "libmdns",
  "mdns",
+ "moonraker",
  "multer",
  "openapiv3",
  "opentelemetry",
