@@ -22,7 +22,7 @@ impl MachineInfoTrait for PrinterInfo {
     type Control = X1Carbon;
 
     fn machine_type(&self) -> MachineType {
-        unimplemented!();
+        MachineType::Stereolithography
     }
 
     fn make_model(&self) -> MachineMakeModel {
@@ -43,6 +43,6 @@ impl DiscoverTrait for Discover {
     }
 
     async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
-        unimplemented!();
+        Ok(vec![])
     }
 }

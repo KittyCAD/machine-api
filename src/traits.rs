@@ -5,11 +5,11 @@ use std::future::Future;
 /// a real-world 3D object.
 #[derive(Debug, Copy, Clone)]
 pub enum MachineType {
-    /// Stereolithography
-    Sla,
+    /// Use light to cure a resin to build up layers.
+    Stereolithography,
 
-    /// Fused Deposition Modeling
-    Fdm,
+    /// Fused Deposition Modeling, layers of melted plastic.
+    FusedDeposition,
 
     /// "Computer numerical control" - machine that grinds away material
     /// from a hunk of material to construct a part.
