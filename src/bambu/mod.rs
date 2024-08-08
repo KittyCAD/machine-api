@@ -7,10 +7,11 @@ pub use control::X1Carbon;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-/// The configuration for bambu labs machines.
+/// The configuration for bambu labs printers.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
-    /// The machine ids and access codes for communication of LAN.
+    /// List of all known printers for which we have access code and
+    /// configurations defined.
     pub machines: Vec<MachineConfig>,
 }
 
@@ -29,10 +30,12 @@ impl Config {
 /// The configuration for a single bambu labs machine.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct MachineConfig {
-    /// The machine id.
+    /// The printer's id.
     pub id: String,
-    /// The access code for the machine.
+
+    /// The access code for the printer.
     pub access_code: String,
-    /// The slicer configuration for the machine.
+
+    /// The slicer configuration for the printer.
     pub slicer_config: PathBuf,
 }
