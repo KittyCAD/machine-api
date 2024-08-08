@@ -1,8 +1,18 @@
 //! Common traits used throughout this crate to manage the creation of
 //! physical 3D objects.
 
-use std::{error::Error, path::Path};
+use std::{
+    error::Error,
+    path::{Path, PathBuf},
+};
 use tokio::io::AsyncRead;
+
+/// A specific file containing a design to be manufactured.
+pub enum DesignFile {
+    /// Stl ("stereolithography") 3D export, as seen in `.stl` (`model/stl`)
+    /// files.
+    Stl(PathBuf),
+}
 
 /// A `Machine` is something that can take a 3D model (in one of the
 /// supported formats), and create a physical, real-world copy of
@@ -29,17 +39,6 @@ pub trait Machine {
     async fn stop(&self) -> Result<(), Self::Error>;
 }
 
-/// [Machine]-specific slicer which takes a particular DesignFile, and produces
-/// GCode.
-pub trait MachineSlicer {
-    /// Error type returned by this trait.
-    type Error: Error;
-
-    /// Take an input design file, and return a handle to an [AsyncRead]
-    /// traited object which contains the gcode to be sent to the [Machine].
-    async fn generate(&self, design_file: &Path) -> Result<impl AsyncRead, Self::Error>;
-}
-
 /// GcodeMachine is used by [Machine]s that accept gcode, control commands
 /// that are produced from a slicer from a design file.
 pub trait GcodeMachine {
@@ -48,7 +47,7 @@ pub trait GcodeMachine {
 
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
-    async fn build(&self, job_name: &str, file: &Path) -> Result<(), Self::Error>;
+    async fn build(&self, job_name: &str, gcode: impl AsyncRead) -> Result<(), Self::Error>;
 }
 
 /// SuspendMachine is used by [Machine]s that can pause and resume the current
@@ -64,4 +63,15 @@ pub trait SuspendMachine {
     /// Request that the [Machine] resume manufacturing the paused job to
     /// manufacturer a part.
     async fn resume(&self) -> Result<(), Self::Error>;
+}
+
+/// [Machine]-specific slicer which takes a particular DesignFile, and produces
+/// GCode.
+pub trait MachineSlicer {
+    /// Error type returned by this trait.
+    type Error: Error;
+
+    /// Take an input design file, and return a handle to an [AsyncRead]
+    /// traited object which contains the gcode to be sent to the [Machine].
+    async fn generate(&self, design_file: &DesignFile) -> Result<impl AsyncRead, Self::Error>;
 }
