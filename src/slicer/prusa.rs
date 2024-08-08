@@ -2,8 +2,16 @@
 //! which is based on slic3r.
 
 use anyhow::{Context, Result};
-use std::path::{Path, PathBuf};
-use tokio::{fs::File, io::AsyncRead, process::Command};
+use std::{
+    path::{Path, PathBuf},
+    pin::Pin,
+    task::{Context as TaskContext, Poll},
+};
+use tokio::{
+    fs::File,
+    io::{AsyncRead, ReadBuf},
+    process::Command,
+};
 
 use crate::DesignFile;
 
@@ -69,7 +77,37 @@ impl Slicer {
             anyhow::bail!("Failed to create G-code file");
         }
 
-        Ok(File::open(&gcode_path).await?)
+        // TODO: unlink on drop.
+
+        Ok(BurnAfterReading {
+            path: file_path.to_owned(),
+            file: File::open(&gcode_path).await?,
+        })
+    }
+}
+
+struct BurnAfterReading {
+    path: PathBuf,
+    file: File,
+}
+
+impl AsyncRead for BurnAfterReading {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut TaskContext<'_>,
+        buf: &mut ReadBuf<'_>,
+    ) -> Poll<tokio::io::Result<()>> {
+        Pin::new(&mut self.file).poll_read(cx, buf)
+    }
+}
+
+impl Drop for BurnAfterReading {
+    fn drop(&mut self) {
+        let path = self.path.clone();
+        tokio::spawn(async {
+            eprintln!("removing {}", path.display());
+            tokio::fs::remove_file(path)
+        });
     }
 }
 
