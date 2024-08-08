@@ -11,12 +11,12 @@
 //! real-world constructions of those parts.
 
 #[cfg(feature = "bambu")]
-mod bambu;
+pub mod bambu;
 #[cfg(feature = "formlabs")]
-mod formlabs;
+pub mod formlabs;
 #[cfg(feature = "moonraker")]
-mod moonraker;
-mod slicer;
+pub mod moonraker;
+pub mod slicer;
 mod traits;
 
 pub use traits::{Control, ControlGcode, ControlSuspend, DesignFile, Slicer, Volume};

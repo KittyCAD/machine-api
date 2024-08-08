@@ -1,6 +1,3 @@
-//! Common traits used throughout this crate to manage the creation of
-//! physical 3D objects.
-
 use std::{error::Error, future::Future, path::PathBuf};
 use tokio::io::AsyncRead;
 
@@ -55,7 +52,7 @@ pub trait Control {
     fn stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// [ControlGcode] is used by [Machine]s that accept gcode, control commands
+/// [ControlGcode] is used by Machines that accept gcode, control commands
 /// that are produced from a slicer from a design file.
 pub trait ControlGcode
 where
@@ -72,11 +69,11 @@ pub trait ControlSuspend
 where
     Self: Control,
 {
-    /// Request that the [Machine] pause manufacturing the current part,
+    /// Request that the Machine pause manufacturing the current part,
     /// which may be resumed later.
     fn pause(&self) -> impl Future<Output = Result<(), Self::Error>>;
 
-    /// Request that the [Machine] resume manufacturing the paused job to
+    /// Request that the Machine resume manufacturing the paused job to
     /// manufacturer a part.
     fn resume(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
@@ -88,7 +85,7 @@ pub trait Slicer {
     type Error: Error;
 
     /// Take an input design file, and return a handle to an [AsyncRead]
-    /// traited object which contains the gcode to be sent to the [Machine].
+    /// traited object which contains the gcode to be sent to the Machine.
     fn generate(
         &self,
         design_file: &DesignFile,
