@@ -10,6 +10,7 @@ mod server;
 mod slicer;
 #[cfg(test)]
 mod tests;
+mod traits;
 mod usb_printer;
 
 use std::sync::Arc;

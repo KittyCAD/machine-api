@@ -6,7 +6,19 @@ edition = "2021"
 [profile.dev]
 panic = "abort"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+	"bambulabs",
+	"moonraker"
+]
+
+
+[features]
+default = ["bambu", "formlabs", "moonraker"]
+debug = ["dep:delouse", "dep:console-subscriber"]
+bambu = []
+formlabs = []
+moonraker = []
 
 [dependencies]
 anyhow = "1.0.86"
@@ -57,13 +69,3 @@ pretty_assertions = "1"
 rand = "0.8"
 test-context = "0.3.0"
 testresult = "0.4.1"
-
-[features]
-debug = ["dep:delouse", "dep:console-subscriber"]
-
-[workspace]
-members = [
-	"bambulabs",
-	"moonraker"
-]
-
