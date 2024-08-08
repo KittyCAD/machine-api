@@ -1,6 +1,6 @@
 use crate::{Control as ControlTrait, Volume};
 use anyhow::Result;
-use bambulabs::client::Client;
+use bambulabs::{client::Client, command::Command};
 use std::sync::Arc;
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
@@ -50,10 +50,11 @@ impl ControlTrait for X1Carbon {
     }
 
     async fn emergency_stop(&self) -> Result<()> {
-        unimplemented!();
+        self.stop().await
     }
 
     async fn stop(&self) -> Result<()> {
-        unimplemented!();
+        self.client.publish(Command::stop()).await?;
+        Ok(())
     }
 }
