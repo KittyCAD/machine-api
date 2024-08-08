@@ -10,15 +10,13 @@
 //! This crate implements support for taking designed parts, and producing
 //! real-world constructions of those parts.
 
-mod traits;
-
 #[cfg(feature = "bambu")]
 mod bambu;
-
 #[cfg(feature = "formlabs")]
 mod formlabs;
-
 #[cfg(feature = "moonraker")]
 mod moonraker;
+mod slicer;
+mod traits;
 
-pub use traits::{DesignFile, GcodeMachine, Machine, MachineSlicer, SuspendMachine};
+pub use traits::{DesignFile, MachineControl, MachineControlGcode, MachineControlSuspend, Slicer, Volume};

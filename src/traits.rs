@@ -11,6 +11,21 @@ pub enum DesignFile {
     Stl(PathBuf),
 }
 
+/// Set of three values to represent the extent of a 3-D Volume. This contains
+/// the width, depth, and height values, generally used to represent some
+/// maximum or minimum.
+#[derive(Debug, Copy, Clone)]
+pub struct Volume {
+    /// Width of the volume ("left and right").
+    pub width: f64,
+
+    /// Depth of the volume ("front to back").
+    pub depth: f64,
+
+    /// Height of the volume ("up and down").
+    pub height: f64,
+}
+
 /// A `Machine` is something that can take a 3D model (in one of the
 /// supported formats), and create a physical, real-world copy of
 /// that model.
@@ -18,9 +33,13 @@ pub enum DesignFile {
 /// Some examples of what this crate calls a "Machine" are 3D printers,
 /// CNC machines, or a service that takes a drawing and mails you back
 /// a part.
-pub trait Machine {
-    /// Error type returned by this trait.
+pub trait MachineControl {
+    /// Error type returned by this trait, and any relient traits.
     type Error: Error;
+
+    /// Return the maximum part volume. For a 3D printer this is the bed's
+    /// dimension, for a CNC, this would be the bed where the material is placed.
+    fn max_part_volume(&self) -> impl Future<Output = Result<Volume, Self::Error>>;
 
     /// Request an immediate and complete shutdown of the equipment,
     /// requiring human intervention to bring the machine back online.
@@ -36,23 +55,23 @@ pub trait Machine {
     fn stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// GcodeMachine is used by [Machine]s that accept gcode, control commands
+/// [MachineControlGcode] is used by [Machine]s that accept gcode, control commands
 /// that are produced from a slicer from a design file.
-pub trait GcodeMachine {
-    /// Error type returned by this trait.
-    type Error: Error;
-
+pub trait MachineControlGcode
+where
+    Self: MachineControl,
+{
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
     fn build(&self, job_name: &str, gcode: impl AsyncRead) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// SuspendMachine is used by [Machine]s that can pause and resume the current
-/// job.
-pub trait SuspendMachine {
-    /// Error type returned by this trait.
-    type Error: Error;
-
+/// [MachineControlSuspend] is used by [MachineControl] handles that can pause
+/// and resume the current job.
+pub trait MachineControlSuspend
+where
+    Self: MachineControl,
+{
     /// Request that the [Machine] pause manufacturing the current part,
     /// which may be resumed later.
     fn pause(&self) -> impl Future<Output = Result<(), Self::Error>>;
@@ -62,13 +81,16 @@ pub trait SuspendMachine {
     fn resume(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// [Machine]-specific slicer which takes a particular DesignFile, and produces
+/// [MachineControl]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
-pub trait MachineSlicer {
+pub trait Slicer {
     /// Error type returned by this trait.
     type Error: Error;
 
     /// Take an input design file, and return a handle to an [AsyncRead]
     /// traited object which contains the gcode to be sent to the [Machine].
-    fn generate(&self, design_file: &DesignFile) -> impl Future<Output = Result<impl AsyncRead, Self::Error>>;
+    fn generate(
+        &self,
+        design_file: &DesignFile,
+    ) -> impl Future<Output = Result<impl AsyncRead, <Self as Slicer>::Error>>;
 }
