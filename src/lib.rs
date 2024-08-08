@@ -12,4 +12,13 @@
 
 mod traits;
 
+#[cfg(feature = "bambu")]
+mod bambu;
+
+#[cfg(feature = "formlabs")]
+mod formlabs;
+
+#[cfg(feature = "moonraker")]
+mod moonraker;
+
 pub use traits::{DesignFile, GcodeMachine, Machine, MachineSlicer, SuspendMachine};
