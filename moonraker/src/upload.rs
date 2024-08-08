@@ -6,30 +6,48 @@ use std::path::{Path, PathBuf};
 
 use super::PrintManager;
 
+/// File that has been uploaded to Moonraker.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UploadResponseItem {
+    /// Path of the file relative to the root directory.
     pub path: String,
+
+    /// Root folder. Currently only a limted set are supported,
+    /// check the moonraker docs for more information. This code
+    /// assumes everything is `gcodes` for now.
     pub root: String,
 }
 
+/// Response to an upload request.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct UploadResponse {
+    /// `gcode` file uploaded to the printer.
     pub item: UploadResponseItem,
+
+    /// Has this print been started?
     pub print_started: bool,
+
+    /// Has this print been enqueued?
     pub print_queued: bool,
-    pub action: String,
 }
 
+/// File that has been deleted from Moonraker.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DeleteResponseItem {
+    /// Path of the file relative to the root directory.
     pub path: String,
+
+    /// Root folder. Currently only a limted set are supported,
+    /// check the moonraker docs for more information. This code
+    /// assumes everything is `gcodes` for now.
     pub root: String,
 }
 
+/// Response to a delete request.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DeleteResponse {
+    /// `gcode` file that has been deleted.
     pub item: DeleteResponseItem,
-    pub action: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]

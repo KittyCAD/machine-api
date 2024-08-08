@@ -4,12 +4,23 @@ use std::path::Path;
 
 use super::PrintManager;
 
+/// Information about the underlying Klipper runtime and host computer.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct InfoResponse {
+    /// slug defining what state the printer is currently in, such as
+    /// `ready`.
     pub state: String,
+
+    /// Human readable description of the state above.
     pub state_message: String,
+
+    /// Hostname of the host computer.
     pub hostname: String,
+
+    /// Version of Klipper running on the host computer.
     pub software_version: String,
+
+    /// CPU of the host running Klipper.
     pub cpu_info: String,
 }
 
