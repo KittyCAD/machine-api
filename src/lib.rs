@@ -19,4 +19,6 @@ pub mod moonraker;
 pub mod slicer;
 mod traits;
 
-pub use traits::{Control, ControlGcode, ControlSuspend, DesignFile, Slicer, Volume};
+pub use traits::{
+    Control, ControlGcode, ControlSuspend, DesignFile, Discovery, MachineInfo, MachineType, Slicer, Volume,
+};

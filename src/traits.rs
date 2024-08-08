@@ -23,6 +23,67 @@ pub struct Volume {
     pub height: f64,
 }
 
+/// Specific technique by which this Machine takes a design, and produces
+/// a real-world 3D object.
+#[derive(Debug, Copy, Clone)]
+pub enum MachineType {
+    /// Stereolithography
+    Sla,
+
+    // /// Selective Laser Sintering
+    // Sls,
+    /// Fused Deposition Modeling
+    Fdm,
+
+    // /// Digital Light Process
+    // Dlp,
+    // /// Multi Jet Fusion
+    // Mjf,
+    // /// PolyJet
+    // PolyJet,
+    // /// Direct Metal Laser Sintering
+    // Dmls,
+    // /// Electron Beam Melting
+    // Ebm,
+    /// "Computer numerical control"
+    Cnc,
+}
+
+/// Metadata about a Machine.
+pub trait MachineInfo {
+    /// Error type returned by this trait, and any relient traits.
+    type Error: Error;
+
+    /// Handle to control the Machine.
+    type Control: Control;
+
+    /// Return the mechanism by which this machine will take a design and
+    /// produce a real-world object.
+    fn machine_type(&self) -> MachineType;
+
+    /// Return a handle to the Control channel of the discovered machine.
+    fn control(&self) -> impl Future<Output = Result<Self::Control, Self::Error>>;
+}
+
+/// Trait implemented by schemes that can dynamically resolve Machines that can
+/// be controlled by the `machine-api`.
+pub trait Discovery {
+    /// Error type returned by this trait, and any relient traits.
+    type Error: Error;
+
+    /// Underlying type containing information about the discovered printer.
+    type MachineInfo: MachineInfo;
+
+    /// Discover all printers on the network.
+    ///
+    /// This will continuously search for printers until the program is
+    /// stopped. You likely want to spawn this on a separate tokio task.
+    fn discover(&self) -> impl Future<Output = Result<(), Self::Error>>;
+
+    /// Return all discovered printers.
+    fn discovered(&self) -> impl Future<Output = Result<Vec<Self::MachineInfo>, Self::Error>>;
+}
+
 /// A `Machine` is something that can take a 3D model (in one of the
 /// supported formats), and create a physical, real-world copy of
 /// that model.
