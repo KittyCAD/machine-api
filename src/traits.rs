@@ -1,10 +1,7 @@
 //! Common traits used throughout this crate to manage the creation of
 //! physical 3D objects.
 
-use std::{
-    error::Error,
-    path::{Path, PathBuf},
-};
+use std::{error::Error, future::Future, path::PathBuf};
 use tokio::io::AsyncRead;
 
 /// A specific file containing a design to be manufactured.
@@ -33,10 +30,10 @@ pub trait Machine {
     /// be enqueued and other operations may take place before the shutdown
     /// request is processed. This is not a substitute for a real physical
     /// estop -- but it's better than nothing.
-    async fn emergency_stop(&self) -> Result<(), Self::Error>;
+    fn emergency_stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
 
     /// Request that the machine stop any current job(s).
-    async fn stop(&self) -> Result<(), Self::Error>;
+    fn stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// GcodeMachine is used by [Machine]s that accept gcode, control commands
@@ -47,7 +44,7 @@ pub trait GcodeMachine {
 
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
-    async fn build(&self, job_name: &str, gcode: impl AsyncRead) -> Result<(), Self::Error>;
+    fn build(&self, job_name: &str, gcode: impl AsyncRead) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// SuspendMachine is used by [Machine]s that can pause and resume the current
@@ -58,11 +55,11 @@ pub trait SuspendMachine {
 
     /// Request that the [Machine] pause manufacturing the current part,
     /// which may be resumed later.
-    async fn pause(&self) -> Result<(), Self::Error>;
+    fn pause(&self) -> impl Future<Output = Result<(), Self::Error>>;
 
     /// Request that the [Machine] resume manufacturing the paused job to
     /// manufacturer a part.
-    async fn resume(&self) -> Result<(), Self::Error>;
+    fn resume(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [Machine]-specific slicer which takes a particular DesignFile, and produces
@@ -73,5 +70,5 @@ pub trait MachineSlicer {
 
     /// Take an input design file, and return a handle to an [AsyncRead]
     /// traited object which contains the gcode to be sent to the [Machine].
-    async fn generate(&self, design_file: &DesignFile) -> Result<impl AsyncRead, Self::Error>;
+    fn generate(&self, design_file: &DesignFile) -> impl Future<Output = Result<impl AsyncRead, Self::Error>>;
 }
