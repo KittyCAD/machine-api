@@ -20,5 +20,6 @@ pub mod slicer;
 mod traits;
 
 pub use traits::{
-    Control, ControlGcode, ControlSuspend, DesignFile, Discover, MachineInfo, MachineType, Slicer, Volume,
+    Control, ControlGcode, ControlSuspend, DesignFile, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer,
+    Volume,
 };
