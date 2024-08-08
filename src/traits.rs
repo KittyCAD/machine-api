@@ -30,23 +30,24 @@ pub enum MachineType {
     /// Stereolithography
     Sla,
 
-    // /// Selective Laser Sintering
-    // Sls,
     /// Fused Deposition Modeling
     Fdm,
 
-    // /// Digital Light Process
-    // Dlp,
-    // /// Multi Jet Fusion
-    // Mjf,
-    // /// PolyJet
-    // PolyJet,
-    // /// Direct Metal Laser Sintering
-    // Dmls,
-    // /// Electron Beam Melting
-    // Ebm,
-    /// "Computer numerical control"
+    /// "Computer numerical control" - machine that grinds away material
+    /// from a hunk of material to construct a part.
     Cnc,
+}
+
+/// Information regarding the make/model of a discovered endpoint.
+pub struct MachineMakeModel {
+    /// The manufacturer that built the connected Machine.
+    pub manufacturer: String,
+
+    /// The model of the connected Machine.
+    pub model: String,
+
+    /// The unique serial number of the connected Machine.
+    pub serial: String,
 }
 
 /// Metadata about a Machine.
@@ -61,13 +62,17 @@ pub trait MachineInfo {
     /// produce a real-world object.
     fn machine_type(&self) -> MachineType;
 
+    /// Return the make/model/serial number of the reachable
+    /// Machine.
+    fn make_model(&self) -> MachineMakeModel;
+
     /// Return a handle to the Control channel of the discovered machine.
     fn control(&self) -> impl Future<Output = Result<Self::Control, Self::Error>>;
 }
 
 /// Trait implemented by schemes that can dynamically resolve Machines that can
 /// be controlled by the `machine-api`.
-pub trait Discovery {
+pub trait Discover {
     /// Error type returned by this trait, and any relient traits.
     type Error: Error;
 
