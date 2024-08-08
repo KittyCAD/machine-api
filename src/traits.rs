@@ -33,7 +33,7 @@ pub struct Volume {
 /// Some examples of what this crate calls a "Machine" are 3D printers,
 /// CNC machines, or a service that takes a drawing and mails you back
 /// a part.
-pub trait MachineControl {
+pub trait Control {
     /// Error type returned by this trait, and any relient traits.
     type Error: Error;
 
@@ -55,22 +55,22 @@ pub trait MachineControl {
     fn stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// [MachineControlGcode] is used by [Machine]s that accept gcode, control commands
+/// [ControlGcode] is used by [Machine]s that accept gcode, control commands
 /// that are produced from a slicer from a design file.
-pub trait MachineControlGcode
+pub trait ControlGcode
 where
-    Self: MachineControl,
+    Self: Control,
 {
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
     fn build(&self, job_name: &str, gcode: impl AsyncRead) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// [MachineControlSuspend] is used by [MachineControl] handles that can pause
+/// [ControlSuspend] is used by [Control] handles that can pause
 /// and resume the current job.
-pub trait MachineControlSuspend
+pub trait ControlSuspend
 where
-    Self: MachineControl,
+    Self: Control,
 {
     /// Request that the [Machine] pause manufacturing the current part,
     /// which may be resumed later.
@@ -81,7 +81,7 @@ where
     fn resume(&self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-/// [MachineControl]-specific slicer which takes a particular [DesignFile], and produces
+/// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
 pub trait Slicer {
     /// Error type returned by this trait.
