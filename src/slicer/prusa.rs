@@ -77,8 +77,6 @@ impl Slicer {
             anyhow::bail!("Failed to create G-code file");
         }
 
-        // TODO: unlink on drop.
-
         Ok(BurnAfterReading {
             path: file_path.to_owned(),
             file: File::open(&gcode_path).await?,
