@@ -1,29 +1,5 @@
-use std::{future::Future, path::PathBuf};
-use tokio::io::AsyncRead;
-
-/// A specific file containing a design to be manufactured.
-pub enum DesignFile {
-    /// Stl ("stereolithography") 3D export, as seen in `.stl` (`model/stl`)
-    /// files.
-    Stl(PathBuf),
-}
-
-/// Set of three values to represent the extent of a 3-D Volume. This contains
-/// the width, depth, and height values, generally used to represent some
-/// maximum or minimum.
-///
-/// All measurements are in millimeters.
-#[derive(Debug, Copy, Clone)]
-pub struct Volume {
-    /// Width of the volume ("left and right"), in millimeters.
-    pub width: f64,
-
-    /// Depth of the volume ("front to back"), in millimeters.
-    pub depth: f64,
-
-    /// Height of the volume ("up and down"), in millimeters.
-    pub height: f64,
-}
+use crate::{DesignFile, TemporaryFile, Volume};
+use std::future::Future;
 
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.
@@ -128,7 +104,7 @@ where
 {
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
-    fn build(&self, job_name: &str, gcode: impl AsyncRead) -> impl Future<Output = Result<(), Self::Error>>;
+    fn build(&self, job_name: &str, gcode: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [ControlSuspend] is used by [Control] handles that can pause
@@ -152,10 +128,10 @@ pub trait Slicer {
     /// Error type returned by this trait.
     type Error;
 
-    /// Take an input design file, and return a handle to an [AsyncRead]
-    /// traited object which contains the gcode to be sent to the Machine.
+    /// Take an input design file, and return a handle to a File on the
+    /// filesystem which contains the gcode to be sent to the Machine.
     fn generate(
         &self,
         design_file: &DesignFile,
-    ) -> impl Future<Output = Result<impl AsyncRead, <Self as Slicer>::Error>>;
+    ) -> impl Future<Output = Result<TemporaryFile, <Self as Slicer>::Error>>;
 }

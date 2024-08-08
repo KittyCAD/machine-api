@@ -13,6 +13,7 @@
 
 #[cfg(feature = "bambu")]
 pub mod bambu;
+mod file;
 #[cfg(feature = "formlabs")]
 pub mod formlabs;
 #[cfg(feature = "moonraker")]
@@ -20,7 +21,31 @@ pub mod moonraker;
 pub mod slicer;
 mod traits;
 
-pub use traits::{
-    Control, ControlGcode, ControlSuspend, DesignFile, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer,
-    Volume,
-};
+pub use file::TemporaryFile;
+pub use traits::{Control, ControlGcode, ControlSuspend, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer};
+
+use std::path::PathBuf;
+
+/// A specific file containing a design to be manufactured.
+pub enum DesignFile {
+    /// Stl ("stereolithography") 3D export, as seen in `.stl` (`model/stl`)
+    /// files.
+    Stl(PathBuf),
+}
+
+/// Set of three values to represent the extent of a 3-D Volume. This contains
+/// the width, depth, and height values, generally used to represent some
+/// maximum or minimum.
+///
+/// All measurements are in millimeters.
+#[derive(Debug, Copy, Clone)]
+pub struct Volume {
+    /// Width of the volume ("left and right"), in millimeters.
+    pub width: f64,
+
+    /// Depth of the volume ("front to back"), in millimeters.
+    pub depth: f64,
+
+    /// Height of the volume ("up and down"), in millimeters.
+    pub height: f64,
+}

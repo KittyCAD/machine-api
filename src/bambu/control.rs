@@ -1,10 +1,10 @@
 use crate::{
-    Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, Volume,
+    Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, TemporaryFile,
+    Volume,
 };
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
 use std::sync::Arc;
-use tokio::io::AsyncRead;
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
@@ -75,7 +75,25 @@ impl ControlSuspendTrait for X1Carbon {
 }
 
 impl ControlGcodeTrait for X1Carbon {
-    async fn build(&self, job_name: &str, gcode: impl AsyncRead) -> Result<()> {
-        unimplemented!();
+    async fn build(&self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
+        // Upload the file to the printer.
+        self.client.upload_file(gcode.path()).await?;
+
+        // Get just the filename.
+        let filename = gcode
+            .path()
+            .file_name()
+            .ok_or_else(|| anyhow::anyhow!("No filename: {}", gcode.path().display()))?
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Bad filename: {}", gcode.path().display()))?;
+
+        // Check if the printer has an AMS.
+        let has_ams = self.has_ams()?;
+
+        self.client
+            .publish(Command::print_file(job_name, filename, has_ams))
+            .await?;
+
+        Ok(())
     }
 }
