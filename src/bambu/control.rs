@@ -43,9 +43,9 @@ impl ControlTrait for X1Carbon {
 
     async fn max_part_volume(&self) -> Result<Volume> {
         Ok(Volume {
-            width: 256,
-            height: 256,
-            depth: 256,
+            width: 256.0,
+            height: 256.0,
+            depth: 256.0,
         })
     }
 
