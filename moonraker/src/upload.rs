@@ -27,14 +27,14 @@ pub struct DeleteResponseItem {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DeleteResponseInner {
+pub struct DeleteResponse {
     pub item: DeleteResponseItem,
     pub action: String,
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DeleteResponse {
-    result: DeleteResponseInner,
+struct DeleteResponseWrapper {
+    result: DeleteResponse,
 }
 
 impl PrintManager {
@@ -83,11 +83,12 @@ impl PrintManager {
     pub async fn delete(&self, file_name: &Path) -> Result<DeleteResponse> {
         let file_name = file_name.to_str().unwrap();
         let client = reqwest::Client::new();
-        Ok(client
+        let resp: DeleteResponseWrapper = client
             .delete(format!("{}/server/files/gcodes/{}", self.url_base, file_name))
             .send()
             .await?
             .json()
-            .await?)
+            .await?;
+        Ok(resp.result)
     }
 }
