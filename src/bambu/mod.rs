@@ -1,8 +1,10 @@
 //! This module contains support for printing to Bambu Lab 3D printers.
 
 mod control;
+mod discover;
 
 pub use control::X1Carbon;
+pub use discover::Discover;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

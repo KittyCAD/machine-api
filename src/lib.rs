@@ -1,3 +1,4 @@
+#![allow(refining_impl_trait)]
 #![deny(missing_docs)]
 #![deny(missing_copy_implementations)]
 #![deny(trivial_casts)]

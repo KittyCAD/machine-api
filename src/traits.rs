@@ -1,4 +1,4 @@
-use std::{error::Error, future::Future, path::PathBuf};
+use std::{future::Future, path::PathBuf};
 use tokio::io::AsyncRead;
 
 /// A specific file containing a design to be manufactured.
@@ -53,7 +53,7 @@ pub struct MachineMakeModel {
 /// Metadata about a Machine.
 pub trait MachineInfo {
     /// Error type returned by this trait, and any relient traits.
-    type Error: Error;
+    type Error;
 
     /// Handle to control the Machine.
     type Control: Control;
@@ -74,7 +74,7 @@ pub trait MachineInfo {
 /// be controlled by the `machine-api`.
 pub trait Discover {
     /// Error type returned by this trait, and any relient traits.
-    type Error: Error;
+    type Error;
 
     /// Underlying type containing information about the discovered printer.
     type MachineInfo: MachineInfo;
@@ -98,7 +98,7 @@ pub trait Discover {
 /// a part.
 pub trait Control {
     /// Error type returned by this trait, and any relient traits.
-    type Error: Error;
+    type Error;
 
     /// Return the maximum part volume. For a 3D printer this is the bed's
     /// dimension, for a CNC, this would be the bed where the material is placed.
@@ -148,7 +148,7 @@ where
 /// GCode.
 pub trait Slicer {
     /// Error type returned by this trait.
-    type Error: Error;
+    type Error;
 
     /// Take an input design file, and return a handle to an [AsyncRead]
     /// traited object which contains the gcode to be sent to the Machine.

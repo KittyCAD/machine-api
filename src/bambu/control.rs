@@ -1,3 +1,4 @@
+use crate::{Control as ControlTrait, Volume};
 use anyhow::Result;
 use bambulabs::client::Client;
 use std::sync::Arc;
@@ -34,5 +35,21 @@ impl X1Carbon {
         };
 
         Ok(ams_exists != "0")
+    }
+}
+
+impl ControlTrait for X1Carbon {
+    type Error = anyhow::Error;
+
+    async fn max_part_volume(&self) -> Result<Volume> {
+        unimplemented!();
+    }
+
+    async fn emergency_stop(&self) -> Result<()> {
+        unimplemented!();
+    }
+
+    async fn stop(&self) -> Result<()> {
+        unimplemented!();
     }
 }
