@@ -1,7 +1,10 @@
-use crate::{Control as ControlTrait, Volume};
+use crate::{
+    Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, Volume,
+};
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
 use std::sync::Arc;
+use tokio::io::AsyncRead;
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
@@ -56,5 +59,23 @@ impl ControlTrait for X1Carbon {
     async fn stop(&self) -> Result<()> {
         self.client.publish(Command::stop()).await?;
         Ok(())
+    }
+}
+
+impl ControlSuspendTrait for X1Carbon {
+    async fn pause(&self) -> Result<()> {
+        self.client.publish(Command::pause()).await?;
+        Ok(())
+    }
+
+    async fn resume(&self) -> Result<()> {
+        self.client.publish(Command::resume()).await?;
+        Ok(())
+    }
+}
+
+impl ControlGcodeTrait for X1Carbon {
+    async fn build(&self, job_name: &str, gcode: impl AsyncRead) -> Result<()> {
+        unimplemented!();
     }
 }
