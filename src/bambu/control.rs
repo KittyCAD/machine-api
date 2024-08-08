@@ -42,7 +42,11 @@ impl ControlTrait for X1Carbon {
     type Error = anyhow::Error;
 
     async fn max_part_volume(&self) -> Result<Volume> {
-        unimplemented!();
+        Ok(Volume {
+            width: 256,
+            height: 256,
+            depth: 256,
+        })
     }
 
     async fn emergency_stop(&self) -> Result<()> {

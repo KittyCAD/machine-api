@@ -11,15 +11,17 @@ pub enum DesignFile {
 /// Set of three values to represent the extent of a 3-D Volume. This contains
 /// the width, depth, and height values, generally used to represent some
 /// maximum or minimum.
+///
+/// All measurements are in millimeters.
 #[derive(Debug, Copy, Clone)]
 pub struct Volume {
-    /// Width of the volume ("left and right").
+    /// Width of the volume ("left and right"), in millimeters.
     pub width: f64,
 
-    /// Depth of the volume ("front to back").
+    /// Depth of the volume ("front to back"), in millimeters.
     pub depth: f64,
 
-    /// Height of the volume ("up and down").
+    /// Height of the volume ("up and down"), in millimeters.
     pub height: f64,
 }
 
