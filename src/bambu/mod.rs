@@ -3,11 +3,36 @@
 mod control;
 mod discover;
 
-pub use control::X1Carbon;
-pub use discover::{Discover, PrinterInfo};
+pub use discover::Discover;
 
+use crate::MachineMakeModel;
+use bambulabs::client::Client;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::{net::IpAddr, path::PathBuf, sync::Arc};
+
+/// Control channel handle to a Bambu Labs X1 Carbon.
+#[derive(Clone)]
+pub struct X1Carbon {
+    pub(crate) client: Arc<Client>,
+    pub(crate) info: PrinterInfo,
+}
+
+/// Information regarding a discovered X1 Carbon.
+#[derive(Debug, Clone)]
+pub struct PrinterInfo {
+    /// Make and model of the PrinterInfo. This is accessed through the
+    /// `MachineMakeModel` trait.
+    make_model: MachineMakeModel,
+
+    /// The hostname of the printer.
+    pub hostname: Option<String>,
+
+    /// The IP address of the printer.
+    pub ip: IpAddr,
+
+    /// The port of the printer.
+    pub port: Option<u16>,
+}
 
 /// The configuration for bambu labs printers.
 #[derive(Debug, Clone, Deserialize, Serialize)]

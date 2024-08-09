@@ -1,32 +1,14 @@
-use super::{Config, X1Carbon};
+use super::{Config, PrinterInfo, X1Carbon};
 use crate::{Discover as DiscoverTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType};
 use anyhow::Result;
+use dashmap::DashMap;
 use std::{
     net::{IpAddr, Ipv4Addr},
     sync::Arc,
 };
-// use bambulabs::{client::Client, command::Command};
-use dashmap::DashMap;
 use tokio::net::UdpSocket;
 
 const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
-
-/// Information regarding a discovered X1 Carbon.
-#[derive(Debug, Clone)]
-pub struct PrinterInfo {
-    /// Make and model of the PrinterInfo. This is accessed through the
-    /// `MachineMakeModel` trait.
-    make_model: MachineMakeModel,
-
-    /// The hostname of the printer.
-    pub hostname: Option<String>,
-
-    /// The IP address of the printer.
-    pub ip: IpAddr,
-
-    /// The port of the printer.
-    pub port: Option<u16>,
-}
 
 /// Handle to discover connected Bambu Labs printers.
 pub struct Discover {
