@@ -54,6 +54,14 @@ impl DiscoverTrait for Discover {
     type Error = anyhow::Error;
     type MachineInfo = PrinterInfo;
 
+    async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
+        Ok(self
+            .printers
+            .iter()
+            .map(|printer| printer.value().info.clone())
+            .collect())
+    }
+
     async fn discover(&self) -> Result<()> {
         tracing::info!("Spawning Bambu discovery task");
 
@@ -199,9 +207,5 @@ impl DiscoverTrait for Discover {
         }
 
         Ok(())
-    }
-
-    async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
-        Ok(vec![])
     }
 }
