@@ -17,15 +17,16 @@ pub enum MachineType {
 }
 
 /// Information regarding the make/model of a discovered endpoint.
+#[derive(Debug, Clone)]
 pub struct MachineMakeModel {
     /// The manufacturer that built the connected Machine.
-    pub manufacturer: String,
+    pub manufacturer: Option<String>,
 
     /// The model of the connected Machine.
-    pub model: String,
+    pub model: Option<String>,
 
     /// The unique serial number of the connected Machine.
-    pub serial: String,
+    pub serial: Option<String>,
 }
 
 /// Metadata about a Machine.

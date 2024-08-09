@@ -1,3 +1,4 @@
+use super::PrinterInfo;
 use crate::{
     Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, TemporaryFile,
     Volume,
@@ -9,7 +10,8 @@ use std::sync::Arc;
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
 pub struct X1Carbon {
-    client: Arc<Client>,
+    pub(crate) client: Arc<Client>,
+    pub(crate) info: PrinterInfo,
 }
 
 impl X1Carbon {

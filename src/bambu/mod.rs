@@ -4,7 +4,7 @@ mod control;
 mod discover;
 
 pub use control::X1Carbon;
-pub use discover::Discover;
+pub use discover::{Discover, PrinterInfo};
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
