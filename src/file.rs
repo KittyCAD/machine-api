@@ -21,19 +21,21 @@ impl TemporaryFile {
         })
     }
 
-    /// Return the file as a mutable borrow.
-    pub fn as_mut(&mut self) -> &mut File {
-        &mut self.inner
-    }
-
-    /// Return the file as an immutable borrow.
-    pub fn as_ref(&self) -> &File {
-        &self.inner
-    }
-
     /// Return the path on the filesystem.
     pub fn path(&self) -> &Path {
         &self.path
+    }
+}
+
+impl AsMut<File> for TemporaryFile {
+    fn as_mut(&mut self) -> &mut File {
+        &mut self.inner
+    }
+}
+
+impl AsRef<File> for TemporaryFile {
+    fn as_ref(&self) -> &File {
+        &self.inner
     }
 }
 
