@@ -34,9 +34,6 @@ pub trait MachineInfo {
     /// Error type returned by this trait, and any relient traits.
     type Error;
 
-    /// Handle to control the Machine.
-    type Control: Control;
-
     /// Return the mechanism by which this machine will take a design and
     /// produce a real-world object.
     fn machine_type(&self) -> MachineType;
@@ -44,9 +41,6 @@ pub trait MachineInfo {
     /// Return the make/model/serial number of the reachable
     /// Machine.
     fn make_model(&self) -> MachineMakeModel;
-
-    /// Return a handle to the Control channel of the discovered machine.
-    fn control(&self) -> impl Future<Output = Result<Self::Control, Self::Error>>;
 }
 
 /// Trait implemented by schemes that can dynamically resolve Machines that can

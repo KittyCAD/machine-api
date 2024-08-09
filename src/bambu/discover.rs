@@ -39,7 +39,6 @@ pub struct Discover {
 
 impl MachineInfoTrait for PrinterInfo {
     type Error = anyhow::Error;
-    type Control = X1Carbon;
 
     fn machine_type(&self) -> MachineType {
         MachineType::Stereolithography
@@ -47,10 +46,6 @@ impl MachineInfoTrait for PrinterInfo {
 
     fn make_model(&self) -> MachineMakeModel {
         self.make_model.clone()
-    }
-
-    async fn control(&self) -> Result<X1Carbon> {
-        unimplemented!();
     }
 }
 
