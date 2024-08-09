@@ -192,7 +192,7 @@ impl DiscoverTrait for Discover {
             };
 
             let handle = X1Carbon {
-                info: info,
+                info,
                 client: Arc::new(client),
             };
             self.printers.insert(ip.to_string(), handle);

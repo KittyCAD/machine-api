@@ -42,7 +42,7 @@ impl Drop for TemporaryFile {
         let path = self.path.clone();
         tokio::spawn(async {
             eprintln!("removing {}", path.display());
-            tokio::fs::remove_file(path)
+            let _ = tokio::fs::remove_file(path).await;
         });
     }
 }

@@ -69,7 +69,7 @@ impl Slicer {
             anyhow::bail!("Failed to create G-code file");
         }
 
-        Ok(TemporaryFile::new(&gcode_path).await?)
+        TemporaryFile::new(&gcode_path).await
     }
 }
 
