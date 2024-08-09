@@ -107,7 +107,7 @@ fn find_orca_slicer() -> anyhow::Result<PathBuf> {
 // Find the orcaslicer executable path on Windows.
 #[cfg(target_os = "windows")]
 fn find_orca_slicer() -> anyhow::Result<PathBuf> {
-    let app_path = std::path::PathBuf::from("C:\\Program Files\\OrcaSlicer\\OrcaSlicer.exe");
+    let app_path = std::path::PathBuf::from("C:\\Program Files\\OrcaSlicer\\orca-slicer.exe");
     if app_path.exists() {
         Ok(app_path)
     } else {
