@@ -45,6 +45,11 @@ impl X1Carbon {
 
 impl ControlTrait for X1Carbon {
     type Error = anyhow::Error;
+    type MachineInfo = PrinterInfo;
+
+    async fn machine_info(&self) -> Result<PrinterInfo> {
+        unimplemented!()
+    }
 
     async fn max_part_volume(&self) -> Result<Volume> {
         Ok(Volume {

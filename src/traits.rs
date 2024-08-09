@@ -79,6 +79,12 @@ pub trait Control {
     /// Error type returned by this trait, and any relient traits.
     type Error;
 
+    /// Type that implements MachineInfo for this hardware.
+    type MachineInfo: MachineInfo;
+
+    /// Return the information about this machine.
+    fn machine_info(&self) -> impl Future<Output = Result<Self::MachineInfo, Self::Error>>;
+
     /// Return the maximum part volume. For a 3D printer this is the bed's
     /// dimension, for a CNC, this would be the bed where the material is placed.
     fn max_part_volume(&self) -> impl Future<Output = Result<Volume, Self::Error>>;
