@@ -14,14 +14,18 @@ const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
 /// Information regarding a discovered X1 Carbon.
 #[derive(Debug, Clone)]
 pub struct PrinterInfo {
+    /// Make and model of the PrinterInfo. This is accessed through the
+    /// `MachineMakeModel` trait.
     make_model: MachineMakeModel,
 
     /// The hostname of the printer.
-    hostname: Option<String>,
+    pub hostname: Option<String>,
+
     /// The IP address of the printer.
-    ip: IpAddr,
+    pub ip: IpAddr,
+
     /// The port of the printer.
-    port: Option<u16>,
+    pub port: Option<u16>,
 }
 
 /// Handle to discover connected Bambu Labs printers.
@@ -42,7 +46,7 @@ impl MachineInfoTrait for PrinterInfo {
     }
 
     fn make_model(&self) -> MachineMakeModel {
-        unimplemented!();
+        self.make_model.clone()
     }
 
     async fn control(&self) -> Result<X1Carbon> {
