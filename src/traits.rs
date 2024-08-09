@@ -52,6 +52,9 @@ pub trait Discover {
     /// Underlying type containing information about the discovered printer.
     type MachineInfo: MachineInfo;
 
+    /// Underlying type allowing for control of a printer.
+    type Control: Control;
+
     /// Discover all printers on the network.
     ///
     /// This will continuously search for printers until the program is
@@ -60,6 +63,9 @@ pub trait Discover {
 
     /// Return all discovered printers.
     fn discovered(&self) -> impl Future<Output = Result<Vec<Self::MachineInfo>, Self::Error>>;
+
+    /// Connect to a discovered printer.
+    fn connect(&self, machine: Self::MachineInfo) -> impl Future<Output = Result<Self::Control, Self::Error>>;
 }
 
 /// A `Machine` is something that can take a 3D model (in one of the

@@ -34,6 +34,11 @@ impl MachineInfoTrait for PrinterInfo {
 impl DiscoverTrait for Discover {
     type Error = anyhow::Error;
     type MachineInfo = PrinterInfo;
+    type Control = X1Carbon;
+
+    async fn connect(&self, machine: PrinterInfo) -> Result<X1Carbon> {
+        Ok(self.printers.get(&machine.ip.to_string()).unwrap().clone())
+    }
 
     async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
         Ok(self
