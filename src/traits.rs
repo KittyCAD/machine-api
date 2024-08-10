@@ -41,6 +41,10 @@ pub trait MachineInfo {
     /// Return the make/model/serial number of the reachable
     /// Machine.
     fn make_model(&self) -> MachineMakeModel;
+
+    /// Return the maximum part volume. For a 3D printer this is the bed's
+    /// dimension, for a CNC, this would be the bed where the material is placed.
+    fn max_part_volume(&self) -> Result<Volume, Self::Error>;
 }
 
 /// Trait implemented by schemes that can dynamically resolve Machines that can
@@ -84,10 +88,6 @@ pub trait Control {
 
     /// Return the information about this machine.
     fn machine_info(&self) -> impl Future<Output = Result<Self::MachineInfo, Self::Error>>;
-
-    /// Return the maximum part volume. For a 3D printer this is the bed's
-    /// dimension, for a CNC, this would be the bed where the material is placed.
-    fn max_part_volume(&self) -> impl Future<Output = Result<Volume, Self::Error>>;
 
     /// Request an immediate and complete shutdown of the equipment,
     /// requiring human intervention to bring the machine back online.

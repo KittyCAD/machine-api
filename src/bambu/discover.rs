@@ -1,5 +1,5 @@
 use super::{Config, PrinterInfo, X1Carbon};
-use crate::{Discover as DiscoverTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType};
+use crate::{Discover as DiscoverTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
 use dashmap::DashMap;
 use std::{
@@ -28,6 +28,14 @@ impl MachineInfoTrait for PrinterInfo {
 
     fn make_model(&self) -> MachineMakeModel {
         self.make_model.clone()
+    }
+
+    fn max_part_volume(&self) -> Result<Volume> {
+        Ok(Volume {
+            width: 256.0,
+            height: 256.0,
+            depth: 256.0,
+        })
     }
 }
 

@@ -1,7 +1,6 @@
 use super::{PrinterInfo, X1Carbon};
 use crate::{
     Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, TemporaryFile,
-    Volume,
 };
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
@@ -41,14 +40,6 @@ impl ControlTrait for X1Carbon {
 
     async fn machine_info(&self) -> Result<PrinterInfo> {
         unimplemented!()
-    }
-
-    async fn max_part_volume(&self) -> Result<Volume> {
-        Ok(Volume {
-            width: 256.0,
-            height: 256.0,
-            depth: 256.0,
-        })
     }
 
     async fn emergency_stop(&self) -> Result<()> {
