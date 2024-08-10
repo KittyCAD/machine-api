@@ -59,7 +59,8 @@ pub trait Discover {
     /// Underlying type allowing for control of a printer.
     type Control: Control;
 
-    /// Discover all printers on the network.
+    /// Discover all rachable printers which are made discoverable through
+    /// some mechanism (mDNS, USB, etc).
     ///
     /// This will continuously search for printers until the program is
     /// stopped. You likely want to spawn this on a separate tokio task.
