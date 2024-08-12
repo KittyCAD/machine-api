@@ -11,7 +11,7 @@
 //! This crate implements support for taking designed parts, and producing
 //! real-world constructions of those parts.
 
-mod any;
+mod any_machine;
 #[cfg(feature = "bambu")]
 pub mod bambu;
 mod file;
@@ -22,7 +22,7 @@ pub mod moonraker;
 pub mod slicer;
 mod traits;
 
-pub use any::Any;
+pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use file::TemporaryFile;
 pub use traits::{Control, ControlGcode, ControlSuspend, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer};
 

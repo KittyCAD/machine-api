@@ -1,8 +1,8 @@
 use crate::{MachineInfo, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
 
-/// Any is any supported machine.
-pub enum Any {
+/// AnyMachine is any supported machine.
+pub enum AnyMachine {
     /// Bambu Labs X1 Carbon
     #[cfg(feature = "bambu")]
     BambuX1Carbon(crate::bambu::X1Carbon),
@@ -12,6 +12,7 @@ pub enum Any {
     Moonraker(crate::moonraker::Client),
 }
 
+/// AnyMachineInfo is any supported machine's MachineInfo.
 pub enum AnyMachineInfo {
     /// Bambu Labs X1 Carbon
     #[cfg(feature = "bambu")]
@@ -26,7 +27,7 @@ pub enum AnyMachineInfo {
 mod _bambu {
     use super::*;
 
-    impl From<crate::bambu::X1Carbon> for Any {
+    impl From<crate::bambu::X1Carbon> for AnyMachine {
         fn from(client: crate::bambu::X1Carbon) -> Self {
             Self::BambuX1Carbon(client)
         }
@@ -43,7 +44,7 @@ mod _bambu {
 mod _moonraker {
     use super::*;
 
-    impl From<crate::moonraker::Client> for Any {
+    impl From<crate::moonraker::Client> for AnyMachine {
         fn from(client: crate::moonraker::Client) -> Self {
             Self::Moonraker(client)
         }
@@ -84,7 +85,7 @@ impl MachineInfo for AnyMachineInfo {
     }
 }
 
-impl crate::Control for Any {
+impl crate::Control for AnyMachine {
     type Error = anyhow::Error;
     type MachineInfo = AnyMachineInfo;
 
