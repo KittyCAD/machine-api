@@ -30,7 +30,7 @@ impl MachineInfoTrait for MachineInfo {
     }
 
     fn max_part_volume(&self) -> Result<Volume> {
-        Ok(self.volume.clone())
+        Ok(self.volume)
     }
 }
 
@@ -48,7 +48,7 @@ impl ControlTrait for Client {
     async fn machine_info(&self) -> Result<MachineInfo> {
         Ok(MachineInfo {
             inner: self.client.info().await?,
-            volume: self.volume.clone(),
+            volume: self.volume,
         })
     }
 
