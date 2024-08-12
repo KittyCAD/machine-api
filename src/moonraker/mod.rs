@@ -7,7 +7,7 @@ use anyhow::Result;
 use moonraker::Client as MoonrakerClient;
 
 /// Client is a connection to a Moonraker instance.
-struct Client {
+pub struct Client {
     client: MoonrakerClient,
     volume: Volume,
 }
