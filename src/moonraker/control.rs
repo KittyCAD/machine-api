@@ -35,6 +35,7 @@ impl MachineInfoTrait for MachineInfo {
 }
 
 impl MachineInfo {
+    /// Return the raw response from the Moonraker API.
     pub fn inner(&self) -> &InfoResponse {
         &self.inner
     }

@@ -2,6 +2,8 @@
 
 mod control;
 
+pub use control::MachineInfo;
+
 use crate::Volume;
 use anyhow::Result;
 use moonraker::Client as MoonrakerClient;
