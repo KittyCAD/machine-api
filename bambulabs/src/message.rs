@@ -548,7 +548,7 @@ pub struct GetVersion {
     /// The info module.
     pub module: Vec<InfoModule>,
     /// The result of the info command.
-    pub result: Result,
+    pub result: Option<Result>,
     /// The reason of the info command.
     pub reason: Option<Reason>,
     #[serde(flatten)]
