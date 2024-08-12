@@ -21,4 +21,16 @@ impl Client {
             client: MoonrakerClient::new(base_url)?,
         })
     }
+
+    /// Create a handle to a Elegoo Neptune 4.
+    pub fn neptune4(base_url: &str) -> Result<Self> {
+        Self::new(
+            base_url,
+            Volume {
+                width: 255.0,
+                height: 255.0,
+                depth: 255.0,
+            },
+        )
+    }
 }
