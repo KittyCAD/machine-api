@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-use super::PrintManager;
+use super::Client;
 
 /// Information about the underlying Klipper runtime and host computer.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -29,7 +29,7 @@ struct InfoResponseWrapper {
     pub result: InfoResponse,
 }
 
-impl PrintManager {
+impl Client {
     /// Print an uploaded file.
     pub async fn print(&self, file_name: &Path) -> Result<()> {
         let file_name = file_name.to_str().unwrap();

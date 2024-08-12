@@ -4,7 +4,7 @@ use reqwest::multipart;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
-use super::PrintManager;
+use super::Client;
 
 /// File that has been uploaded to Moonraker.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -55,7 +55,7 @@ struct DeleteResponseWrapper {
     result: DeleteResponse,
 }
 
-impl PrintManager {
+impl Client {
     /// Upload a file with some gcode to the server.
     pub async fn upload_file(&self, file_name: &Path) -> Result<UploadResponse> {
         self.upload(

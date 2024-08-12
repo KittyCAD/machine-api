@@ -1,7 +1,7 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::PrintManager;
+use super::Client;
 
 /// Temperature readings from a heated element controlled by klipper.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -31,7 +31,7 @@ struct TemperatureReadingsWrapper {
     result: TemperatureReadings,
 }
 
-impl PrintManager {
+impl Client {
     /// Print an uploaded file.
     pub async fn temperatures(&self) -> Result<TemperatureReadings> {
         let client = reqwest::Client::new();

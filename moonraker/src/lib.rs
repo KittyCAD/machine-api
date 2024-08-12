@@ -20,13 +20,13 @@ pub use metrics::{ControlledTemperatureReadings, TemperatureReadings};
 pub use print::InfoResponse;
 pub use upload::{DeleteResponse, DeleteResponseItem, UploadResponse, UploadResponseItem};
 
-/// PrintManager is a moonraker instance which can accept gcode for printing.
-pub struct PrintManager {
+/// Client is a moonraker instance which can accept gcode for printing.
+pub struct Client {
     pub(crate) url_base: String,
 }
 
-impl PrintManager {
-    /// Create a new PrintManager handle to control the printer via the
+impl Client {
+    /// Create a new Client handle to control the printer via the
     /// moonraker interface.
     pub fn new(url_base: &str) -> Result<Self> {
         Ok(Self {
