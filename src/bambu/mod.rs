@@ -13,8 +13,8 @@ use std::{net::IpAddr, path::PathBuf, sync::Arc};
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
 pub struct X1Carbon {
-    pub(crate) client: Arc<Client>,
-    pub(crate) info: PrinterInfo,
+    client: Arc<Client>,
+    info: PrinterInfo,
 }
 
 /// Information regarding a discovered X1 Carbon.
