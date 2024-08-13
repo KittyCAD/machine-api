@@ -20,6 +20,7 @@ pub mod formlabs;
 pub mod gcode;
 #[cfg(feature = "moonraker")]
 pub mod moonraker;
+pub mod server;
 pub mod slicer;
 mod traits;
 
