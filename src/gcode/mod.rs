@@ -60,6 +60,7 @@ where
 macro_rules! gcode_machine {
     ($name:ident) => {
         /// gcode based Control interface to a Machine.
+        #[derive(Debug, Clone, Copy)]
         pub struct $name<WriteT>
         where
             WriteT: AsyncWrite,
