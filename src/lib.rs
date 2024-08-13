@@ -17,6 +17,7 @@ pub mod bambu;
 mod file;
 #[cfg(feature = "formlabs")]
 pub mod formlabs;
+pub mod gcode;
 #[cfg(feature = "moonraker")]
 pub mod moonraker;
 pub mod slicer;
