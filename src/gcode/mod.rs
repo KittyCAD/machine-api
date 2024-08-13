@@ -31,11 +31,11 @@ where
     WriteT: Unpin,
 {
     /// Create a new [Client] using some underlying [tokio::io::AsyncWrite].
-    pub async fn new(write: WriteT, read: ReadT) -> Result<Self> {
-        Ok(Self {
+    pub fn new(write: WriteT, read: ReadT) -> Self {
+        Self {
             write,
             read: BufReader::new(read),
-        })
+        }
     }
 
     /// Issue a G0 stop command.

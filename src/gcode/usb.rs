@@ -15,11 +15,23 @@ pub struct Usb {
     client: Arc<Mutex<Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>>>,
 
     machine_type: MachineType,
-    make_model: MachineMakeModel,
     volume: Volume,
+    make_model: MachineMakeModel,
 }
 
 impl Usb {
+    /// Create a new USB-based gcode Machine.
+    pub fn new(stream: SerialStream, machine_type: MachineType, volume: Volume, make_model: MachineMakeModel) -> Self {
+        let (reader, writer) = tokio::io::split(stream);
+
+        Self {
+            client: Arc::new(Mutex::new(Client::new(writer, reader))),
+            machine_type,
+            volume,
+            make_model,
+        }
+    }
+
     async fn wait_for_start(&self) -> Result<()> {
         loop {
             let mut line = String::new();
