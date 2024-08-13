@@ -2,4 +2,5 @@
 //! implementation(s) to take a [crate::DesignFile] and produce gcode for
 //! a specific make/model printer, given some config.
 
+pub mod orca;
 pub mod prusa;
