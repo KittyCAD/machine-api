@@ -32,6 +32,25 @@ impl Usb {
         }
     }
 
+    /// Create a new Machine, talking gcode via USB to a Prusa Research
+    /// MK3.
+    pub fn prusa_mk3(stream: SerialStream) -> Self {
+        Self::new(
+            stream,
+            MachineType::FusedDeposition,
+            Volume {
+                width: 250.0,
+                depth: 210.0,
+                height: 210.0,
+            },
+            MachineMakeModel {
+                manufacturer: Some("Prusa Research".to_owned()),
+                model: Some("MK3".to_owned()),
+                serial: None,
+            },
+        )
+    }
+
     async fn wait_for_start(&self) -> Result<()> {
         loop {
             let mut line = String::new();
