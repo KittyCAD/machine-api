@@ -5,24 +5,31 @@ use std::{
     pin::Pin,
     task::{Context as TaskContext, Poll},
 };
-use tokio::io::{AsyncWrite, AsyncWriteExt};
+use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader, ReadBuf};
 
 /// Create a handle to some [tokio::io::AsyncWrite]
-pub struct Client<WriteT>
+pub struct Client<WriteT, ReadT>
 where
     WriteT: AsyncWrite,
+    ReadT: AsyncRead,
 {
     write: WriteT,
+    read: BufReader<ReadT>,
 }
 
-impl<WriteT> Client<WriteT>
+impl<WriteT, ReadT> Client<WriteT, ReadT>
 where
+    ReadT: AsyncRead,
+    ReadT: Unpin,
     WriteT: AsyncWrite,
     WriteT: Unpin,
 {
     /// Create a new [Client] using some underlying [tokio::io::AsyncWrite].
-    pub async fn new(write: WriteT) -> Result<Self> {
-        Ok(Self { write })
+    pub async fn new(write: WriteT, read: ReadT) -> Result<Self> {
+        Ok(Self {
+            write,
+            read: BufReader::new(read),
+        })
     }
 
     /// Issue a G0 stop command.
@@ -36,10 +43,22 @@ where
         self.write_all(b"G112\n").await?;
         Ok(())
     }
+
+    ///
+    pub fn get_read(&mut self) -> &mut BufReader<ReadT> {
+        &mut self.read
+    }
+
+    ///
+    pub fn get_write(&mut self) -> &mut WriteT {
+        &mut self.write
+    }
 }
 
-impl<WriteT> AsyncWrite for Client<WriteT>
+impl<WriteT, ReadT> AsyncWrite for Client<WriteT, ReadT>
 where
+    ReadT: AsyncRead,
+    ReadT: Unpin,
     WriteT: AsyncWrite,
     WriteT: Unpin,
 {
@@ -56,99 +75,143 @@ where
     }
 }
 
-#[allow(unused_macros)]
-macro_rules! gcode_machine {
-    ($name:ident) => {
-        /// gcode based Control interface to a Machine.
-        pub struct $name<WriteT>
-        where
-            WriteT: AsyncWrite,
-            WriteT: Unpin,
-        {
-            client: std::sync::Arc<tokio::sync::Mutex<$crate::gcode::Client<WriteT>>>,
-        }
+// Additional trait in case the inner type is a Reader, too.
 
-        impl<WriteT> $name<WriteT>
-        where
-            WriteT: AsyncWrite,
-            WriteT: Unpin,
-        {
-            /// Create a new wrapper around a Client, with some extra bits.
-            pub(crate) fn from_client(client: $crate::gcode::Client<WriteT>) -> Self {
-                Self {
-                    client: std::sync::Arc::new(tokio::sync::Mutex::new(client)),
-                }
-            }
-
-            /// Return the inner client to directly interface with the
-            /// machine.
-            pub async fn inner(&mut self) -> tokio::sync::MutexGuard<'_, $crate::gcode::Client<WriteT>> {
-                self.client.lock().await
-            }
-        }
-    };
+impl<WriteT, ReadT> AsyncRead for Client<WriteT, ReadT>
+where
+    ReadT: AsyncRead,
+    ReadT: Unpin,
+    WriteT: AsyncWrite,
+    WriteT: Unpin,
+{
+    fn poll_read(mut self: Pin<&mut Self>, cx: &mut TaskContext<'_>, buf: &mut ReadBuf) -> Poll<tokio::io::Result<()>> {
+        Pin::new(&mut self.read).poll_read(cx, buf)
+    }
 }
-#[allow(unused_imports)]
-pub(crate) use gcode_machine;
 
 #[cfg(feature = "serial")]
 mod usb {
     use super::*;
-    use crate::{Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume};
-    use tokio_serial::{SerialPortBuilder, SerialPortBuilderExt, SerialStream};
+    use crate::{
+        Control as ControlTrait, ControlGcode as ControlGcodeTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
+        MachineType, TemporaryFile, Volume,
+    };
+    use std::sync::Arc;
+    use tokio::{
+        io::{ReadHalf, WriteHalf},
+        sync::Mutex,
+    };
+    use tokio_serial::SerialStream;
 
-    gcode_machine!(Usb);
+    ///
+    pub struct Usb {
+        client: Arc<Mutex<Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>>>,
 
-    /// USB information
-    #[derive(Debug, Clone, Copy)]
-    pub struct UsbMachineInfo {}
+        machine_type: MachineType,
+        make_model: MachineMakeModel,
+        volume: Volume,
+    }
+
+    impl Usb {
+        async fn wait_for_start(&self) -> Result<()> {
+            loop {
+                let mut line = String::new();
+                if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
+                    println!("wait_for_start err: {}", e);
+                } else {
+                    // Use ends with because sometimes we may still have some data left on the buffer
+                    if line.trim().ends_with("start") {
+                        return Ok(());
+                    }
+                }
+            }
+        }
+
+        async fn wait_for_ok(&self) -> Result<()> {
+            loop {
+                let mut line = String::new();
+                if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
+                    println!("wait_for_ok err: {}", e);
+                } else {
+                    println!("RCVD: {}", line);
+                    if line.trim() == "ok" {
+                        return Ok(());
+                    }
+                }
+            }
+        }
+    }
+
+    /// Information regarding a USB connected Machine.
+    pub struct UsbMachineInfo {
+        machine_type: MachineType,
+        make_model: MachineMakeModel,
+        volume: Volume,
+    }
 
     impl MachineInfoTrait for UsbMachineInfo {
         type Error = anyhow::Error;
 
         fn machine_type(&self) -> MachineType {
-            MachineType::FusedDeposition
+            self.machine_type.clone()
         }
 
         fn make_model(&self) -> MachineMakeModel {
-            MachineMakeModel {
-                manufacturer: None,
-                model: None,
-                serial: None,
-            }
+            self.make_model.clone()
         }
 
         fn max_part_volume(&self) -> Result<Volume> {
-            unimplemented!()
+            Ok(self.volume.clone())
         }
     }
 
-    impl<WriteT> ControlTrait for Usb<WriteT>
-    where
-        WriteT: AsyncWrite,
-        WriteT: Unpin,
-    {
-        type Error = anyhow::Error;
+    impl ControlTrait for Usb {
         type MachineInfo = UsbMachineInfo;
+        type Error = anyhow::Error;
 
         async fn machine_info(&self) -> Result<UsbMachineInfo> {
-            unimplemented!();
+            Ok(UsbMachineInfo {
+                machine_type: self.machine_type.clone(),
+                make_model: self.make_model.clone(),
+                volume: self.volume.clone(),
+            })
         }
 
         async fn emergency_stop(&self) -> Result<()> {
             self.client.lock().await.emergency_stop().await
         }
-
         async fn stop(&self) -> Result<()> {
             self.client.lock().await.stop().await
         }
     }
 
-    impl Usb<SerialStream> {
-        /// Open a serial port.
-        pub async fn open(builder: SerialPortBuilder) -> Result<Self> {
-            let client = builder.open_native_async()?;
-            Ok(Usb::from_client(Client::new(client).await?))
+    impl ControlGcodeTrait for Usb {
+        async fn build(&self, _job_name: &str, mut gcode: TemporaryFile) -> Result<()> {
+            let mut buf = String::new();
+            gcode.as_mut().read_to_string(&mut buf).await?;
+
+            let lines: Vec<String> = buf
+                .lines() // split the string into an iterator of string slices
+                .map(|s| {
+                    let s = String::from(s);
+                    match s.split_once(';') {
+                        Some((command, _)) => command.trim().to_string(),
+                        None => s.trim().to_string(),
+                    }
+                })
+                .filter(|s| !s.is_empty()) // make each slice into a string
+                .collect();
+
+            self.wait_for_start().await?;
+
+            for line in lines.iter() {
+                let msg = format!("{}\r\n", line);
+                println!("writing: {}", line);
+                self.client.lock().await.write_all(msg.as_bytes()).await?;
+                self.wait_for_ok().await?;
+            }
+
+            Ok(())
         }
     }
 }
