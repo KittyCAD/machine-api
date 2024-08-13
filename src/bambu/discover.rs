@@ -16,6 +16,17 @@ pub struct Discover {
     config: Config,
 }
 
+impl Discover {
+    /// Return a new Discover handle using the provided Configuration
+    /// struct [Config].
+    pub fn new(config: &Config) -> Self {
+        Discover {
+            printers: DashMap::new(),
+            config: config.clone(),
+        }
+    }
+}
+
 // TODO: in the future, control maybe should be an enum of specific control
 // types, which itself implements MachineControl.
 
