@@ -10,6 +10,7 @@ use std::path::PathBuf;
 /// Information about the connected Moonraker-based printer.
 pub struct MachineInfo {
     inner: InfoResponse,
+    make_model: MachineMakeModel,
     volume: Volume,
 }
 
@@ -21,12 +22,7 @@ impl MachineInfoTrait for MachineInfo {
     }
 
     fn make_model(&self) -> MachineMakeModel {
-        // TODO: fix this
-        MachineMakeModel {
-            manufacturer: None,
-            model: None,
-            serial: None,
-        }
+        self.make_model.clone()
     }
 
     fn max_part_volume(&self) -> Result<Volume> {
@@ -48,6 +44,7 @@ impl ControlTrait for Client {
     async fn machine_info(&self) -> Result<MachineInfo> {
         Ok(MachineInfo {
             inner: self.client.info().await?,
+            make_model: self.make_model.clone(),
             volume: self.volume,
         })
     }
