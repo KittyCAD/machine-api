@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use std::path::PathBuf;
 use tokio::process::Command;
 
-use crate::{DesignFile, GcodeSlicer as GcodeSlicerTrait, TemporaryFile};
+use crate::{DesignFile, GcodeSlicer as GcodeSlicerTrait, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait};
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
 pub struct Slicer {
@@ -17,13 +17,14 @@ impl Slicer {
     pub fn new(config: PathBuf) -> Self {
         Self { config }
     }
-}
 
-impl GcodeSlicerTrait for Slicer {
-    type Error = anyhow::Error;
-
-    /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+    /// Generate 3MF or gcode from some input file.
+    async fn generate_via_cli(
+        &self,
+        output_flag: &str,
+        output_extension: &str,
+        design_file: &DesignFile,
+    ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
             anyhow::bail!(
@@ -37,7 +38,7 @@ impl GcodeSlicerTrait for Slicer {
         };
 
         let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(format!("{}.gcode", uid));
+        let output_path = std::env::temp_dir().join(format!("{}.{}", uid, output_extension));
         let process_config = self
             .config
             .join("process.json")
@@ -68,10 +69,10 @@ impl GcodeSlicerTrait for Slicer {
             "0".to_string(),
             "--orient".to_string(),
             "1".to_string(),
-            "--export-gcode".to_string(),
-            gcode_path
+            output_flag.to_string(),
+            output_path
                 .to_str()
-                .ok_or_else(|| anyhow::anyhow!("Invalid output G-code path: {}", gcode_path.display()))?
+                .ok_or_else(|| anyhow::anyhow!("Invalid slicer output path: {}", output_path.display()))?
                 .to_string(),
             file_path
                 .to_str()
@@ -96,11 +97,29 @@ impl GcodeSlicerTrait for Slicer {
         }
 
         // Make sure the G-code file was created.
-        if !gcode_path.exists() {
-            anyhow::bail!("Failed to create G-code file");
+        if !output_path.exists() {
+            anyhow::bail!("Failed to create output file");
         }
 
-        TemporaryFile::new(&gcode_path).await
+        TemporaryFile::new(&output_path).await
+    }
+}
+
+impl GcodeSlicerTrait for Slicer {
+    type Error = anyhow::Error;
+
+    /// Generate gcode from some input file.
+    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+        self.generate_via_cli("--export-gcode", "gcode", design_file).await
+    }
+}
+
+impl ThreeMfSlicerTrait for Slicer {
+    type Error = anyhow::Error;
+
+    /// Generate gcode from some input file.
+    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+        self.generate_via_cli("--export-3mf", "3mf", design_file).await
     }
 }
 
