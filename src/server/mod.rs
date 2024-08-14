@@ -5,7 +5,6 @@ use std::{env, net::SocketAddr, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
-use tokio::signal;
 
 use crate::{config::Config, network_printer::NetworkPrinterManufacturer, server::context::Context};
 
@@ -35,7 +34,7 @@ async fn handle_signals(api_context: Arc<Context>) -> Result<()> {
 
     #[cfg(windows)]
     {
-        signal::ctrl_c().await.map_err(|e| {
+        tokio::signal::ctrl_c().await.map_err(|e| {
             slog::error!(api_context.logger, "Failed to set up Ctrl+C handler: {:?}", e);
             anyhow::Error::new(e)
         })?;
