@@ -31,8 +31,6 @@ impl Discover {
 // types, which itself implements MachineControl.
 
 impl MachineInfoTrait for PrinterInfo {
-    type Error = anyhow::Error;
-
     fn machine_type(&self) -> MachineType {
         MachineType::Stereolithography
     }
@@ -41,8 +39,8 @@ impl MachineInfoTrait for PrinterInfo {
         self.make_model.clone()
     }
 
-    fn max_part_volume(&self) -> Result<Volume> {
-        Ok(Volume {
+    fn max_part_volume(&self) -> Option<Volume> {
+        Some(Volume {
             width: 256.0,
             height: 256.0,
             depth: 256.0,

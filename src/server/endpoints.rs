@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::Context;
-use crate::{MachineMakeModel, MachineType, Volume};
+use crate::{Control, MachineInfo, MachineMakeModel, MachineType, Volume};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -50,8 +50,11 @@ pub struct Machine {
     /// be some sort of theoretical upper bound, getting close to this limit
     /// seems like maybe a bad idea.
     ///
+    /// This may be `None` if the maximum size is not knowable by the
+    /// Machine API.
+    ///
     /// What "close" means is up to you!
-    pub max_part_volume: Volume,
+    pub max_part_volume: Option<Volume>,
 }
 
 /// List available machines and their statuses
@@ -65,7 +68,26 @@ pub async fn get_machines(
 ) -> Result<HttpResponseOk<HashMap<String, Machine>>, HttpError> {
     let ctx = rqctx.context();
 
-    Ok(HttpResponseOk(HashMap::new()))
+    let mut machines = HashMap::new();
+
+    for (key, machine) in ctx.machines.iter() {
+        let machine_info = machine
+            .get_machine()
+            .machine_info()
+            .await
+            .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
+
+        machines.insert(
+            key.clone(),
+            Machine {
+                make_model: machine_info.make_model(),
+                machine_type: machine_info.machine_type(),
+                max_part_volume: machine_info.max_part_volume(),
+            },
+        );
+    }
+
+    Ok(HttpResponseOk(machines))
 }
 
 /// The path parameters for performing operations on an machine.
@@ -75,7 +97,7 @@ pub struct MachinePathParams {
     pub id: String,
 }
 
-/** Get the status of a specific machine */
+/// Get the status of a specific machine
 #[endpoint {
     method = GET,
     path = "/machines/{id}",

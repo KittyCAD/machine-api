@@ -88,8 +88,6 @@ pub struct UsbMachineInfo {
 }
 
 impl MachineInfoTrait for UsbMachineInfo {
-    type Error = anyhow::Error;
-
     fn machine_type(&self) -> MachineType {
         self.machine_type.clone()
     }
@@ -98,8 +96,8 @@ impl MachineInfoTrait for UsbMachineInfo {
         self.make_model.clone()
     }
 
-    fn max_part_volume(&self) -> Result<Volume> {
-        Ok(self.volume.clone())
+    fn max_part_volume(&self) -> Option<Volume> {
+        Some(self.volume.clone())
     }
 }
 

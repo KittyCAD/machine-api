@@ -15,8 +15,6 @@ pub struct MachineInfo {
 }
 
 impl MachineInfoTrait for MachineInfo {
-    type Error = anyhow::Error;
-
     fn machine_type(&self) -> MachineType {
         MachineType::FusedDeposition
     }
@@ -25,8 +23,8 @@ impl MachineInfoTrait for MachineInfo {
         self.make_model.clone()
     }
 
-    fn max_part_volume(&self) -> Result<Volume> {
-        Ok(self.volume)
+    fn max_part_volume(&self) -> Option<Volume> {
+        Some(self.volume)
     }
 }
 

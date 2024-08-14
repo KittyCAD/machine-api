@@ -98,8 +98,6 @@ macro_rules! for_all {
 }
 
 impl MachineInfo for AnyMachineInfo {
-    type Error = anyhow::Error;
-
     fn machine_type(&self) -> MachineType {
         for_all!(|self, machine| { machine.machine_type() })
     }
@@ -108,7 +106,7 @@ impl MachineInfo for AnyMachineInfo {
         for_all!(|self, machine| { machine.make_model() })
     }
 
-    fn max_part_volume(&self) -> Result<Volume> {
+    fn max_part_volume(&self) -> Option<Volume> {
         for_all!(|self, machine| { machine.max_part_volume() })
     }
 }

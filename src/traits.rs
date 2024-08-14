@@ -33,9 +33,6 @@ pub struct MachineMakeModel {
 
 /// Metadata about a Machine.
 pub trait MachineInfo {
-    /// Error type returned by this trait, and any relient traits.
-    type Error;
-
     /// Return the mechanism by which this machine will take a design and
     /// produce a real-world object.
     fn machine_type(&self) -> MachineType;
@@ -46,7 +43,9 @@ pub trait MachineInfo {
 
     /// Return the maximum part volume. For a 3D printer this is the bed's
     /// dimension, for a CNC, this would be the bed where the material is placed.
-    fn max_part_volume(&self) -> Result<Volume, Self::Error>;
+    ///
+    /// If the part volume is not known, a None may be used.
+    fn max_part_volume(&self) -> Option<Volume>;
 }
 
 /// Trait implemented by schemes that can dynamically resolve Machines that can
