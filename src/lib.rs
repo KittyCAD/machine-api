@@ -29,7 +29,10 @@ pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;
-pub use traits::{Control, ControlGcode, ControlSuspend, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer};
+pub use traits::{
+    Control, Discover, GcodeControl, GcodeSlicer, MachineInfo, MachineMakeModel, MachineType, SuspendControl,
+    ThreeMfControl, ThreeMfSlicer,
+};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

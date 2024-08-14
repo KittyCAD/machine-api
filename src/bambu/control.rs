@@ -1,6 +1,6 @@
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait, TemporaryFile,
+    Control as ControlTrait, GcodeControl as GcodeControlTrait, SuspendControl as SuspendControlTrait, TemporaryFile,
 };
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
@@ -52,7 +52,7 @@ impl ControlTrait for X1Carbon {
     }
 }
 
-impl ControlSuspendTrait for X1Carbon {
+impl SuspendControlTrait for X1Carbon {
     async fn pause(&mut self) -> Result<()> {
         self.client.publish(Command::pause()).await?;
         Ok(())
@@ -64,7 +64,7 @@ impl ControlSuspendTrait for X1Carbon {
     }
 }
 
-impl ControlGcodeTrait for X1Carbon {
+impl GcodeControlTrait for X1Carbon {
     async fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
         // Upload the file to the printer.
         self.client.upload_file(gcode.path()).await?;

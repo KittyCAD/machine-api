@@ -83,7 +83,7 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
 
 /// Create a new Server, and serve.
 pub async fn serve(bind: &str, machines: HashMap<String, RwLock<Machine>>) -> Result<()> {
-    let (server, api_context) = create_server(bind, machines).await?;
+    let (server, _api_context) = create_server(bind, machines).await?;
     let addr: SocketAddr = bind.parse()?;
 
     let responder = libmdns::Responder::new().unwrap();
@@ -101,7 +101,7 @@ pub async fn serve(bind: &str, machines: HashMap<String, RwLock<Machine>>) -> Re
     let mut signals = Signals::new([SIGINT, SIGTERM])?;
 
     tokio::spawn(async move {
-        if let Some(sig) = signals.forever().next() {
+        if let Some(_sig) = signals.forever().next() {
             std::process::exit(0);
         }
     });

@@ -1,7 +1,7 @@
 use super::Client;
 use crate::{
-    Control as ControlTrait, ControlGcode as ControlGcodeTrait, ControlSuspend as ControlSuspendTrait,
-    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, TemporaryFile, Volume,
+    Control as ControlTrait, GcodeControl as GcodeControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
+    MachineType, SuspendControl as SuspendControlTrait, TemporaryFile, Volume,
 };
 use anyhow::Result;
 use moonraker::InfoResponse;
@@ -59,7 +59,7 @@ impl ControlTrait for Client {
     }
 }
 
-impl ControlSuspendTrait for Client {
+impl SuspendControlTrait for Client {
     async fn pause(&mut self) -> Result<()> {
         tracing::debug!("pause requested");
         self.client.pause_print().await
@@ -71,7 +71,7 @@ impl ControlSuspendTrait for Client {
     }
 }
 
-impl ControlGcodeTrait for Client {
+impl GcodeControlTrait for Client {
     async fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
         tracing::info!(job_name = job_name, "uploading and printing gcode");
         tracing::debug!("uploading");

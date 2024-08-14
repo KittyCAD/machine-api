@@ -1,4 +1,4 @@
-use crate::{AnyMachine, AnySlicer, ControlGcode, DesignFile, Slicer};
+use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer};
 use anyhow::Result;
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
@@ -51,7 +51,7 @@ impl Machine {
         // restructured later.
         let gcode = self.slicer.generate(design_file).await?;
 
-        // TODO: this only supports gcode via the ControlGcode trait. As a
+        // TODO: this only supports gcode via the GcodeControl trait. As a
         // result, this match serves the purpose of figuring out what
         // technique we should use.
         match &mut self.machine {

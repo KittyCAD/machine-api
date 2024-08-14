@@ -5,7 +5,7 @@
 pub mod orca;
 pub mod prusa;
 
-use crate::{DesignFile, Slicer as SlicerTrait, TemporaryFile};
+use crate::{DesignFile, GcodeSlicer as GcodeSlicerTrait, TemporaryFile};
 use anyhow::Result;
 
 /// All Slicers that are supported by the machine-api.
@@ -29,7 +29,7 @@ impl From<orca::Slicer> for AnySlicer {
     }
 }
 
-impl SlicerTrait for AnySlicer {
+impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.

@@ -107,7 +107,7 @@ pub trait Control {
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands
 /// that are produced from a slicer from a design file.
-pub trait ControlGcode
+pub trait GcodeControl
 where
     Self: Control,
 {
@@ -116,9 +116,20 @@ where
     fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
+/// [Control3Mf] is used by Machines that accept .3mf, control commands
+/// that are produced from a slicer from a design file.
+pub trait ThreeMfControl
+where
+    Self: Control,
+{
+    /// Build a 3D object from the provided *.3mf* file. The generated 3mf
+    /// must be generated for the specific machine, and machine configuration.
+    fn build(&mut self, job_name: &str, three_mf: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
+}
+
 /// [ControlSuspend] is used by [Control] handles that can pause
 /// and resume the current job.
-pub trait ControlSuspend
+pub trait SuspendControl
 where
     Self: Control,
 {
@@ -133,7 +144,7 @@ where
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
-pub trait Slicer {
+pub trait GcodeSlicer {
     /// Error type returned by this trait.
     type Error;
 
@@ -142,5 +153,19 @@ pub trait Slicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-    ) -> impl Future<Output = Result<TemporaryFile, <Self as Slicer>::Error>>;
+    ) -> impl Future<Output = Result<TemporaryFile, <Self as GcodeSlicer>::Error>>;
+}
+
+/// [Control]-specific slicer which takes a particular [DesignFile], and produces
+/// GCode.
+pub trait ThreeMfSlicer {
+    /// Error type returned by this trait.
+    type Error;
+
+    /// Take an input design file, and return a handle to a File on the
+    /// filesystem which contains the .3mf to be sent to the Machine.
+    fn generate(
+        &self,
+        design_file: &DesignFile,
+    ) -> impl Future<Output = Result<TemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }

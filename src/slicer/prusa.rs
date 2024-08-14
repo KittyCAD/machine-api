@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
-use crate::{DesignFile, Slicer as SlicerTrait, TemporaryFile};
+use crate::{DesignFile, GcodeSlicer as GcodeSlicerTrait, TemporaryFile};
 
 /// Handle to invoke the Prusa Slicer with some specific machine-specific config.
 pub struct Slicer {
@@ -23,7 +23,7 @@ impl Slicer {
     }
 }
 
-impl SlicerTrait for Slicer {
+impl GcodeSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
