@@ -200,6 +200,8 @@ pub enum Result {
 pub enum Print {
     /// Ams control.
     AmsControl(AmsControl),
+    /// Ams change filament.
+    AmsChangeFilament(AmsChangeFilament),
     /// Calibration.
     Calibration(Calibration),
     /// The status of the print.
@@ -223,6 +225,7 @@ impl Print {
     pub fn sequence_id(&self) -> SequenceId {
         match self {
             Print::AmsControl(ams_ctrl) => ams_ctrl.sequence_id.clone(),
+            Print::AmsChangeFilament(ams_change_filament) => ams_change_filament.sequence_id.clone(),
             Print::Calibration(calibration) => calibration.sequence_id.clone(),
             Print::PushStatus(push_status) => push_status.sequence_id.clone(),
             Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
@@ -246,6 +249,25 @@ pub struct AmsControl {
     pub result: Result,
     /// The param.
     pub param: Option<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// An ams change filament.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct AmsChangeFilament {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
+    /// The error number.
+    pub errorno: i64,
+    /// The target temperature.
+    pub tar_temp: i64,
+    /// The target.
+    pub target: i64,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
