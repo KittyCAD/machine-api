@@ -18,6 +18,7 @@ mod file;
 #[cfg(feature = "formlabs")]
 pub mod formlabs;
 pub mod gcode;
+mod machine;
 #[cfg(feature = "moonraker")]
 pub mod moonraker;
 pub mod server;
@@ -26,6 +27,8 @@ mod traits;
 
 pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use file::TemporaryFile;
+pub use machine::Machine;
+pub use slicer::AnySlicer;
 pub use traits::{Control, ControlGcode, ControlSuspend, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer};
 
 use std::path::PathBuf;

@@ -10,6 +10,10 @@ pub enum AnyMachine {
     /// Generic Moonraker type printer
     #[cfg(feature = "moonraker")]
     Moonraker(crate::moonraker::Client),
+
+    /// Generic USB-based gcode printer
+    #[cfg(feature = "serial")]
+    Usb(crate::gcode::Usb),
 }
 
 /// AnyMachineInfo is any supported machine's MachineInfo.
@@ -21,6 +25,10 @@ pub enum AnyMachineInfo {
     /// Generic Moonraker type printer
     #[cfg(feature = "moonraker")]
     Moonraker(crate::moonraker::MachineInfo),
+
+    /// Generic USB-based gcode printer
+    #[cfg(feature = "serial")]
+    Usb(crate::gcode::UsbMachineInfo),
 }
 
 #[cfg(feature = "bambu")]
@@ -57,6 +65,23 @@ mod _moonraker {
     }
 }
 
+#[cfg(feature = "serial")]
+mod _serial {
+    use super::*;
+
+    impl From<crate::gcode::Usb> for AnyMachine {
+        fn from(client: crate::gcode::Usb) -> Self {
+            Self::Usb(client)
+        }
+    }
+
+    impl From<crate::gcode::UsbMachineInfo> for AnyMachineInfo {
+        fn from(info: crate::gcode::UsbMachineInfo) -> Self {
+            Self::Usb(info)
+        }
+    }
+}
+
 macro_rules! for_all {
     (|$slf:ident, $machine:ident| $body:block) => {
         match $slf {
@@ -65,6 +90,9 @@ macro_rules! for_all {
 
             #[cfg(feature = "moonraker")]
             Self::Moonraker($machine) => $body,
+
+            #[cfg(feature = "serial")]
+            Self::Usb($machine) => $body,
         }
     };
 }
