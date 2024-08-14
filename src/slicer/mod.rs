@@ -5,7 +5,7 @@
 pub mod orca;
 pub mod prusa;
 
-use crate::{DesignFile, TemporaryFile};
+use crate::{DesignFile, Slicer as SlicerTrait, TemporaryFile};
 use anyhow::Result;
 
 /// All Slicers that are supported by the machine-api.
@@ -29,9 +29,11 @@ impl From<orca::Slicer> for AnySlicer {
     }
 }
 
-impl AnySlicer {
+impl SlicerTrait for AnySlicer {
+    type Error = anyhow::Error;
+
     /// Generate gcode from some input file.
-    pub async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
         match self {
             Self::Prusa(slicer) => slicer.generate(design_file).await,
             Self::Orca(slicer) => slicer.generate(design_file).await,
