@@ -1,6 +1,7 @@
 use anyhow::Result;
 use machine_api::{moonraker, server, slicer::prusa, Machine};
 use std::{collections::HashMap, path::PathBuf, str::FromStr};
+use tokio::sync::RwLock;
 use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
 
 mod config;
@@ -19,10 +20,13 @@ async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let cfg: PathBuf = args[3].parse().unwrap();
 
-    let mut machines = HashMap::<String, Machine>::new();
+    let mut machines = HashMap::<String, RwLock<Machine>>::new();
     machines.insert(
         args[1].clone(),
-        Machine::new(moonraker::Client::neptune4(&args[2])?, prusa::Slicer::new(&cfg)),
+        RwLock::new(Machine::new(
+            moonraker::Client::neptune4(&args[2])?,
+            prusa::Slicer::new(&cfg),
+        )),
     );
 
     server::serve("0.0.0.0:8080", machines).await?;

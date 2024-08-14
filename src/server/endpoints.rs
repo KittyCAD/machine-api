@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::Context;
-use crate::{AnyMachine, Control, MachineInfo, MachineMakeModel, MachineType, Volume};
+use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -95,7 +95,7 @@ pub async fn get_machines(
     let ctx = rqctx.context();
     let mut machines = HashMap::new();
     for (key, machine) in ctx.machines.iter() {
-        let api_machine = MachineInfoResponse::from_machine_http(machine.get_machine()).await?;
+        let api_machine = MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?;
         machines.insert(key.clone(), api_machine);
     }
     Ok(HttpResponseOk(machines))
@@ -125,7 +125,7 @@ pub async fn get_machine(
     tracing::info!(id = params.id, "finding machine");
     match ctx.machines.get(&params.id) {
         Some(machine) => Ok(HttpResponseOk(
-            MachineInfoResponse::from_machine_http(machine.get_machine()).await?,
+            MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?,
         )),
         None => Err(HttpError::for_not_found(
             None,
@@ -159,6 +159,37 @@ pub(crate) async fn print_file(
     let ctx = rqctx.context().clone();
     let machine_id = params.machine_id.clone();
     let job_id = uuid::Uuid::new_v4();
+    let job_name = &params.job_name;
+
+    let machine = match ctx.machines.get(&machine_id) {
+        Some(machine) => machine,
+        None => {
+            tracing::warn!(id = machine_id, "machine not found");
+            return Err(HttpError::for_not_found(
+                None,
+                format!("machine not found by id: {:?}", machine_id),
+            ));
+        }
+    };
+
+    let filepath = std::env::temp_dir().join(format!("{}-{}", job_id, file.file_name.unwrap_or("file".to_string())));
+    // TODO: we likely want to use the kittycad api to convert the file to the right format if its
+    // not already an stl file.
+
+    tokio::fs::write(&filepath, file.content).await.map_err(|e| {
+        tracing::error!(error = format!("{:?}", e), "failed to write stl file");
+        HttpError::for_bad_request(None, "failed to write stl file".to_string())
+    })?;
+
+    machine
+        .write()
+        .await
+        .build(job_name, &DesignFile::Stl(filepath))
+        .await
+        .map_err(|e| {
+            tracing::warn!(error = format!("{:?}", e), "failed to build file");
+            HttpError::for_internal_error(format!("{:?}", e))
+        })?;
 
     Ok(HttpResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
@@ -208,5 +239,29 @@ impl From<Error> for HttpError {
 pub async fn parse_multipart_print_request(
     multipart: &mut multer::Multipart<'_>,
 ) -> Result<(FileAttachment, PrintParameters), Error> {
-    unimplemented!();
+    let mut maybe_file = None;
+    let mut maybe_params = None;
+
+    while let Some(field) = multipart.next_field().await? {
+        if let Some(name) = field.name() {
+            if name == "file" {
+                maybe_file = Some(FileAttachment {
+                    file_name: field.file_name().map(str::to_string),
+                    content: field.bytes().await?,
+                })
+            } else if name == "params" {
+                let params = field.json::<PrintParameters>().await?;
+                maybe_params = Some(params);
+            }
+        } else {
+            // ignore if the field has no name
+            continue;
+        }
+    }
+
+    if let (Some(file), Some(params)) = (maybe_file, maybe_params) {
+        Ok((file, params))
+    } else {
+        return Err(Error::MissingFileOrParams);
+    }
 }

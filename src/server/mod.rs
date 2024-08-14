@@ -5,14 +5,16 @@ mod endpoints;
 
 pub use context::Context;
 
-use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
-
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
 use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
 };
+use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
+use tokio::sync::RwLock;
+
+use crate::Machine;
 
 /// Create an API description for the server.
 pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
@@ -42,7 +44,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
 /// Create a new Machine API Server.
 pub async fn create_server(
     bind: &str,
-    machines: HashMap<String, crate::Machine>,
+    machines: HashMap<String, RwLock<Machine>>,
 ) -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
     let mut api = create_api_description()?;
     let schema = get_openapi(&mut api)?;
@@ -80,7 +82,7 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
 }
 
 /// Create a new Server, and serve.
-pub async fn serve(bind: &str, machines: HashMap<String, crate::Machine>) -> Result<()> {
+pub async fn serve(bind: &str, machines: HashMap<String, RwLock<Machine>>) -> Result<()> {
     let (server, api_context) = create_server(bind, machines).await?;
     let addr: SocketAddr = bind.parse()?;
 

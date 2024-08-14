@@ -23,12 +23,6 @@ pub struct UploadResponseItem {
 pub struct UploadResponse {
     /// `gcode` file uploaded to the printer.
     pub item: UploadResponseItem,
-
-    /// Has this print been started?
-    pub print_started: bool,
-
-    /// Has this print been enqueued?
-    pub print_queued: bool,
 }
 
 /// File that has been deleted from Moonraker.

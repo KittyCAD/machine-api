@@ -44,7 +44,9 @@ impl Machine {
 
     /// Take a specific [DesignFile], and produce a real-world 3D object
     /// from it.
-    pub async fn print(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
+    pub async fn build(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
+        tracing::debug!(name = job_name, "building");
+
         // TODO: this only supports gcode for now. This may need to be
         // restructured later.
         let gcode = self.slicer.generate(design_file).await?;

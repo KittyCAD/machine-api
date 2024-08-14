@@ -16,6 +16,7 @@ impl Slicer {
     /// Create a new [Slicer], which will invoke the Prusa Slicer binary
     /// with the specified configuration file.
     pub fn new(config: &Path) -> Self {
+        tracing::debug!(config = config.to_str(), "new");
         Self {
             config: config.to_owned(),
         }
@@ -30,9 +31,16 @@ impl SlicerTrait for Slicer {
         let uid = uuid::Uuid::new_v4();
         let gcode_path = std::env::temp_dir().join(format!("{}.3mf", uid));
 
-        let (file_path, _file_type) = match design_file {
+        let (file_path, file_type) = match design_file {
             DesignFile::Stl(path) => (path, "stl"),
         };
+
+        tracing::info!(
+            config = self.config.to_str(),
+            file_path = file_path.to_str(),
+            file_type = file_type,
+            "building to gcode"
+        );
 
         let args: Vec<String> = vec![
             "--load".to_string(),
@@ -63,6 +71,14 @@ impl SlicerTrait for Slicer {
         if !output.status.success() {
             let stdout = std::str::from_utf8(&output.stdout)?;
             let stderr = std::str::from_utf8(&output.stderr)?;
+
+            tracing::warn!(
+                config = self.config.to_str(),
+                file_path = file_path.to_str(),
+                file_type = file_type,
+                "failed to build gcode",
+            );
+
             anyhow::bail!("Failed to : {:?}\nstdout:\n{}stderr:{}", output, stdout, stderr);
         }
 
@@ -70,6 +86,14 @@ impl SlicerTrait for Slicer {
         if !gcode_path.exists() {
             anyhow::bail!("Failed to create G-code file");
         }
+
+        tracing::info!(
+            config = self.config.to_str(),
+            file_path = file_path.to_str(),
+            file_type = file_type,
+            gcode_path = gcode_path.to_str(),
+            "gcode built",
+        );
 
         TemporaryFile::new(&gcode_path).await
     }
