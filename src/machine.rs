@@ -12,12 +12,13 @@ impl Machine {
     /// Take a specific [DesignFile], and produce a real-world 3D object
     /// from it.
     pub async fn print(&self, job_name: &str, design_file: &DesignFile) -> Result<()> {
+        // TODO: this only supports gcode for now. This may need to be
+        // restructured later.
+        let gcode = self.slicer.generate(design_file).await?;
+
         // TODO: this only supports gcode via the ControlGcode trait. As a
         // result, this match serves the purpose of figuring out what
         // technique we should use.
-
-        let gcode = self.slicer.generate(design_file).await?;
-
         match &self.machine {
             AnyMachine::BambuX1Carbon(machine) => machine.build(job_name, gcode).await,
             AnyMachine::Moonraker(machine) => machine.build(job_name, gcode).await,
