@@ -11,7 +11,7 @@ use std::path::PathBuf;
 pub struct MachineInfo {
     inner: InfoResponse,
     make_model: MachineMakeModel,
-    volume: Volume,
+    volume: Option<Volume>,
 }
 
 impl MachineInfoTrait for MachineInfo {
@@ -24,7 +24,7 @@ impl MachineInfoTrait for MachineInfo {
     }
 
     fn max_part_volume(&self) -> Option<Volume> {
-        Some(self.volume)
+        self.volume
     }
 }
 

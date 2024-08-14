@@ -1,5 +1,6 @@
 use anyhow::Result;
 use machine_api::{
+    moonraker,
     slicer::{orca, prusa, AnySlicer},
     Machine, MachineMakeModel, MachineType,
 };
@@ -121,7 +122,20 @@ impl MachineConfig {
                 slicer,
                 variant,
             } => {
-                unimplemented!();
+                let slicer = slicer.load().await?;
+                let machine = match variant {
+                    MoonrakerVariant::Generic => moonraker::Client::new(
+                        endpoint,
+                        MachineMakeModel {
+                            manufacturer: None,
+                            model: None,
+                            serial: None,
+                        },
+                        None,
+                    )?,
+                    MoonrakerVariant::Neptune4 => moonraker::Client::neptune4(endpoint)?,
+                };
+                Ok(Machine::new(machine, slicer))
             }
         }
     }

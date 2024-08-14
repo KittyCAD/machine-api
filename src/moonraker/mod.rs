@@ -12,13 +12,13 @@ use moonraker::Client as MoonrakerClient;
 pub struct Client {
     client: MoonrakerClient,
     make_model: MachineMakeModel,
-    volume: Volume,
+    volume: Option<Volume>,
 }
 
 impl Client {
     /// Create a new Moonraker based machine. The `base_url` will be
     /// passed through to [moonraker::Client].
-    pub fn new(base_url: &str, make_model: MachineMakeModel, volume: Volume) -> Result<Self> {
+    pub fn new(base_url: &str, make_model: MachineMakeModel, volume: Option<Volume>) -> Result<Self> {
         Ok(Self {
             make_model,
             volume,
@@ -35,11 +35,11 @@ impl Client {
                 model: Some("Neptune 4".to_owned()),
                 serial: None,
             },
-            Volume {
+            Some(Volume {
                 width: 255.0,
                 height: 255.0,
                 depth: 255.0,
-            },
+            }),
         )
     }
 }
