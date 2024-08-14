@@ -29,7 +29,10 @@ multer = { version = "3.1.0", features = ["json"] }
 opentelemetry = "0.24.0"
 opentelemetry-otlp = "0.17.0"
 opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = [
+	"json",
+	"rustls-tls",
+] }
 schemars = { version = "0.8", features = ["chrono", "uuid1", "bigdecimal"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -41,11 +44,25 @@ slog-json = "2.6.1"
 slog-term = "2.9.1"
 tempdir = "0.3.7"
 thiserror = "1.0.63"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
+tokio = { version = "1", features = [
+	"rt-multi-thread",
+	"macros",
+	"time",
+	"net",
+] }
 toml = "0.8.19"
 tracing = "0.1"
 tracing-opentelemetry = "0.25.0"
-tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
+tracing-subscriber = { version = "0.3.18", features = [
+	"registry",
+	"std",
+	"fmt",
+	"smallvec",
+	"ansi",
+	"tracing-log",
+	"json",
+	"env-filter",
+] }
 uuid = "1.10.0"
 
 [dev-dependencies]
@@ -62,8 +79,4 @@ testresult = "0.4.1"
 debug = ["dep:delouse", "dep:console-subscriber"]
 
 [workspace]
-members = [
-	"bambulabs",
-	"moonraker"
-]
-
+members = ["bambulabs", "moonraker", "bambu-stream"]
