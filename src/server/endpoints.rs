@@ -71,11 +71,10 @@ pub async fn get_machines(
     let mut machines = HashMap::new();
 
     for (key, machine) in ctx.machines.iter() {
-        let machine_info = machine
-            .get_machine()
-            .machine_info()
-            .await
-            .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
+        let machine_info = machine.get_machine().machine_info().await.map_err(|e| {
+            eprintln!("{:?}", e);
+            HttpError::for_internal_error(format!("{:?}", e))
+        })?;
 
         machines.insert(
             key.clone(),

@@ -40,21 +40,21 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
 }
 
 /// Create a new Machine API Server.
-pub async fn create_server() -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
+pub async fn create_server(
+    bind: &str,
+    machines: HashMap<String, crate::Machine>,
+) -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
     let mut api = create_api_description()?;
     let schema = get_openapi(&mut api)?;
 
     let config_dropshot = ConfigDropshot {
-        bind_address: "TODO:8080".parse()?,
+        bind_address: bind.parse()?,
         request_body_max_bytes: 107374182400, // 100 Gigiabytes.
         default_handler_task_mode: dropshot::HandlerTaskMode::CancelOnDisconnect,
     };
 
     let _empty = slog::Logger::root(slog::Discard, slog::o!());
-    let api_context = Arc::new(Context {
-        schema,
-        machines: HashMap::new(),
-    });
+    let api_context = Arc::new(Context { schema, machines });
 
     let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &_empty)
         .map_err(|error| anyhow!("failed to create server: {}", error))?
@@ -76,9 +76,9 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
 }
 
 /// Create a new Server, and serve.
-pub async fn server() -> Result<()> {
-    let (server, api_context) = create_server().await?;
-    let addr: SocketAddr = "TODO:8080".parse()?;
+pub async fn serve(bind: &str, machines: HashMap<String, crate::Machine>) -> Result<()> {
+    let (server, api_context) = create_server(bind, machines).await?;
+    let addr: SocketAddr = bind.parse()?;
 
     let responder = libmdns::Responder::new().unwrap();
     let _svc = responder.register(
@@ -100,10 +100,10 @@ pub async fn server() -> Result<()> {
         }
     });
 
-    // Start all the discovery tasks.
-    tokio::spawn(async move {
-        unimplemented!();
-    });
+    // // Start all the discovery tasks.
+    // tokio::spawn(async move {
+    //     unimplemented!();
+    // });
 
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
 

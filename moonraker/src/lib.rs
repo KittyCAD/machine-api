@@ -29,6 +29,8 @@ impl Client {
     /// Create a new Client handle to control the printer via the
     /// moonraker interface.
     pub fn new(url_base: &str) -> Result<Self> {
+        tracing::debug!(base = url_base, "new");
+
         Ok(Self {
             url_base: url_base.to_owned(),
         })

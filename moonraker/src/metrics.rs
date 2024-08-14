@@ -34,6 +34,7 @@ struct TemperatureReadingsWrapper {
 impl Client {
     /// Print an uploaded file.
     pub async fn temperatures(&self) -> Result<TemperatureReadings> {
+        tracing::debug!(base = self.url_base, "requesting temperatures");
         let client = reqwest::Client::new();
 
         let resp: TemperatureReadingsWrapper = client
