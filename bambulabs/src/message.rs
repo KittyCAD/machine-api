@@ -22,6 +22,10 @@ pub enum Message {
     Info(Info),
     /// A system message.
     System(System),
+    /// A security message.
+    Security(Security),
+    /// A liveview message.
+    LiveView(LiveView),
     /// An unknown Json message.
     Json(Value),
     /// The message could not be parsed. The `Option<String>` contains the raw message.
@@ -36,6 +40,8 @@ impl Message {
             Message::Print(print) => Some(print.sequence_id()),
             Message::Info(info) => Some(info.sequence_id()),
             Message::System(system) => Some(system.sequence_id()),
+            Message::Security(security) => Some(security.sequence_id()),
+            Message::LiveView(live_view) => Some(live_view.sequence_id()),
             Message::Json(_) | Message::Unknown(_) => None,
         }
     }
@@ -57,6 +63,105 @@ impl From<System> for Message {
     fn from(system: System) -> Self {
         Message::System(system)
     }
+}
+
+impl From<Security> for Message {
+    fn from(security: Security) -> Self {
+        Message::Security(security)
+    }
+}
+
+impl From<LiveView> for Message {
+    fn from(live_view: LiveView) -> Self {
+        Message::LiveView(live_view)
+    }
+}
+
+/// A security message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum Security {
+    /// Get the serial number.
+    GetSn(GetSn),
+}
+
+impl Security {
+    /// Returns the sequence id of the message.
+    pub fn sequence_id(&self) -> SequenceId {
+        match self {
+            Security::GetSn(get_sn) => get_sn.sequence_id.clone(),
+        }
+    }
+}
+
+/// A get serial number message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct GetSn {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The serial number.
+    pub sn: String,
+    /// The address.
+    pub address: i64,
+    /// The chip sn.
+    pub chip_sn: String,
+    /// The chip sn length.
+    pub chipsn_len: i64,
+    /// The length.
+    pub length: i64,
+    /// The module.
+    pub module: String,
+    /// The status.
+    pub status: String,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A liveview message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum LiveView {
+    /// Initialize the live view.
+    Init(Init),
+}
+
+impl LiveView {
+    /// Returns the sequence id of the message.
+    pub fn sequence_id(&self) -> SequenceId {
+        match self {
+            LiveView::Init(init) => init.sequence_id.clone(),
+        }
+    }
+}
+
+/// An init live view message.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct Init {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The op protocols.
+    pub op_protocols: Vec<OperationProtocol>,
+    /// The peer host.
+    pub peer_host: String,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// An operation protocol.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct OperationProtocol {
+    /// The protocol.
+    pub protocol: String,
+    /// The version.
+    pub version: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// A reason for a message.
@@ -95,6 +200,8 @@ pub enum Result {
 pub enum Print {
     /// Ams control.
     AmsControl(AmsControl),
+    /// Calibration.
+    Calibration(Calibration),
     /// The status of the print.
     PushStatus(PushStatus),
     /// The gcode line.
@@ -116,6 +223,7 @@ impl Print {
     pub fn sequence_id(&self) -> SequenceId {
         match self {
             Print::AmsControl(ams_ctrl) => ams_ctrl.sequence_id.clone(),
+            Print::Calibration(calibration) => calibration.sequence_id.clone(),
             Print::PushStatus(push_status) => push_status.sequence_id.clone(),
             Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
             Print::ProjectFile(project_file) => project_file.sequence_id.clone(),
@@ -138,6 +246,21 @@ pub struct AmsControl {
     pub result: Result,
     /// The param.
     pub param: Option<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A calibration command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Calibration {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The option.
+    pub option: i64,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
