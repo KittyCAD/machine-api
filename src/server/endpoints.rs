@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::Context;
+use crate::{MachineMakeModel, MachineType};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -36,7 +37,17 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
     }))
 }
 
-/** List available machines and their statuses */
+/// Information regarding a connected machine.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct Machine {
+    /// Information regarding the make and model of the attached Machine.
+    pub make_model: MachineMakeModel,
+
+    /// Information regarding the method of manufacture.
+    pub machine_type: MachineType,
+}
+
+/// List available machines and their statuses
 #[endpoint {
     method = GET,
     path = "/machines",
@@ -44,8 +55,10 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<HashMap<String, ()>>, HttpError> {
-    unimplemented!();
+) -> Result<HttpResponseOk<HashMap<String, Machine>>, HttpError> {
+    let ctx = rqctx.context();
+    // let machines = ctx.machines;
+    unimplemented!()
 }
 
 /// The path parameters for performing operations on an machine.

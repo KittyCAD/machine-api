@@ -1,9 +1,11 @@
 use crate::{DesignFile, TemporaryFile, Volume};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::future::Future;
 
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, JsonSchema)]
 pub enum MachineType {
     /// Use light to cure a resin to build up layers.
     Stereolithography,
@@ -17,7 +19,7 @@ pub enum MachineType {
 }
 
 /// Information regarding the make/model of a discovered endpoint.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct MachineMakeModel {
     /// The manufacturer that built the connected Machine.
     pub manufacturer: Option<String>,

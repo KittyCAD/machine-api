@@ -31,6 +31,8 @@ pub use machine::Machine;
 pub use slicer::AnySlicer;
 pub use traits::{Control, ControlGcode, ControlSuspend, Discover, MachineInfo, MachineMakeModel, MachineType, Slicer};
 
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// A specific file containing a design to be manufactured.
@@ -45,7 +47,7 @@ pub enum DesignFile {
 /// maximum or minimum.
 ///
 /// All measurements are in millimeters.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct Volume {
     /// Width of the volume ("left and right"), in millimeters.
     pub width: f64,
