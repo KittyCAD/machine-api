@@ -119,11 +119,11 @@ impl crate::Control for AnyMachine {
         for_all!(|self, machine| { Ok(machine.machine_info().await?.into()) })
     }
 
-    async fn emergency_stop(&self) -> Result<()> {
+    async fn emergency_stop(&mut self) -> Result<()> {
         for_all!(|self, machine| { machine.emergency_stop().await })
     }
 
-    async fn stop(&self) -> Result<()> {
+    async fn stop(&mut self) -> Result<()> {
         for_all!(|self, machine| { machine.stop().await })
     }
 }

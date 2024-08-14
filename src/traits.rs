@@ -99,10 +99,10 @@ pub trait Control {
     /// be enqueued and other operations may take place before the shutdown
     /// request is processed. This is not a substitute for a real physical
     /// estop -- but it's better than nothing.
-    fn emergency_stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
+    fn emergency_stop(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 
     /// Request that the machine stop any current job(s).
-    fn stop(&self) -> impl Future<Output = Result<(), Self::Error>>;
+    fn stop(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands
@@ -113,7 +113,7 @@ where
 {
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
-    fn build(&self, job_name: &str, gcode: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
+    fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [ControlSuspend] is used by [Control] handles that can pause
@@ -124,11 +124,11 @@ where
 {
     /// Request that the Machine pause manufacturing the current part,
     /// which may be resumed later.
-    fn pause(&self) -> impl Future<Output = Result<(), Self::Error>>;
+    fn pause(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 
     /// Request that the Machine resume manufacturing the paused job to
     /// manufacturer a part.
-    fn resume(&self) -> impl Future<Output = Result<(), Self::Error>>;
+    fn resume(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces

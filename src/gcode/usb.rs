@@ -3,16 +3,12 @@ use crate::{
     Control as ControlTrait, ControlGcode as ControlGcodeTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
     MachineType, TemporaryFile, Volume,
 };
-use std::sync::Arc;
-use tokio::{
-    io::{ReadHalf, WriteHalf},
-    sync::Mutex,
-};
+use tokio::io::{ReadHalf, WriteHalf};
 use tokio_serial::SerialStream;
 
 ///
 pub struct Usb {
-    client: Arc<Mutex<Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>>>,
+    client: Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>,
 
     machine_type: MachineType,
     volume: Volume,
@@ -25,7 +21,7 @@ impl Usb {
         let (reader, writer) = tokio::io::split(stream);
 
         Self {
-            client: Arc::new(Mutex::new(Client::new(writer, reader))),
+            client: Client::new(writer, reader),
             machine_type,
             volume,
             make_model,
@@ -51,10 +47,10 @@ impl Usb {
         )
     }
 
-    async fn wait_for_start(&self) -> Result<()> {
+    async fn wait_for_start(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
-            if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
+            if let Err(e) = self.client.get_read().read_line(&mut line).await {
                 println!("wait_for_start err: {}", e);
             } else {
                 // Use ends with because sometimes we may still have some data left on the buffer
@@ -65,10 +61,10 @@ impl Usb {
         }
     }
 
-    async fn wait_for_ok(&self) -> Result<()> {
+    async fn wait_for_ok(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
-            if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
+            if let Err(e) = self.client.get_read().read_line(&mut line).await {
                 println!("wait_for_ok err: {}", e);
             } else {
                 println!("RCVD: {}", line);
@@ -113,16 +109,16 @@ impl ControlTrait for Usb {
         })
     }
 
-    async fn emergency_stop(&self) -> Result<()> {
-        self.client.lock().await.emergency_stop().await
+    async fn emergency_stop(&mut self) -> Result<()> {
+        self.client.emergency_stop().await
     }
-    async fn stop(&self) -> Result<()> {
-        self.client.lock().await.stop().await
+    async fn stop(&mut self) -> Result<()> {
+        self.client.stop().await
     }
 }
 
 impl ControlGcodeTrait for Usb {
-    async fn build(&self, _job_name: &str, mut gcode: TemporaryFile) -> Result<()> {
+    async fn build(&mut self, _job_name: &str, mut gcode: TemporaryFile) -> Result<()> {
         let mut buf = String::new();
         gcode.as_mut().read_to_string(&mut buf).await?;
 
@@ -143,7 +139,7 @@ impl ControlGcodeTrait for Usb {
         for line in lines.iter() {
             let msg = format!("{}\r\n", line);
             println!("writing: {}", line);
-            self.client.lock().await.write_all(msg.as_bytes()).await?;
+            self.client.write_all(msg.as_bytes()).await?;
             self.wait_for_ok().await?;
         }
 

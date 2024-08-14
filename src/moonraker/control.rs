@@ -47,27 +47,27 @@ impl ControlTrait for Client {
         })
     }
 
-    async fn emergency_stop(&self) -> Result<()> {
+    async fn emergency_stop(&mut self) -> Result<()> {
         self.client.emergency_stop().await
     }
 
-    async fn stop(&self) -> Result<()> {
+    async fn stop(&mut self) -> Result<()> {
         self.client.cancel_print().await
     }
 }
 
 impl ControlSuspendTrait for Client {
-    async fn pause(&self) -> Result<()> {
+    async fn pause(&mut self) -> Result<()> {
         self.client.pause_print().await
     }
 
-    async fn resume(&self) -> Result<()> {
+    async fn resume(&mut self) -> Result<()> {
         self.client.resume_print().await
     }
 }
 
 impl ControlGcodeTrait for Client {
-    async fn build(&self, _job_name: &str, gcode: TemporaryFile) -> Result<()> {
+    async fn build(&mut self, _job_name: &str, gcode: TemporaryFile) -> Result<()> {
         let path: PathBuf = self.client.upload_file(gcode.path()).await?.item.path.parse()?;
         self.client.print(&path).await?;
         Ok(())

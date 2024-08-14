@@ -42,30 +42,30 @@ impl ControlTrait for X1Carbon {
         unimplemented!()
     }
 
-    async fn emergency_stop(&self) -> Result<()> {
+    async fn emergency_stop(&mut self) -> Result<()> {
         self.stop().await
     }
 
-    async fn stop(&self) -> Result<()> {
+    async fn stop(&mut self) -> Result<()> {
         self.client.publish(Command::stop()).await?;
         Ok(())
     }
 }
 
 impl ControlSuspendTrait for X1Carbon {
-    async fn pause(&self) -> Result<()> {
+    async fn pause(&mut self) -> Result<()> {
         self.client.publish(Command::pause()).await?;
         Ok(())
     }
 
-    async fn resume(&self) -> Result<()> {
+    async fn resume(&mut self) -> Result<()> {
         self.client.publish(Command::resume()).await?;
         Ok(())
     }
 }
 
 impl ControlGcodeTrait for X1Carbon {
-    async fn build(&self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
+    async fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
         // Upload the file to the printer.
         self.client.upload_file(gcode.path()).await?;
 
