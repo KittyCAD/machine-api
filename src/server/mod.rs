@@ -5,12 +5,47 @@ use std::{env, net::SocketAddr, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
-use signal_hook::{
-    consts::{SIGINT, SIGTERM},
-    iterator::Signals,
-};
 
 use crate::{config::Config, network_printer::NetworkPrinterManufacturer, server::context::Context};
+
+async fn handle_signals(api_context: Arc<Context>) -> Result<()> {
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{signal, SignalKind};
+
+        let mut sigint = signal(SignalKind::interrupt()).map_err(|e| {
+            slog::error!(api_context.logger, "Failed to set up SIGINT handler: {:?}", e);
+            e
+        })?;
+        let mut sigterm = signal(SignalKind::terminate()).map_err(|e| {
+            slog::error!(api_context.logger, "Failed to set up SIGTERM handler: {:?}", e);
+            e
+        })?;
+
+        tokio::select! {
+            _ = sigint.recv() => {
+                slog::info!(api_context.logger, "received SIGINT");
+            }
+            _ = sigterm.recv() => {
+                slog::info!(api_context.logger, "received SIGTERM");
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        tokio::signal::ctrl_c().await.map_err(|e| {
+            slog::error!(api_context.logger, "Failed to set up Ctrl+C handler: {:?}", e);
+            anyhow::Error::new(e)
+        })?;
+
+        slog::info!(api_context.logger, "received Ctrl+C (SIGINT)");
+    }
+
+    slog::info!(api_context.logger, "triggering cleanup...");
+    slog::info!(api_context.logger, "all clean, exiting!");
+    std::process::exit(0);
+}
 
 /// Create an API description for the server.
 pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
@@ -90,20 +125,9 @@ pub async fn server(s: &crate::Server, opts: &crate::Opts, config: &Config) -> R
     // For Cloud run & ctrl+c, shutdown gracefully.
     // "The main process inside the container will receive SIGTERM, and after a grace period,
     // SIGKILL."
-    // Regsitering SIGKILL here will panic at runtime, so let's avoid that.
-    let mut signals = Signals::new([SIGINT, SIGTERM])?;
-
+    // Registering SIGKILL here will panic at runtime, so let's avoid that.
     let cloned_api_context = api_context.clone();
-    tokio::spawn(async move {
-        if let Some(sig) = signals.forever().next() {
-            slog::info!(cloned_api_context.logger, "received signal: {:?}", sig);
-            slog::info!(cloned_api_context.logger, "triggering cleanup...");
-
-            // Exit the process.
-            slog::info!(cloned_api_context.logger, "all clean, exiting!");
-            std::process::exit(0);
-        }
-    });
+    tokio::spawn(handle_signals(cloned_api_context));
 
     // Start all the discovery tasks.
     tokio::spawn(async move {
