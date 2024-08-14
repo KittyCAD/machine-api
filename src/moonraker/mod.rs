@@ -7,7 +7,6 @@ pub use control::MachineInfo;
 use crate::{MachineMakeModel, Volume};
 use anyhow::Result;
 use moonraker::Client as MoonrakerClient;
-use std::path::PathBuf;
 
 /// Client is a connection to a Moonraker instance.
 pub struct Client {

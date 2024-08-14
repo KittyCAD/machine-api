@@ -9,6 +9,34 @@ pub struct Machine {
 }
 
 impl Machine {
+    /// Create a new [Machine] from a specific [AnyMachine] control channel,
+    /// and a specific [AnySlicer] slicer.
+    pub fn new<MachineT, SlicerT>(machine: MachineT, slicer: SlicerT) -> Self
+    where
+        MachineT: Into<AnyMachine>,
+        SlicerT: Into<AnySlicer>,
+    {
+        Self {
+            machine: machine.into(),
+            slicer: slicer.into(),
+        }
+    }
+
+    /// Return the underlying [AnyMachine] enum.
+    pub fn get_machine(&self) -> &AnyMachine {
+        &self.machine
+    }
+
+    /// Return the underlying [AnyMachine] enum as a mutable borrow.
+    pub fn get_machine_mut(&mut self) -> &mut AnyMachine {
+        &mut self.machine
+    }
+
+    /// Return the underlying [AnySlicer] enum.
+    pub fn get_slicer(&self) -> &AnySlicer {
+        &self.slicer
+    }
+
     /// Take a specific [DesignFile], and produce a real-world 3D object
     /// from it.
     pub async fn print(&self, job_name: &str, design_file: &DesignFile) -> Result<()> {
