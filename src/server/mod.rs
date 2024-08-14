@@ -5,7 +5,7 @@ mod endpoints;
 
 pub use context::Context;
 
-use std::{env, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
 
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
@@ -53,7 +53,7 @@ pub async fn create_server() -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<
     let _empty = slog::Logger::root(slog::Discard, slog::o!());
     let api_context = Arc::new(Context {
         schema,
-        machines: vec![],
+        machines: HashMap::new(),
     });
 
     let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &_empty)

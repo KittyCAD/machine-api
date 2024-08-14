@@ -1,4 +1,5 @@
 use crate::Machine;
+use std::collections::HashMap;
 
 /// Context for a given server -- this contains all the informatio required
 /// to serve a Machine-API request.
@@ -8,5 +9,5 @@ pub struct Context {
     pub schema: serde_json::Value,
 
     /// List of [Machine] objects to serve via the Machine API.
-    pub machines: Vec<Machine>,
+    pub machines: HashMap<String, Machine>,
 }

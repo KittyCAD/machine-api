@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::Context;
-use crate::{MachineMakeModel, MachineType};
+use crate::{MachineMakeModel, MachineType, Volume};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -45,6 +45,13 @@ pub struct Machine {
 
     /// Information regarding the method of manufacture.
     pub machine_type: MachineType,
+
+    /// Maximum part size that can be manufactured by this device. This may
+    /// be some sort of theoretical upper bound, getting close to this limit
+    /// seems like maybe a bad idea.
+    ///
+    /// What "close" means is up to you!
+    pub max_part_volume: Volume,
 }
 
 /// List available machines and their statuses
@@ -57,8 +64,8 @@ pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
 ) -> Result<HttpResponseOk<HashMap<String, Machine>>, HttpError> {
     let ctx = rqctx.context();
-    // let machines = ctx.machines;
-    unimplemented!()
+
+    Ok(HttpResponseOk(HashMap::new()))
 }
 
 /// The path parameters for performing operations on an machine.
