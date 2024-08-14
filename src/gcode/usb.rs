@@ -11,13 +11,18 @@ pub struct Usb {
     client: Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>,
 
     machine_type: MachineType,
-    volume: Volume,
+    volume: Option<Volume>,
     make_model: MachineMakeModel,
 }
 
 impl Usb {
     /// Create a new USB-based gcode Machine.
-    pub fn new(stream: SerialStream, machine_type: MachineType, volume: Volume, make_model: MachineMakeModel) -> Self {
+    pub fn new(
+        stream: SerialStream,
+        machine_type: MachineType,
+        volume: Option<Volume>,
+        make_model: MachineMakeModel,
+    ) -> Self {
         let (reader, writer) = tokio::io::split(stream);
 
         Self {
@@ -34,11 +39,11 @@ impl Usb {
         Self::new(
             stream,
             MachineType::FusedDeposition,
-            Volume {
+            Some(Volume {
                 width: 250.0,
                 depth: 210.0,
                 height: 210.0,
-            },
+            }),
             MachineMakeModel {
                 manufacturer: Some("Prusa Research".to_owned()),
                 model: Some("MK3".to_owned()),
@@ -80,7 +85,7 @@ impl Usb {
 pub struct UsbMachineInfo {
     machine_type: MachineType,
     make_model: MachineMakeModel,
-    volume: Volume,
+    volume: Option<Volume>,
 }
 
 impl MachineInfoTrait for UsbMachineInfo {
@@ -93,7 +98,7 @@ impl MachineInfoTrait for UsbMachineInfo {
     }
 
     fn max_part_volume(&self) -> Option<Volume> {
-        Some(self.volume.clone())
+        self.volume.clone()
     }
 }
 

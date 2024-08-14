@@ -1,7 +1,7 @@
 //! Support for the orca Slicer.
 
 use anyhow::{Context, Result};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
 use crate::{
@@ -17,8 +17,10 @@ pub struct Slicer {
 impl Slicer {
     /// Create a new [Slicer], which will invoke the Orca Slicer binary
     /// with the specified configuration file.
-    pub fn new(config: PathBuf) -> Self {
-        Self { config }
+    pub fn new(config: &Path) -> Self {
+        Self {
+            config: config.to_path_buf(),
+        }
     }
 
     /// Generate 3MF or gcode from some input file.
