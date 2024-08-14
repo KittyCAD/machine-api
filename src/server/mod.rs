@@ -53,12 +53,16 @@ pub async fn create_server(
         default_handler_task_mode: dropshot::HandlerTaskMode::CancelOnDisconnect,
     };
 
-    let _empty = slog::Logger::root(slog::Discard, slog::o!());
     let api_context = Arc::new(Context { schema, machines });
 
-    let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &_empty)
-        .map_err(|error| anyhow!("failed to create server: {}", error))?
-        .start();
+    let server = HttpServerStarter::new(
+        &config_dropshot,
+        api,
+        api_context.clone(),
+        &slog::Logger::root(tracing_slog::TracingSlogDrain, slog::o!()),
+    )
+    .map_err(|error| anyhow!("failed to create server: {}", error))?
+    .start();
 
     Ok((server, api_context))
 }

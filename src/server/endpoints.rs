@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, sync::Arc};
 
 use super::Context;
-use crate::{Control, MachineInfo, MachineMakeModel, MachineType, Volume};
+use crate::{AnyMachine, Control, MachineInfo, MachineMakeModel, MachineType, Volume};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -57,6 +57,19 @@ pub struct Machine {
     pub max_part_volume: Option<Volume>,
 }
 
+impl Machine {
+    /// Create a new API JSON Machine from a Machine struct containing the
+    /// handle(s) to actually construct a part.
+    pub(crate) async fn from_machine(machine: &AnyMachine) -> anyhow::Result<Self> {
+        let machine_info = machine.machine_info().await?;
+        Ok(Machine {
+            make_model: machine_info.make_model(),
+            machine_type: machine_info.machine_type(),
+            max_part_volume: machine_info.max_part_volume(),
+        })
+    }
+}
+
 /// List available machines and their statuses
 #[endpoint {
     method = GET,
@@ -66,26 +79,19 @@ pub struct Machine {
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
 ) -> Result<HttpResponseOk<HashMap<String, Machine>>, HttpError> {
+    tracing::info!("listing machines");
     let ctx = rqctx.context();
-
     let mut machines = HashMap::new();
-
     for (key, machine) in ctx.machines.iter() {
-        let machine_info = machine.get_machine().machine_info().await.map_err(|e| {
-            eprintln!("{:?}", e);
+        let api_machine = Machine::from_machine(machine.get_machine()).await.map_err(|e| {
+            tracing::warn!(
+                error = format!("{:?}", e),
+                "Error while fetching information for an API Machine response"
+            );
             HttpError::for_internal_error(format!("{:?}", e))
         })?;
-
-        machines.insert(
-            key.clone(),
-            Machine {
-                make_model: machine_info.make_model(),
-                machine_type: machine_info.machine_type(),
-                max_part_volume: machine_info.max_part_volume(),
-            },
-        );
+        machines.insert(key.clone(), api_machine);
     }
-
     Ok(HttpResponseOk(machines))
 }
 
@@ -105,8 +111,27 @@ pub struct MachinePathParams {
 pub async fn get_machine(
     rqctx: RequestContext<Arc<Context>>,
     path_params: Path<MachinePathParams>,
-) -> Result<HttpResponseOk<()>, HttpError> {
-    unimplemented!();
+) -> Result<HttpResponseOk<Machine>, HttpError> {
+    let params = path_params.into_inner();
+    let ctx = rqctx.context();
+    eprintln!("{:?}", ctx.machines.keys().collect::<Vec<_>>());
+
+    tracing::info!(id = params.id, "finding machine");
+    match ctx.machines.get(&params.id) {
+        Some(machine) => Ok(HttpResponseOk(
+            Machine::from_machine(machine.get_machine()).await.map_err(|e| {
+                tracing::warn!(
+                    error = format!("{:?}", e),
+                    "Error while fetching information for an API Machine response"
+                );
+                HttpError::for_internal_error(format!("{:?}", e))
+            })?,
+        )),
+        None => Err(HttpError::for_not_found(
+            None,
+            format!("machine not found by id: {:?}", &params.id),
+        )),
+    }
 }
 
 /// The response from the `/print` endpoint.
