@@ -39,7 +39,7 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
 
 /// Information regarding a connected machine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
-pub struct Machine {
+pub struct MachineInfoResponse {
     /// Information regarding the make and model of the attached Machine.
     pub make_model: MachineMakeModel,
 
@@ -57,15 +57,27 @@ pub struct Machine {
     pub max_part_volume: Option<Volume>,
 }
 
-impl Machine {
+impl MachineInfoResponse {
     /// Create a new API JSON Machine from a Machine struct containing the
     /// handle(s) to actually construct a part.
     pub(crate) async fn from_machine(machine: &AnyMachine) -> anyhow::Result<Self> {
         let machine_info = machine.machine_info().await?;
-        Ok(Machine {
+        Ok(MachineInfoResponse {
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
+        })
+    }
+
+    /// Return an API JSON Machine from a Machine struct, returning a 500
+    /// if the machine fails to enumerate.
+    pub(crate) async fn from_machine_http(machine: &AnyMachine) -> Result<MachineInfoResponse, HttpError> {
+        Self::from_machine(machine).await.map_err(|e| {
+            tracing::warn!(
+                error = format!("{:?}", e),
+                "Error while fetching information for an API Machine response"
+            );
+            HttpError::for_internal_error(format!("{:?}", e))
         })
     }
 }
@@ -78,18 +90,12 @@ impl Machine {
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<HashMap<String, Machine>>, HttpError> {
+) -> Result<HttpResponseOk<HashMap<String, MachineInfoResponse>>, HttpError> {
     tracing::info!("listing machines");
     let ctx = rqctx.context();
     let mut machines = HashMap::new();
     for (key, machine) in ctx.machines.iter() {
-        let api_machine = Machine::from_machine(machine.get_machine()).await.map_err(|e| {
-            tracing::warn!(
-                error = format!("{:?}", e),
-                "Error while fetching information for an API Machine response"
-            );
-            HttpError::for_internal_error(format!("{:?}", e))
-        })?;
+        let api_machine = MachineInfoResponse::from_machine_http(machine.get_machine()).await?;
         machines.insert(key.clone(), api_machine);
     }
     Ok(HttpResponseOk(machines))
@@ -111,7 +117,7 @@ pub struct MachinePathParams {
 pub async fn get_machine(
     rqctx: RequestContext<Arc<Context>>,
     path_params: Path<MachinePathParams>,
-) -> Result<HttpResponseOk<Machine>, HttpError> {
+) -> Result<HttpResponseOk<MachineInfoResponse>, HttpError> {
     let params = path_params.into_inner();
     let ctx = rqctx.context();
     eprintln!("{:?}", ctx.machines.keys().collect::<Vec<_>>());
@@ -119,13 +125,7 @@ pub async fn get_machine(
     tracing::info!(id = params.id, "finding machine");
     match ctx.machines.get(&params.id) {
         Some(machine) => Ok(HttpResponseOk(
-            Machine::from_machine(machine.get_machine()).await.map_err(|e| {
-                tracing::warn!(
-                    error = format!("{:?}", e),
-                    "Error while fetching information for an API Machine response"
-                );
-                HttpError::for_internal_error(format!("{:?}", e))
-            })?,
+            MachineInfoResponse::from_machine_http(machine.get_machine()).await?,
         )),
         None => Err(HttpError::for_not_found(
             None,
@@ -154,7 +154,16 @@ pub(crate) async fn print_file(
     rqctx: RequestContext<Arc<Context>>,
     body_param: dropshot::MultipartBody,
 ) -> Result<HttpResponseOk<PrintJobResponse>, HttpError> {
-    unimplemented!();
+    let mut multipart = body_param.content;
+    let (file, params) = parse_multipart_print_request(&mut multipart).await?;
+    let ctx = rqctx.context().clone();
+    let machine_id = params.machine_id.clone();
+    let job_id = uuid::Uuid::new_v4();
+
+    Ok(HttpResponseOk(PrintJobResponse {
+        job_id: job_id.to_string(),
+        parameters: params,
+    }))
 }
 
 pub(crate) struct FileAttachment {
