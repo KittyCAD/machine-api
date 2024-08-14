@@ -37,6 +37,11 @@ impl Machine {
         &self.slicer
     }
 
+    /// Return the underlying [AnySlicer] enum as a mutable borrow.
+    pub fn get_slicer_mut(&mut self) -> &mut AnySlicer {
+        &mut self.slicer
+    }
+
     /// Take a specific [DesignFile], and produce a real-world 3D object
     /// from it.
     pub async fn print(&self, job_name: &str, design_file: &DesignFile) -> Result<()> {
