@@ -1,5 +1,5 @@
 use super::{Config, PrinterInfo, X1Carbon};
-use crate::{Discover as DiscoverTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume};
+use crate::{MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
 use dashmap::DashMap;
 use std::{
@@ -14,17 +14,6 @@ const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
 pub struct Discover {
     printers: DashMap<String, X1Carbon>,
     config: Config,
-}
-
-impl Discover {
-    /// Return a new Discover handle using the provided Configuration
-    /// struct [Config].
-    pub fn new(config: &Config) -> Self {
-        Discover {
-            printers: DashMap::new(),
-            config: config.clone(),
-        }
-    }
 }
 
 // TODO: in the future, control maybe should be an enum of specific control
@@ -48,16 +37,23 @@ impl MachineInfoTrait for PrinterInfo {
     }
 }
 
-impl DiscoverTrait for Discover {
-    type Error = anyhow::Error;
-    type MachineInfo = PrinterInfo;
-    type Control = X1Carbon;
+impl Discover {
+    /// Return a new Discover handle using the provided Configuration
+    /// struct [Config].
+    pub fn new(config: &Config) -> Self {
+        Discover {
+            printers: DashMap::new(),
+            config: config.clone(),
+        }
+    }
 
-    async fn connect(&self, machine: PrinterInfo) -> Result<X1Carbon> {
+    /// Attempt to connect to a discovered printer
+    pub async fn connect(&self, machine: PrinterInfo) -> Result<X1Carbon> {
         Ok(self.printers.get(&machine.ip.to_string()).unwrap().clone())
     }
 
-    async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
+    /// Return all discovered printers
+    pub async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
         Ok(self
             .printers
             .iter()
@@ -65,7 +61,9 @@ impl DiscoverTrait for Discover {
             .collect())
     }
 
-    async fn discover(&self) -> Result<()> {
+    /// Run (in a tokio task!) a forever loop to discover any connected
+    /// Bambu printers on the LAN.
+    pub async fn discover(&self) -> Result<()> {
         tracing::info!("Spawning Bambu discovery task");
 
         // Any interface, port 2021, which is a non-standard port for any kind of UPnP/SSDP protocol.
