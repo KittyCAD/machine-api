@@ -1,4 +1,4 @@
-use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer};
+use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
 use anyhow::Result;
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
@@ -49,11 +49,8 @@ impl Machine {
 
         match &mut self.machine {
             AnyMachine::BambuX1Carbon(machine) => {
-                // let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
-                // ThreeMfControl::build(machine, job_name, three_mf).await
-
-                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
-                GcodeControl::build(machine, job_name, gcode).await
+                let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
+                ThreeMfControl::build(machine, job_name, three_mf).await
             }
             AnyMachine::Moonraker(machine) => {
                 let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
