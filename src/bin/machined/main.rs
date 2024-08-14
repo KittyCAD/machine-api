@@ -1,6 +1,6 @@
 use anyhow::Result;
-use machine_api::{server, Machine};
-use std::{collections::HashMap, str::FromStr};
+use machine_api::server;
+use std::str::FromStr;
 use tokio::sync::RwLock;
 use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
 
@@ -20,9 +20,6 @@ async fn main() -> Result<()> {
 
     let args: Vec<String> = std::env::args().collect();
     let cfg: Config = serde_yaml::from_reader(std::fs::File::open(&args[1])?)?;
-    let machines = HashMap::<String, RwLock<Machine>>::new();
-
-    eprintln!("{:?}", cfg);
 
     // let cfg: PathBuf = args[3].parse().unwrap();
 
@@ -34,7 +31,15 @@ async fn main() -> Result<()> {
     //     )),
     // );
 
-    server::serve("0.0.0.0:8080", machines).await?;
+    server::serve(
+        "0.0.0.0:8080",
+        cfg.load()
+            .await?
+            .into_iter()
+            .map(|(machine_id, machine)| (machine_id, RwLock::new(machine)))
+            .collect(),
+    )
+    .await?;
 
     Ok(())
 }
