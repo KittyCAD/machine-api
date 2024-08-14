@@ -47,17 +47,22 @@ impl Machine {
     pub async fn build(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
         tracing::debug!(name = job_name, "building");
 
-        // TODO: this only supports gcode for now. This may need to be
-        // restructured later.
-        let gcode = self.slicer.generate(design_file).await?;
-
-        // TODO: this only supports gcode via the GcodeControl trait. As a
-        // result, this match serves the purpose of figuring out what
-        // technique we should use.
         match &mut self.machine {
-            AnyMachine::BambuX1Carbon(machine) => machine.build(job_name, gcode).await,
-            AnyMachine::Moonraker(machine) => machine.build(job_name, gcode).await,
-            AnyMachine::Usb(machine) => machine.build(job_name, gcode).await,
+            AnyMachine::BambuX1Carbon(machine) => {
+                // let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
+                // ThreeMfControl::build(machine, job_name, three_mf).await
+
+                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                GcodeControl::build(machine, job_name, gcode).await
+            }
+            AnyMachine::Moonraker(machine) => {
+                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                GcodeControl::build(machine, job_name, gcode).await
+            }
+            AnyMachine::Usb(machine) => {
+                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                GcodeControl::build(machine, job_name, gcode).await
+            }
         }
     }
 }
