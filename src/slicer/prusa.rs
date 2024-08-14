@@ -28,8 +28,10 @@ impl SlicerTrait for Slicer {
 
     /// Generate gcode from some input file.
     async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+        // TODO: support 3mf and other export targets through new traits.
+
         let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(format!("{}.3mf", uid));
+        let gcode_path = std::env::temp_dir().join(format!("{}.gcode", uid.simple()));
 
         let (file_path, file_type) = match design_file {
             DesignFile::Stl(path) => (path, "stl"),

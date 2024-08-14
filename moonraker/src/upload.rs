@@ -52,6 +52,7 @@ struct DeleteResponseWrapper {
 impl Client {
     /// Upload a file with some gcode to the server.
     pub async fn upload_file(&self, file_name: &Path) -> Result<UploadResponse> {
+        tracing::info!(file_path = file_name.to_str().unwrap(), "uploading file");
         self.upload(
             &PathBuf::from(file_name.file_name().unwrap().to_str().unwrap()),
             &std::fs::read(file_name)?,
@@ -62,6 +63,7 @@ impl Client {
     /// Upload a byte array of gcode to the print queue.
     pub async fn upload(&self, file_name: &Path, gcode: &[u8]) -> Result<UploadResponse> {
         let file_name = file_name.to_str().unwrap();
+        tracing::info!(file_name = file_name, "uploading gcode to the printer");
         let gcode = multipart::Part::bytes(gcode.to_owned())
             .file_name(file_name.to_owned())
             .mime_str("text/x-gcode")?;
@@ -93,6 +95,7 @@ impl Client {
 
     /// Delete an uploaded file from the print queue.
     pub async fn delete(&self, file_name: &Path) -> Result<DeleteResponse> {
+        tracing::info!(file_path = file_name.to_str().unwrap(), "deleting file");
         let file_name = file_name.to_str().unwrap();
         let client = reqwest::Client::new();
         let resp: DeleteResponseWrapper = client

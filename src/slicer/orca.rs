@@ -24,6 +24,8 @@ impl SlicerTrait for Slicer {
 
     /// Generate gcode from some input file.
     async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+        // TODO: support 3mf and other export targets through new traits.
+
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
             anyhow::bail!(
@@ -37,7 +39,7 @@ impl SlicerTrait for Slicer {
         };
 
         let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(format!("{}.3mf", uid));
+        let gcode_path = std::env::temp_dir().join(format!("{}.gcode", uid));
         let process_config = self
             .config
             .join("process.json")
@@ -68,7 +70,7 @@ impl SlicerTrait for Slicer {
             "0".to_string(),
             "--orient".to_string(),
             "1".to_string(),
-            "--export-3mf".to_string(),
+            "--export-gcode".to_string(),
             gcode_path
                 .to_str()
                 .ok_or_else(|| anyhow::anyhow!("Invalid output G-code path: {}", gcode_path.display()))?

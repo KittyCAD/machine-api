@@ -11,7 +11,7 @@ mod config;
 async fn main() -> Result<()> {
     let subscriber = FmtSubscriber::builder()
         .with_writer(std::io::stderr)
-        .with_max_level(tracing::Level::from_str("debug").unwrap())
+        .with_max_level(tracing::Level::from_str("info").unwrap())
         .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
         .finish();
 

@@ -172,7 +172,13 @@ pub(crate) async fn print_file(
         }
     };
 
-    let filepath = std::env::temp_dir().join(format!("{}-{}", job_id, file.file_name.unwrap_or("file".to_string())));
+    let filepath = std::env::temp_dir().join(format!(
+        "{}_{}",
+        job_id.simple(),
+        file.file_name.unwrap_or("file".to_string())
+    ));
+    tracing::info!(path = format!("{:?}", filepath), "Writing file to disk");
+
     // TODO: we likely want to use the kittycad api to convert the file to the right format if its
     // not already an stl file.
 
@@ -181,10 +187,14 @@ pub(crate) async fn print_file(
         HttpError::for_bad_request(None, "failed to write stl file".to_string())
     })?;
 
+    let tmpfile = TemporaryFile::new(&filepath)
+        .await
+        .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
+
     machine
         .write()
         .await
-        .build(job_name, &DesignFile::Stl(filepath))
+        .build(job_name, &DesignFile::Stl(tmpfile.path().to_path_buf()))
         .await
         .map_err(|e| {
             tracing::warn!(error = format!("{:?}", e), "failed to build file");
