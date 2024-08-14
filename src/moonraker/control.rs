@@ -1,7 +1,7 @@
 use super::Client;
 use crate::{
-    Control as ControlTrait, GcodeControl as GcodeControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
-    MachineType, SuspendControl as SuspendControlTrait, TemporaryFile, Volume,
+    Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
+    MachineMakeModel, MachineType, SuspendControl as SuspendControlTrait, Volume,
 };
 use anyhow::Result;
 use moonraker::InfoResponse;
@@ -72,7 +72,9 @@ impl SuspendControlTrait for Client {
 }
 
 impl GcodeControlTrait for Client {
-    async fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> Result<()> {
+    async fn build(&mut self, job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
+        let gcode = gcode.0;
+
         tracing::info!(job_name = job_name, "uploading and printing gcode");
         tracing::debug!("uploading");
         let path: PathBuf = self.client.upload_file(gcode.path()).await?.item.path.parse()?;

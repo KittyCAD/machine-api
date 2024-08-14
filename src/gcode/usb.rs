@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
-    Control as ControlTrait, GcodeControl as GcodeControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
-    MachineType, TemporaryFile, Volume,
+    Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
+    MachineMakeModel, MachineType, Volume,
 };
 use tokio::io::{ReadHalf, WriteHalf};
 use tokio_serial::SerialStream;
@@ -118,7 +118,9 @@ impl ControlTrait for Usb {
 }
 
 impl GcodeControlTrait for Usb {
-    async fn build(&mut self, _job_name: &str, mut gcode: TemporaryFile) -> Result<()> {
+    async fn build(&mut self, _job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
+        let mut gcode = gcode.0;
+
         let mut buf = String::new();
         gcode.as_mut().read_to_string(&mut buf).await?;
 

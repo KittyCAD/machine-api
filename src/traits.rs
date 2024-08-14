@@ -113,7 +113,7 @@ where
 {
     /// Build a 3D object from the provided *gcode* file. The generated gcode
     /// must be generated for the specific machine, and machine configuration.
-    fn build(&mut self, job_name: &str, gcode: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
+    fn build(&mut self, job_name: &str, gcode: GcodeTemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [Control3Mf] is used by Machines that accept .3mf, control commands
@@ -124,7 +124,11 @@ where
 {
     /// Build a 3D object from the provided *.3mf* file. The generated 3mf
     /// must be generated for the specific machine, and machine configuration.
-    fn build(&mut self, job_name: &str, three_mf: TemporaryFile) -> impl Future<Output = Result<(), Self::Error>>;
+    fn build(
+        &mut self,
+        job_name: &str,
+        three_mf: ThreeMfTemporaryFile,
+    ) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
 /// [ControlSuspend] is used by [Control] handles that can pause
@@ -153,8 +157,11 @@ pub trait GcodeSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-    ) -> impl Future<Output = Result<TemporaryFile, <Self as GcodeSlicer>::Error>>;
+    ) -> impl Future<Output = Result<GcodeTemporaryFile, <Self as GcodeSlicer>::Error>>;
 }
+
+/// GcodeTemporaryFile is a TemporaryFile full of .gcode.
+pub struct GcodeTemporaryFile(pub TemporaryFile);
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
@@ -167,5 +174,8 @@ pub trait ThreeMfSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-    ) -> impl Future<Output = Result<TemporaryFile, <Self as ThreeMfSlicer>::Error>>;
+    ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
+
+/// ThreeMfTemporaryFile is a TemporaryFile full of .3mf.
+pub struct ThreeMfTemporaryFile(pub TemporaryFile);

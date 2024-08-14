@@ -5,7 +5,10 @@
 pub mod orca;
 pub mod prusa;
 
-use crate::{DesignFile, GcodeSlicer as GcodeSlicerTrait, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait};
+use crate::{
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
+    ThreeMfTemporaryFile,
+};
 use anyhow::Result;
 
 /// All Slicers that are supported by the machine-api.
@@ -33,7 +36,7 @@ impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
         match self {
             Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
             Self::Orca(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
@@ -45,7 +48,7 @@ impl ThreeMfSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<TemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile) -> Result<ThreeMfTemporaryFile> {
         match self {
             Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
             Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,

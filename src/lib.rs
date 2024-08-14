@@ -30,8 +30,8 @@ pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;
 pub use traits::{
-    Control, Discover, GcodeControl, GcodeSlicer, MachineInfo, MachineMakeModel, MachineType, SuspendControl,
-    ThreeMfControl, ThreeMfSlicer,
+    Control, Discover, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType,
+    SuspendControl, ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
 };
 
 use schemars::JsonSchema;
