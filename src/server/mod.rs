@@ -51,7 +51,10 @@ pub async fn create_server() -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<
     };
 
     let _empty = slog::Logger::root(slog::Discard, slog::o!());
-    let api_context = Arc::new(Context { schema });
+    let api_context = Arc::new(Context {
+        schema,
+        machines: vec![],
+    });
 
     let server = HttpServerStarter::new(&config_dropshot, api, api_context.clone(), &_empty)
         .map_err(|error| anyhow!("failed to create server: {}", error))?
