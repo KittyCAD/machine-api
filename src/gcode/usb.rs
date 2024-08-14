@@ -6,7 +6,7 @@ use crate::{
 use tokio::io::{ReadHalf, WriteHalf};
 use tokio_serial::SerialStream;
 
-///
+/// Handle to a USB based gcode 3D printer.
 pub struct Usb {
     client: Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>,
 
@@ -90,7 +90,7 @@ pub struct UsbMachineInfo {
 
 impl MachineInfoTrait for UsbMachineInfo {
     fn machine_type(&self) -> MachineType {
-        self.machine_type.clone()
+        self.machine_type
     }
 
     fn make_model(&self) -> MachineMakeModel {
@@ -98,7 +98,7 @@ impl MachineInfoTrait for UsbMachineInfo {
     }
 
     fn max_part_volume(&self) -> Option<Volume> {
-        self.volume.clone()
+        self.volume
     }
 }
 
@@ -108,9 +108,9 @@ impl ControlTrait for Usb {
 
     async fn machine_info(&self) -> Result<UsbMachineInfo> {
         Ok(UsbMachineInfo {
-            machine_type: self.machine_type.clone(),
+            machine_type: self.machine_type,
             make_model: self.make_model.clone(),
-            volume: self.volume.clone(),
+            volume: self.volume,
         })
     }
 

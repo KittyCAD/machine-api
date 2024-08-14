@@ -50,12 +50,12 @@ where
         Ok(())
     }
 
-    ///
+    /// Get the underlying ReadT to read directly on the underlying channel.
     pub fn get_read(&mut self) -> &mut BufReader<ReadT> {
         &mut self.read
     }
 
-    ///
+    /// Get the underlying WriteT to write directly on the underlying channel.
     pub fn get_write(&mut self) -> &mut WriteT {
         &mut self.write
     }
