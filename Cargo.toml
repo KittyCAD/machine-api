@@ -61,7 +61,6 @@ tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt",
 uuid = "1.10.0"
 tokio-serial = { version = "5", optional = true, features = ["tokio-util"] }
 tracing-slog = "0.3.0"
-serde_yaml = "0.9.34"
 
 [dev-dependencies]
 async-trait = "0.1"

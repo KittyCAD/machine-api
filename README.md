@@ -8,29 +8,27 @@ This API intends to provide a standardized local interface to any machines used 
 
 Here is a sample config file:
 
-```yaml
----
-machines:
-  mk3:
-    type: Usb
-    port: /dev/ttyUSB0
-    baud: 115200
-    variant: PrusaMk3
-    slicer:
-      type: Prusa
-      config: config/prusa/mk3.ini
-  nada:
-    type: Noop
-  neptune:
-    type: Moonraker
-    endpoint: http://192.168.1.102
-    variant: Neptune4
-    slicer:
-      type: Prusa
-      config: config/prusa/neptune4.ini
+```toml
+[machines.mk3]
+type = "Usb"
+port = "/dev/ttyUSB0"
+baud = 115200
+variant = "PrusaMk3"
+slicer.type = "Prusa"
+slicer.config = "config/prusa/mk3.ini"
+
+[machines.nada]
+type = "Noop"
+
+[machines.neptune"]
+type = "Moonraker"
+endpoint = "http://192.168.1.102"
+variant = "Neptune4"
+slicer.type = "Prusa"
+slicer.config = "config/prusa/neptune4.ini"
 ```
 
-The cli looks by default for a file called `machine-api.yaml` in the current
+The cli looks by default for a file called `machine-api.toml` in the current
 directory. You can also specify a different file with the `--config` flag.
 
 

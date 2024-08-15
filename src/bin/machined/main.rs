@@ -32,13 +32,13 @@ enum Commands {
         bind: String,
 
         /// Config file to use
-        #[arg(long, short, default_value = "machine-api.yaml")]
+        #[arg(long, short, default_value = "machine-api.toml")]
         config: String,
     },
 }
 
 async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
-    let cfg: Config = serde_yaml::from_reader(std::fs::File::open(config)?)?;
+    let cfg: Config = toml::from_str(&std::fs::read_to_string(config)?)?;
 
     server::serve(
         bind,
