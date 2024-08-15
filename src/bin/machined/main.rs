@@ -38,7 +38,7 @@ enum Commands {
 }
 
 async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
-    let cfg: Config = serde_yaml::from_reader(std::fs::File::open(&config)?)?;
+    let cfg: Config = serde_yaml::from_reader(std::fs::File::open(config)?)?;
 
     server::serve(
         bind,
