@@ -37,6 +37,14 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
     }))
 }
 
+/// Extra machine-specific information regarding a connected machine.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub enum ExtraMachineInfoResponse {
+    Moonraker {},
+    Usb {},
+    Bambu {},
+}
+
 /// Information regarding a connected machine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct MachineInfoResponse {
@@ -55,6 +63,10 @@ pub struct MachineInfoResponse {
     ///
     /// What "close" means is up to you!
     pub max_part_volume: Option<Volume>,
+
+    /// Additional, per-machine information which is specfic to the
+    /// underlying machine type.
+    pub extra: ExtraMachineInfoResponse,
 }
 
 impl MachineInfoResponse {
@@ -66,6 +78,11 @@ impl MachineInfoResponse {
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
+            extra: match machine {
+                AnyMachine::Moonraker(_) => ExtraMachineInfoResponse::Moonraker {},
+                AnyMachine::Usb(_) => ExtraMachineInfoResponse::Usb {},
+                AnyMachine::BambuX1Carbon(_) => ExtraMachineInfoResponse::Bambu {},
+            },
         })
     }
 
