@@ -29,14 +29,13 @@ directory. You can also specify a different file with the `--config` flag.
 You can run this server locally assuming rust is installed:
 
 ```
-cargo run server --address 0.0.0.0:8585
+cargo run -- serve --bind 0.0.0.0:8585
 ```
 
 The full API is described by the OpenAPI spec, but to start you can list the connected machines:
 
 ```bash
 $ curl http://localhost:8585/machines
-# [{"port":"/dev/ttyACM0","id":"CZPX2418X004XK68718","manufacturer":"Prusa Research (prusa3d.com)","model":"Original Prusa i3 MK3"}]
 ```
 
 The ID is what you'll use to identify the machine. You can use that ID to start a print job. 
