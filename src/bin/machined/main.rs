@@ -28,11 +28,11 @@ enum Commands {
     /// specific design.
     Serve {
         /// `host:port` to bind to on the host system.
-        #[arg(default_value = "127.0.0.1:8080")]
+        #[arg(long, short, default_value = "127.0.0.1:8080")]
         bind: String,
 
         /// Config file to use
-        #[arg(default_value = "machine-api.yaml")]
+        #[arg(long, short, default_value = "machine-api.yaml")]
         config: String,
     },
 }

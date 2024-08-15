@@ -8,17 +8,19 @@ This API intends to provide a standardized local interface to any machines used 
 
 Here is a sample config file:
 
-```toml
-[bambulabs]
-machines = [
-    { id = "YOUR_ID_HERE", access_code = "YOUR_ACCESS_CODE_HERE", slicer_config = "./config/bambu/" },
-    { id = "YOUR_ID_HERE", access_code = "YOUR_ACCESS_CODE_HERE", slicer_config = "./config/bambu/" },
-]
-
-[formlabs]
+```yaml
+---
+machines:
+  neptune:
+    type: Moonraker
+    endpoint: http://192.168.1.102
+    variant: Neptune4
+    slicer:
+      type: Prusa
+      config: config/prusa/neptune4.ini
 ```
 
-The cli looks by default for a file called `machine-api.toml` in the current
+The cli looks by default for a file called `machine-api.yaml` in the current
 directory. You can also specify a different file with the `--config` flag.
 
 
