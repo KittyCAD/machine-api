@@ -53,9 +53,50 @@ async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
     Ok(())
 }
 
+async fn handle_signals() -> Result<()> {
+    #[cfg(unix)]
+    {
+        use tokio::signal::unix::{signal, SignalKind};
+
+        let mut sigint = signal(SignalKind::interrupt()).map_err(|e| {
+            tracing::error!(error = format!("{:?}", e), "Failed to set up SIGINT handler");
+            e
+        })?;
+        let mut sigterm = signal(SignalKind::terminate()).map_err(|e| {
+            tracing::error!(error = format!("{:?}", e), "Failed to set up SIGTERM handler");
+            e
+        })?;
+
+        tokio::select! {
+            _ = sigint.recv() => {
+                tracing::info!("received SIGINT");
+            }
+            _ = sigterm.recv() => {
+                tracing::info!("received SIGTERM");
+            }
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        tokio::signal::ctrl_c().await.map_err(|e| {
+            tracing::error!(error = format!("{:?}", e), "Failed to set up Ctrl+C handler");
+            anyhow::Error::new(e)
+        })?;
+
+        tracing::info!("received Ctrl+C (SIGINT)");
+    }
+
+    tracing::info!("triggering cleanup...");
+    tracing::info!("all clean, exiting!");
+    std::process::exit(0);
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
+
+    tokio::spawn(async { handle_signals().await });
 
     let subscriber = FmtSubscriber::builder()
         .with_writer(std::io::stderr)

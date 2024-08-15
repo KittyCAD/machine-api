@@ -16,45 +16,6 @@ use tokio::sync::RwLock;
 
 use crate::Machine;
 
-async fn handle_signals(api_context: Arc<Context>) -> Result<()> {
-    #[cfg(unix)]
-    {
-        use tokio::signal::unix::{signal, SignalKind};
-
-        let mut sigint = signal(SignalKind::interrupt()).map_err(|e| {
-            slog::error!(api_context.logger, "Failed to set up SIGINT handler: {:?}", e);
-            e
-        })?;
-        let mut sigterm = signal(SignalKind::terminate()).map_err(|e| {
-            slog::error!(api_context.logger, "Failed to set up SIGTERM handler: {:?}", e);
-            e
-        })?;
-
-        tokio::select! {
-            _ = sigint.recv() => {
-                slog::info!(api_context.logger, "received SIGINT");
-            }
-            _ = sigterm.recv() => {
-                slog::info!(api_context.logger, "received SIGTERM");
-            }
-        }
-    }
-
-    #[cfg(windows)]
-    {
-        tokio::signal::ctrl_c().await.map_err(|e| {
-            slog::error!(api_context.logger, "Failed to set up Ctrl+C handler: {:?}", e);
-            anyhow::Error::new(e)
-        })?;
-
-        slog::info!(api_context.logger, "received Ctrl+C (SIGINT)");
-    }
-
-    slog::info!(api_context.logger, "triggering cleanup...");
-    slog::info!(api_context.logger, "all clean, exiting!");
-    std::process::exit(0);
-}
-
 /// Create an API description for the server.
 pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
     fn register_endpoints(api: &mut ApiDescription<Arc<Context>>) -> Result<(), String> {
