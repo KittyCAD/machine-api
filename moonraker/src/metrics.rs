@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use super::Client;
 
 /// Temperature readings from a heated element controlled by klipper.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ControlledTemperatureReadings {
     /// Observed temperatures, from oldest (0th) to latest (last)
     pub temperatures: Vec<f64>,
@@ -17,7 +17,7 @@ pub struct ControlledTemperatureReadings {
 }
 
 /// TemperatureReadings as reported by klipper.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct TemperatureReadings {
     /// Information about the 3D printer extruder head.
     pub extruder: ControlledTemperatureReadings,
@@ -26,7 +26,7 @@ pub struct TemperatureReadings {
     pub heater_bed: Option<ControlledTemperatureReadings>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 struct TemperatureReadingsWrapper {
     result: TemperatureReadings,
 }

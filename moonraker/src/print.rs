@@ -5,7 +5,7 @@ use std::path::Path;
 use super::Client;
 
 /// Information about the underlying Klipper runtime and host computer.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct InfoResponse {
     /// slug defining what state the printer is currently in, such as
     /// `ready`.
@@ -24,7 +24,7 @@ pub struct InfoResponse {
     pub cpu_info: String,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 struct InfoResponseWrapper {
     pub result: InfoResponse,
 }

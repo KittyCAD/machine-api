@@ -1,5 +1,7 @@
-use crate::{MachineInfo, MachineMakeModel, MachineType, Volume};
+use crate::{Control as ControlTrait, Discover as DiscoverTrait, MachineInfo, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 /// AnyMachine is any supported machine.
 pub enum AnyMachine {
@@ -19,7 +21,39 @@ pub enum AnyMachine {
     Noop(crate::noop::Noop),
 }
 
+/// StaticDiscover is a static list of [AnyMachine] that implements the
+/// [DiscoverTrait]
+pub struct StaticDiscover(Vec<Arc<Mutex<AnyMachine>>>);
+
+impl DiscoverTrait for StaticDiscover {
+    type Error = anyhow::Error;
+    type MachineInfo = AnyMachineInfo;
+    type Control = AnyMachine;
+
+    async fn discover(&self) -> Result<()> {
+        Ok(())
+    }
+
+    async fn discovered(&self) -> Result<Vec<AnyMachineInfo>> {
+        let mut info = vec![];
+        for machine in self.0.iter() {
+            info.push(machine.lock().await.machine_info().await?);
+        }
+        Ok(info)
+    }
+
+    async fn connect(&self, mi: AnyMachineInfo) -> Result<Arc<Mutex<AnyMachine>>> {
+        for machine in self.0.iter() {
+            if mi == machine.lock().await.machine_info().await? {
+                return Ok(machine.clone());
+            }
+        }
+        anyhow::bail!("machine not found");
+    }
+}
+
 /// AnyMachineInfo is any supported machine's MachineInfo.
+#[derive(Clone, Debug, PartialEq)]
 pub enum AnyMachineInfo {
     /// Bambu Labs X1 Carbon
     #[cfg(feature = "bambu")]

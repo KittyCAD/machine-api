@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use super::Client;
 
 /// File that has been uploaded to Moonraker.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct UploadResponseItem {
     /// Path of the file relative to the root directory.
     pub path: String,
@@ -19,14 +19,14 @@ pub struct UploadResponseItem {
 }
 
 /// Response to an upload request.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct UploadResponse {
     /// `gcode` file uploaded to the printer.
     pub item: UploadResponseItem,
 }
 
 /// File that has been deleted from Moonraker.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct DeleteResponseItem {
     /// Path of the file relative to the root directory.
     pub path: String,
@@ -38,13 +38,13 @@ pub struct DeleteResponseItem {
 }
 
 /// Response to a delete request.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct DeleteResponse {
     /// `gcode` file that has been deleted.
     pub item: DeleteResponseItem,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 struct DeleteResponseWrapper {
     result: DeleteResponse,
 }

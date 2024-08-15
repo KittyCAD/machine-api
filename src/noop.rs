@@ -16,7 +16,7 @@ pub struct Noop {
 }
 
 /// Nothing to see here!
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MachineInfo {
     make_model: MachineMakeModel,
     machine_type: MachineType,

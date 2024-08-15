@@ -18,7 +18,7 @@ pub struct X1Carbon {
 }
 
 /// Information regarding a discovered X1 Carbon.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PrinterInfo {
     /// Make and model of the PrinterInfo. This is accessed through the
     /// `MachineMakeModel` trait.

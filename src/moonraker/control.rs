@@ -8,6 +8,7 @@ use moonraker::InfoResponse;
 use std::path::PathBuf;
 
 /// Information about the connected Moonraker-based printer.
+#[derive(Debug, Clone, PartialEq)]
 pub struct MachineInfo {
     inner: InfoResponse,
     make_model: MachineMakeModel,

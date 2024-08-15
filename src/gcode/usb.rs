@@ -82,6 +82,7 @@ impl Usb {
 }
 
 /// Information regarding a USB connected Machine.
+#[derive(Clone, Debug, PartialEq)]
 pub struct UsbMachineInfo {
     machine_type: MachineType,
     make_model: MachineMakeModel,

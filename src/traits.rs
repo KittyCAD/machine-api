@@ -1,11 +1,12 @@
 use crate::{DesignFile, TemporaryFile, Volume};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::future::Future;
+use std::{future::Future, sync::Arc};
+use tokio::sync::Mutex;
 
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub enum MachineType {
     /// Use light to cure a resin to build up layers.
     Stereolithography,
@@ -19,7 +20,7 @@ pub enum MachineType {
 }
 
 /// Information regarding the make/model of a discovered endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct MachineMakeModel {
     /// The manufacturer that built the connected Machine.
     pub manufacturer: Option<String>,
@@ -71,7 +72,10 @@ pub trait Discover {
     fn discovered(&self) -> impl Future<Output = Result<Vec<Self::MachineInfo>, Self::Error>>;
 
     /// Connect to a discovered printer.
-    fn connect(&self, machine: Self::MachineInfo) -> impl Future<Output = Result<Self::Control, Self::Error>>;
+    fn connect(
+        &self,
+        machine: Self::MachineInfo,
+    ) -> impl Future<Output = Result<Arc<Mutex<Self::Control>>, Self::Error>>;
 }
 
 /// A `Machine` is something that can take a 3D model (in one of the

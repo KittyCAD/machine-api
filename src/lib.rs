@@ -28,7 +28,7 @@ pub mod slicer;
 mod tests;
 mod traits;
 
-pub use any_machine::{AnyMachine, AnyMachineInfo};
+pub use any_machine::{AnyMachine, AnyMachineInfo, StaticDiscover};
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;
@@ -53,7 +53,7 @@ pub enum DesignFile {
 /// maximum or minimum.
 ///
 /// All measurements are in millimeters.
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct Volume {
     /// Width of the volume ("left and right"), in millimeters.
     pub width: f64,
