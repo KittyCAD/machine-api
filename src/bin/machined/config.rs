@@ -1,8 +1,8 @@
 use anyhow::Result;
 use machine_api::{
-    moonraker,
-    slicer::{orca, prusa, AnySlicer},
-    Machine, MachineMakeModel, MachineType,
+    moonraker, noop,
+    slicer::{self, orca, prusa, AnySlicer},
+    Machine, MachineMakeModel, MachineType, Volume,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
@@ -89,6 +89,9 @@ pub enum MachineConfig {
         /// Use the configured slicer.
         slicer: SlicerConfig,
     },
+
+    /// Use a no-op printer backend.
+    Noop {},
 }
 
 impl MachineConfig {
@@ -137,6 +140,22 @@ impl MachineConfig {
                 };
                 Ok(Machine::new(machine, slicer))
             }
+            Self::Noop {} => Ok(Machine::new(
+                noop::Noop::new(
+                    MachineMakeModel {
+                        manufacturer: Some("Zoo Corporation".to_string()),
+                        model: Some("No-op Machine!".to_string()),
+                        serial: Some("cheerios".to_string()),
+                    },
+                    MachineType::FusedDeposition,
+                    Some(Volume {
+                        width: 500.0,
+                        height: 600.0,
+                        depth: 700.0,
+                    }),
+                ),
+                slicer::noop::Slicer::new(),
+            )),
         }
     }
 }

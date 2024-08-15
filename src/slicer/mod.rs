@@ -2,6 +2,7 @@
 //! implementation(s) to take a [crate::DesignFile] and produce gcode for
 //! a specific make/model printer, given some config.
 
+pub mod noop;
 pub mod orca;
 pub mod prusa;
 
@@ -18,6 +19,9 @@ pub enum AnySlicer {
 
     /// Orca Slicer
     Orca(orca::Slicer),
+
+    /// No-op Slicer -- only empty files!
+    Noop(noop::Slicer),
 }
 
 impl From<prusa::Slicer> for AnySlicer {
@@ -32,6 +36,12 @@ impl From<orca::Slicer> for AnySlicer {
     }
 }
 
+impl From<noop::Slicer> for AnySlicer {
+    fn from(slicer: noop::Slicer) -> Self {
+        Self::Noop(slicer)
+    }
+}
+
 impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
@@ -40,6 +50,7 @@ impl GcodeSlicerTrait for AnySlicer {
         match self {
             Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
             Self::Orca(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
+            Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
         }
     }
 }
@@ -52,6 +63,7 @@ impl ThreeMfSlicerTrait for AnySlicer {
         match self {
             Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
             Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
+            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
         }
     }
 }
