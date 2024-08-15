@@ -11,6 +11,16 @@ Here is a sample config file:
 ```yaml
 ---
 machines:
+  mk3:
+    type: Usb
+    port: /dev/ttyUSB0
+    baud: 115200
+    variant: PrusaMk3
+    slicer:
+      type: Prusa
+      config: config/prusa/mk3.ini
+  nada:
+    type: Noop
   neptune:
     type: Moonraker
     endpoint: http://192.168.1.102
