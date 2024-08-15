@@ -114,7 +114,7 @@ pub enum MachineConfig {
 }
 
 impl MachineConfig {
-    async fn load(&self, _ctx: &LoadContext) -> Result<Machine> {
+    async fn load(&self, ctx: &LoadContext) -> Result<Machine> {
         match self {
             Self::Usb {
                 port,
@@ -164,10 +164,16 @@ impl MachineConfig {
                 access_code,
                 slicer,
             } => {
-                let slicer = slicer.load();
-                // let discover = ctx.bambu_discover.clone();
+                // currently we only support the X1Carbon here, remove this
+                // when we get a new variant.
+                match variant {
+                    BambuVariant::X1Carbon => {}
+                }
 
-                unimplemented!();
+                Ok(Machine::new(
+                    bambu::X1Carbon::new(access_code, ctx.bambu_discover.clone().unwrap()),
+                    slicer.load().await?,
+                ))
             }
             Self::Noop {} => Ok(Machine::new(
                 noop::Noop::new(
@@ -220,7 +226,7 @@ impl Config {
         tokio::spawn(async move {
             let discover = discover1;
             tracing::info!("starting bambu discovery");
-            discover.clone().discover();
+            let _ = discover.clone().discover().await;
         });
 
         Some(discover)

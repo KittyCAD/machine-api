@@ -1,6 +1,7 @@
-use super::{Config, PrinterInfo, X1Carbon};
+use super::{Config, PrinterInfo};
 use crate::{MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
+use bambulabs::client::Client;
 use dashmap::DashMap;
 use std::{
     net::{IpAddr, Ipv4Addr},
@@ -12,7 +13,7 @@ const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
 
 /// Handle to discover connected Bambu Labs printers.
 pub struct Discover {
-    printers: DashMap<String, X1Carbon>,
+    pub(super) printers: DashMap<String, (Arc<Client>, PrinterInfo)>,
     config: Config,
 }
 
@@ -47,18 +48,9 @@ impl Discover {
         }
     }
 
-    /// Attempt to connect to a discovered printer
-    pub async fn connect(&self, machine: PrinterInfo) -> Result<X1Carbon> {
-        Ok(self.printers.get(&machine.ip.to_string()).unwrap().clone())
-    }
-
     /// Return all discovered printers
     pub async fn discovered(&self) -> Result<Vec<PrinterInfo>> {
-        Ok(self
-            .printers
-            .iter()
-            .map(|printer| printer.value().info.clone())
-            .collect())
+        Ok(self.printers.iter().map(|entry| entry.value().1.clone()).collect())
     }
 
     /// Run (in a tokio task!) a forever loop to discover any connected
@@ -160,15 +152,15 @@ impl Discover {
                 continue;
             }
 
-            if self.printers.contains_key(&ip.to_string()) {
-                tracing::debug!("Printer already discovered, skipping");
-                continue;
-            }
-
             let Some(name) = name else {
                 tracing::warn!("No name found for printer at {}", ip);
                 continue;
             };
+
+            if self.printers.contains_key(&name.to_string()) {
+                tracing::debug!("Printer already discovered, skipping");
+                continue;
+            }
 
             let Some(config) = self.config.get_machine_config(&name.to_string()) else {
                 tracing::warn!("No config found for printer at {}", ip);
@@ -178,8 +170,7 @@ impl Discover {
             // Add a mqtt client for this printer.
             let serial = serial.as_deref().unwrap_or_default();
 
-            let client =
-                bambulabs::client::Client::new(ip.to_string(), config.access_code.to_string(), serial.to_string())?;
+            let client = Client::new(ip.to_string(), config.access_code.to_string(), serial.to_string())?;
             let mut cloned_client = client.clone();
             tokio::spawn(async move {
                 cloned_client.run().await.unwrap();
@@ -188,7 +179,7 @@ impl Discover {
             // At this point, we have a valid (as long as the parsing above is strict enough lmao)
             // collection of data that represents a Bambu X1 Carbon.
             let info = PrinterInfo {
-                hostname: Some(name),
+                hostname: name.clone(),
                 ip,
                 port,
                 make_model: MachineMakeModel {
@@ -200,11 +191,7 @@ impl Discover {
                 },
             };
 
-            let handle = X1Carbon {
-                info,
-                client: Arc::new(client),
-            };
-            self.printers.insert(ip.to_string(), handle);
+            self.printers.insert(name.to_string(), (Arc::new(client), info));
         }
 
         Ok(())
