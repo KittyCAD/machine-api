@@ -6,24 +6,15 @@ mod discover;
 pub use discover::Discover;
 
 use crate::MachineMakeModel;
+use bambulabs::client::Client;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, sync::Arc};
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
 pub struct X1Carbon {
-    discover: Arc<Discover>,
-    name: String,
-}
-
-impl X1Carbon {
-    /// Create a new X1Carbon from the provided Discover struct.
-    pub fn new(name: &str, discover: Arc<Discover>) -> Self {
-        Self {
-            discover,
-            name: name.to_string(),
-        }
-    }
+    client: Arc<Client>,
+    info: PrinterInfo,
 }
 
 /// Information regarding a discovered X1 Carbon.
@@ -34,7 +25,7 @@ pub struct PrinterInfo {
     make_model: MachineMakeModel,
 
     /// The hostname of the printer.
-    pub hostname: String,
+    pub hostname: Option<String>,
 
     /// The IP address of the printer.
     pub ip: IpAddr,

@@ -5,31 +5,16 @@ use crate::{
 };
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
-use std::sync::Arc;
 
 impl X1Carbon {
-    /// Get the client.
-    fn get_client(&self) -> Result<Arc<Client>> {
-        let entry = self
-            .discover
-            .printers
-            .get(&self.name)
-            .ok_or_else(|| anyhow::anyhow!("printer has not been discovered yet"))?;
-        Ok(entry.value().0.clone())
-    }
-    /// Get the PrinterInfo
-    fn get_printer_info(&self) -> Result<PrinterInfo> {
-        let entry = self
-            .discover
-            .printers
-            .get(&self.name)
-            .ok_or_else(|| anyhow::anyhow!("printer has not been discovered yet"))?;
-        Ok(entry.value().1.clone())
+    /// Return a borrow of the underlying Client.
+    pub fn inner(&self) -> &Client {
+        self.client.as_ref()
     }
 
     /// Get the latest status of the printer.
     pub fn get_status(&self) -> Result<Option<bambulabs::message::PushStatus>> {
-        self.get_client()?.get_status()
+        self.client.get_status()
     }
 
     /// Check if the printer has an AMS.
@@ -55,7 +40,7 @@ impl ControlTrait for X1Carbon {
     type MachineInfo = PrinterInfo;
 
     async fn machine_info(&self) -> Result<PrinterInfo> {
-        self.get_printer_info()
+        unimplemented!()
     }
 
     async fn emergency_stop(&mut self) -> Result<()> {
@@ -63,19 +48,19 @@ impl ControlTrait for X1Carbon {
     }
 
     async fn stop(&mut self) -> Result<()> {
-        self.get_client()?.publish(Command::stop()).await?;
+        self.client.publish(Command::stop()).await?;
         Ok(())
     }
 }
 
 impl SuspendControlTrait for X1Carbon {
     async fn pause(&mut self) -> Result<()> {
-        self.get_client()?.publish(Command::pause()).await?;
+        self.client.publish(Command::pause()).await?;
         Ok(())
     }
 
     async fn resume(&mut self) -> Result<()> {
-        self.get_client()?.publish(Command::resume()).await?;
+        self.client.publish(Command::resume()).await?;
         Ok(())
     }
 }
@@ -85,7 +70,7 @@ impl ThreeMfControlTrait for X1Carbon {
         let gcode = gcode.0;
 
         // Upload the file to the printer.
-        self.get_client()?.upload_file(gcode.path()).await?;
+        self.client.upload_file(gcode.path()).await?;
 
         // Get just the filename.
         let filename = gcode
@@ -98,7 +83,7 @@ impl ThreeMfControlTrait for X1Carbon {
         // Check if the printer has an AMS.
         let has_ams = self.has_ams()?;
 
-        self.get_client()?
+        self.client
             .publish(Command::print_file(job_name, filename, has_ams))
             .await?;
 
