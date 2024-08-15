@@ -164,6 +164,25 @@
           }
         ]
       },
+      "OperationProtocol": {
+        "additionalProperties": true,
+        "description": "An operation protocol.",
+        "properties": {
+          "protocol": {
+            "description": "The protocol.",
+            "type": "string"
+          },
+          "version": {
+            "description": "The version.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "protocol",
+          "version"
+        ],
+        "type": "object"
+      },
       "Pong": {
         "description": "The response from the `/ping` endpoint.",
         "properties": {
