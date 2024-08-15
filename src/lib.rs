@@ -23,6 +23,8 @@ mod machine;
 pub mod moonraker;
 pub mod server;
 pub mod slicer;
+#[cfg(test)]
+mod tests;
 mod traits;
 
 pub use any_machine::{AnyMachine, AnyMachineInfo};
