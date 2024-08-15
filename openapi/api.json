@@ -82,7 +82,8 @@
                 "$ref": "#/components/schemas/ExtraMachineInfoResponse"
               }
             ],
-            "description": "Additional, per-machine information which is specfic to the underlying machine type."
+            "description": "Additional, per-machine information which is specfic to the underlying machine type.",
+            "nullable": true
           },
           "machine_type": {
             "allOf": [
@@ -111,7 +112,6 @@
           }
         },
         "required": [
-          "extra",
           "machine_type",
           "make_model"
         ],
@@ -163,25 +163,6 @@
             "type": "string"
           }
         ]
-      },
-      "OperationProtocol": {
-        "additionalProperties": true,
-        "description": "An operation protocol.",
-        "properties": {
-          "protocol": {
-            "description": "The protocol.",
-            "type": "string"
-          },
-          "version": {
-            "description": "The version.",
-            "type": "string"
-          }
-        },
-        "required": [
-          "protocol",
-          "version"
-        ],
-        "type": "object"
       },
       "Pong": {
         "description": "The response from the `/ping` endpoint.",
