@@ -4,7 +4,7 @@
 mod usb;
 
 #[cfg(feature = "serial")]
-pub use usb::{Usb, UsbDiscover, UsbKnownDevice, UsbKnownDevices, UsbMachineInfo};
+pub use usb::{Usb, UsbDiscover, UsbMachineInfo};
 
 use anyhow::Result;
 use std::{

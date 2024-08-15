@@ -1,12 +1,11 @@
 use anyhow::Result;
 use machine_api::{
-    moonraker, noop,
+    gcode, moonraker, noop,
     slicer::{self, orca, prusa, AnySlicer},
     Machine, MachineMakeModel, MachineType, Volume,
 };
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, path::PathBuf};
-use tokio_serial::SerialPortBuilderExt;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Config {
@@ -21,6 +20,33 @@ pub enum UsbVariant {
 
     /// Generic gcode-based printer.
     Generic,
+}
+
+impl UsbVariant {
+    /// return the machine type of the variant
+    pub fn machine_type(&self) -> MachineType {
+        MachineType::FusedDeposition
+    }
+
+    /// return the make/model of the variant
+    pub fn manufacturer_model(&self) -> (Option<String>, Option<String>) {
+        match self {
+            Self::PrusaMk3 => (Some("Prusa".to_owned()), Some("MK3".to_owned())),
+            Self::Generic => (None, None),
+        }
+    }
+
+    /// return the max part volume of the variant
+    pub fn max_part_volume(&self) -> Option<Volume> {
+        match self {
+            Self::PrusaMk3 => Some(Volume {
+                width: 250.0,
+                depth: 210.0,
+                height: 210.0,
+            }),
+            Self::Generic => None,
+        }
+    }
 }
 
 /// Specific make/model of device we're connected to.
@@ -64,10 +90,6 @@ impl SlicerConfig {
 pub enum MachineConfig {
     /// Direct USB connection to the printer.
     Usb {
-        /// Path on the filesystem to connect to the printer (like
-        /// `/dev/ttyUSB0` or `/dev/ttyACM2`).
-        port: String,
-
         /// Baud rate that the printer operates at.
         baud: u32,
 
@@ -97,28 +119,26 @@ pub enum MachineConfig {
 impl MachineConfig {
     pub async fn load(&self) -> Result<Machine> {
         match self {
-            Self::Usb {
-                port,
-                baud,
-                variant,
-                slicer,
-            } => {
-                let slicer = slicer.load().await?;
-                let port = tokio_serial::new(port, *baud).open_native_async()?;
-                let usb = match variant {
-                    UsbVariant::Generic => machine_api::gcode::Usb::new(
-                        port,
-                        MachineType::FusedDeposition,
-                        None,
-                        MachineMakeModel {
-                            manufacturer: None,
-                            model: None,
-                            serial: None,
-                        },
+            Self::Usb { baud, variant, slicer } => {
+                let (manufacturer, model) = variant.manufacturer_model();
+
+                gcode::UsbDiscover::new(HashMap::from([
+                    // foo
+                    (
+                        (0x1a86u16, 0x7523u16, "0".to_string()),
+                        (
+                            variant.machine_type(),
+                            variant.max_part_volume().clone(),
+                            *baud,
+                            manufacturer,
+                            model,
+                        ),
                     ),
-                    UsbVariant::PrusaMk3 => machine_api::gcode::Usb::prusa_mk3(port),
-                };
-                Ok(Machine::new(usb, slicer))
+                ]));
+
+                let slicer = slicer.load().await?;
+
+                unimplemented!();
             }
             Self::Moonraker {
                 endpoint,

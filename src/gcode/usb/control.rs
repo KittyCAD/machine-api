@@ -10,47 +10,18 @@ use tokio_serial::SerialStream;
 /// Handle to a USB based gcode 3D printer.
 pub struct Usb {
     client: Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>,
-
-    machine_type: MachineType,
-    volume: Option<Volume>,
-    make_model: MachineMakeModel,
+    machine_info: UsbMachineInfo,
 }
 
 impl Usb {
     /// Create a new USB-based gcode Machine.
-    pub fn new(
-        stream: SerialStream,
-        machine_type: MachineType,
-        volume: Option<Volume>,
-        make_model: MachineMakeModel,
-    ) -> Self {
+    pub fn new(stream: SerialStream, machine_info: UsbMachineInfo) -> Self {
         let (reader, writer) = tokio::io::split(stream);
 
         Self {
             client: Client::new(writer, reader),
-            machine_type,
-            volume,
-            make_model,
+            machine_info,
         }
-    }
-
-    /// Create a new Machine, talking gcode via USB to a Prusa Research
-    /// MK3.
-    pub fn prusa_mk3(stream: SerialStream) -> Self {
-        Self::new(
-            stream,
-            MachineType::FusedDeposition,
-            Some(Volume {
-                width: 250.0,
-                depth: 210.0,
-                height: 210.0,
-            }),
-            MachineMakeModel {
-                manufacturer: Some("Prusa Research".to_owned()),
-                model: Some("MK3".to_owned()),
-                serial: None,
-            },
-        )
     }
 
     async fn wait_for_start(&mut self) -> Result<()> {
@@ -88,6 +59,41 @@ pub struct UsbMachineInfo {
     machine_type: MachineType,
     make_model: MachineMakeModel,
     volume: Option<Volume>,
+
+    /// USB Vendor ID
+    pub vendor_id: u16,
+
+    /// USB Product ID
+    pub product_id: u16,
+
+    /// USB Port (/dev/ttyUSB0, etc).
+    pub port: String,
+
+    /// Baud rate of the Serial connection.
+    pub baud: u32,
+}
+
+impl UsbMachineInfo {
+    /// Create a new USB Machine Info directly (not via discovery).
+    pub fn new(
+        machine_type: MachineType,
+        make_model: MachineMakeModel,
+        volume: Option<Volume>,
+        vendor_id: u16,
+        product_id: u16,
+        port: String,
+        baud: u32,
+    ) -> Self {
+        Self {
+            machine_type,
+            make_model,
+            volume,
+            vendor_id,
+            product_id,
+            port,
+            baud,
+        }
+    }
 }
 
 impl MachineInfoTrait for UsbMachineInfo {
@@ -109,11 +115,7 @@ impl ControlTrait for Usb {
     type Error = anyhow::Error;
 
     async fn machine_info(&self) -> Result<UsbMachineInfo> {
-        Ok(UsbMachineInfo {
-            machine_type: self.machine_type,
-            make_model: self.make_model.clone(),
-            volume: self.volume,
-        })
+        Ok(self.machine_info.clone())
     }
 
     async fn emergency_stop(&mut self) -> Result<()> {
