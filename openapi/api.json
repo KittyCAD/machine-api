@@ -32,9 +32,58 @@
         ],
         "type": "object"
       },
+      "ExtraMachineInfoResponse": {
+        "description": "Extra machine-specific information regarding a connected machine.",
+        "oneOf": [
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Moonraker": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "Moonraker"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Usb": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "Usb"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "Bambu": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "Bambu"
+            ],
+            "type": "object"
+          }
+        ]
+      },
       "MachineInfoResponse": {
         "description": "Information regarding a connected machine.",
         "properties": {
+          "extra": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ExtraMachineInfoResponse"
+              }
+            ],
+            "description": "Additional, per-machine information which is specfic to the underlying machine type."
+          },
           "machine_type": {
             "allOf": [
               {
@@ -62,6 +111,7 @@
           }
         },
         "required": [
+          "extra",
           "machine_type",
           "make_model"
         ],
