@@ -21,6 +21,7 @@ pub mod gcode;
 mod machine;
 #[cfg(feature = "moonraker")]
 pub mod moonraker;
+pub mod noop;
 pub mod server;
 pub mod slicer;
 #[cfg(test)]

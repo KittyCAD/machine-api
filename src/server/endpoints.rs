@@ -66,7 +66,7 @@ pub struct MachineInfoResponse {
 
     /// Additional, per-machine information which is specfic to the
     /// underlying machine type.
-    pub extra: ExtraMachineInfoResponse,
+    pub extra: Option<ExtraMachineInfoResponse>,
 }
 
 impl MachineInfoResponse {
@@ -79,9 +79,10 @@ impl MachineInfoResponse {
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
             extra: match machine {
-                AnyMachine::Moonraker(_) => ExtraMachineInfoResponse::Moonraker {},
-                AnyMachine::Usb(_) => ExtraMachineInfoResponse::Usb {},
-                AnyMachine::BambuX1Carbon(_) => ExtraMachineInfoResponse::Bambu {},
+                AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
+                AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
+                AnyMachine::BambuX1Carbon(_) => Some(ExtraMachineInfoResponse::Bambu {}),
+                _ => None,
             },
         })
     }

@@ -60,6 +60,10 @@ impl Machine {
                 let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
                 GcodeControl::build(machine, job_name, gcode).await
             }
+            AnyMachine::Noop(_) => {
+                // why even bother ;)
+                Ok(())
+            }
         }
     }
 }

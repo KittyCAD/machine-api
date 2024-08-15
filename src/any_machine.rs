@@ -14,6 +14,9 @@ pub enum AnyMachine {
     /// Generic USB-based gcode printer
     #[cfg(feature = "serial")]
     Usb(crate::gcode::Usb),
+
+    /// No-op Machine
+    Noop(crate::noop::Noop),
 }
 
 /// AnyMachineInfo is any supported machine's MachineInfo.
@@ -29,58 +32,47 @@ pub enum AnyMachineInfo {
     /// Generic USB-based gcode printer
     #[cfg(feature = "serial")]
     Usb(crate::gcode::UsbMachineInfo),
+
+    /// No-op Machine Info
+    Noop(crate::noop::MachineInfo),
 }
 
-#[cfg(feature = "bambu")]
-mod _bambu {
-    use super::*;
-
-    impl From<crate::bambu::X1Carbon> for AnyMachine {
-        fn from(client: crate::bambu::X1Carbon) -> Self {
-            Self::BambuX1Carbon(client)
+macro_rules! def_machine_stubs {
+    (if $feature:expr, $name:ident($machine:path, $machine_info:path)) => {
+        #[cfg(feature = $feature)]
+        impl From<$machine> for AnyMachine {
+            fn from(machine: $machine) -> Self {
+                Self::$name(machine)
+            }
         }
-    }
 
-    impl From<crate::bambu::PrinterInfo> for AnyMachineInfo {
-        fn from(info: crate::bambu::PrinterInfo) -> Self {
-            Self::BambuX1Carbon(info)
+        #[cfg(feature = $feature)]
+        impl From<$machine_info> for AnyMachineInfo {
+            fn from(machine: $machine_info) -> Self {
+                Self::$name(machine)
+            }
         }
-    }
+    };
+    ($name:ident($machine:path, $machine_info:path)) => {
+        impl From<$machine> for AnyMachine {
+            fn from(machine: $machine) -> Self {
+                Self::$name(machine)
+            }
+        }
+
+        impl From<$machine_info> for AnyMachineInfo {
+            fn from(machine: $machine_info) -> Self {
+                Self::$name(machine)
+            }
+        }
+    };
 }
 
-#[cfg(feature = "moonraker")]
-mod _moonraker {
-    use super::*;
+def_machine_stubs!(if "bambu",     BambuX1Carbon(crate::bambu::X1Carbon, crate::bambu::PrinterInfo));
+def_machine_stubs!(if "moonraker", Moonraker(crate::moonraker::Client, crate::moonraker::MachineInfo));
+def_machine_stubs!(if "serial",    Usb(crate::gcode::Usb, crate::gcode::UsbMachineInfo));
 
-    impl From<crate::moonraker::Client> for AnyMachine {
-        fn from(client: crate::moonraker::Client) -> Self {
-            Self::Moonraker(client)
-        }
-    }
-
-    impl From<crate::moonraker::MachineInfo> for AnyMachineInfo {
-        fn from(info: crate::moonraker::MachineInfo) -> Self {
-            Self::Moonraker(info)
-        }
-    }
-}
-
-#[cfg(feature = "serial")]
-mod _serial {
-    use super::*;
-
-    impl From<crate::gcode::Usb> for AnyMachine {
-        fn from(client: crate::gcode::Usb) -> Self {
-            Self::Usb(client)
-        }
-    }
-
-    impl From<crate::gcode::UsbMachineInfo> for AnyMachineInfo {
-        fn from(info: crate::gcode::UsbMachineInfo) -> Self {
-            Self::Usb(info)
-        }
-    }
-}
+def_machine_stubs!(Noop(crate::noop::Noop, crate::noop::MachineInfo));
 
 macro_rules! for_all {
     (|$slf:ident, $machine:ident| $body:block) => {
@@ -93,6 +85,8 @@ macro_rules! for_all {
 
             #[cfg(feature = "serial")]
             Self::Usb($machine) => $body,
+
+            Self::Noop($machine) => $body,
         }
     };
 }
