@@ -212,6 +212,8 @@ pub enum Print {
     ProjectFile(ProjectFile),
     /// Pause the print.
     Pause(Pause),
+    /// Print speed.
+    PrintSpeed(PrintSpeed),
     /// Resume the print.
     Resume(Resume),
     /// Stop the print.
@@ -231,6 +233,7 @@ impl Print {
             Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
             Print::ProjectFile(project_file) => project_file.sequence_id.clone(),
             Print::Pause(pause) => pause.sequence_id.clone(),
+            Print::PrintSpeed(print_speed) => print_speed.sequence_id.clone(),
             Print::Resume(resume) => resume.sequence_id.clone(),
             Print::Stop(stop) => stop.sequence_id.clone(),
             Print::ExtrusionCaliGet(extrusion_cali_get) => extrusion_cali_get.sequence_id.clone(),
@@ -367,6 +370,21 @@ pub struct Stop {
 pub struct ExtrusionCaliGet {
     /// The sequence id.
     pub sequence_id: SequenceId,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A print speed command.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct PrintSpeed {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Option<Reason>,
+    /// The result of the command.
+    pub result: Result,
+    /// The param.
+    pub param: String,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
