@@ -4,14 +4,14 @@
 mod usb;
 
 #[cfg(feature = "serial")]
-pub use usb::{Usb, UsbMachineInfo};
+pub use usb::{Usb, UsbDiscover, UsbKnownDevice, UsbKnownDevices, UsbMachineInfo};
 
 use anyhow::Result;
 use std::{
     pin::Pin,
     task::{Context as TaskContext, Poll},
 };
-use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader, ReadBuf};
+use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, ReadBuf};
 
 /// Create a handle to some [tokio::io::AsyncWrite]
 pub struct Client<WriteT, ReadT>
