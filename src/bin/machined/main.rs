@@ -28,7 +28,7 @@ enum Commands {
     /// specific design.
     Serve {
         /// `host:port` to bind to on the host system.
-        #[arg(default_value = "localhost:8080")]
+        #[arg(default_value = "127.0.0.1:8080")]
         bind: String,
 
         /// Config file to use
