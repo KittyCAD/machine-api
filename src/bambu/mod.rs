@@ -8,7 +8,7 @@ pub use discover::Discover;
 use crate::MachineMakeModel;
 use bambulabs::client::Client;
 use serde::{Deserialize, Serialize};
-use std::{net::IpAddr, sync::Arc};
+use std::{net::IpAddr, path::PathBuf, sync::Arc};
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]
@@ -62,4 +62,7 @@ pub struct MachineConfig {
 
     /// The access code for the printer.
     pub access_code: String,
+
+    /// The slicer configuration for the printer.
+    pub slicer_config: PathBuf,
 }
