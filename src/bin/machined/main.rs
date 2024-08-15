@@ -38,7 +38,9 @@ enum Commands {
 }
 
 async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
-    let cfg: Config = toml::from_str(&std::fs::read_to_string(config)?)?;
+    let cfg: Config = toml::from_str(
+        &std::fs::read_to_string(config).map_err(|_| anyhow::anyhow!("Config file not found at {config}"))?,
+    )?;
 
     server::serve(
         bind,

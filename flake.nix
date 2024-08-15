@@ -58,6 +58,7 @@
             # dependencies for machine-api
             just
             pkg-config
+            openssl
           ]) ++ pkgs.lib.optionals pkgs.stdenv.isLinux (with pkgs; [
             udev
           ]) ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [
