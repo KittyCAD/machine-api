@@ -55,12 +55,11 @@ impl Slicer {
                 .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
                 .to_string(),
             "--support-material".to_string(),
-            output_extension.to_string(),
+            output_flag.to_string(),
             file_path
                 .to_str()
                 .ok_or_else(|| anyhow::anyhow!("Invalid original file path: {}", file_path.display()))?
                 .to_string(),
-            output_flag.to_string(),
             "--output".to_string(),
             output_path
                 .to_str()
@@ -155,6 +154,7 @@ fn find_prusa_slicer() -> Result<PathBuf> {
     if app_path.exists() {
         Ok(app_path)
     } else {
-        anyhow::bail!("Slicer not found")
+        // Just assume it's somewhere on the path.
+        Ok(PathBuf::from("prusa-slicer"))
     }
 }
