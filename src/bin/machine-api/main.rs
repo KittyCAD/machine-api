@@ -1,22 +1,27 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use machine_api::server;
-use std::{collections::HashMap, str::FromStr};
-use tokio::sync::RwLock;
+use std::str::FromStr;
 use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
 
 mod config;
 use config::Config;
 
+mod cmd_discover;
+mod cmd_serve;
+
 /// Serve the machine-api server.
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
-#[command(name = "machined")]
+#[command(name = "machine-api")]
 #[command(version = "1.0")]
 struct Cli {
     /// verbosity of logging output [tracing, debug, info, warn, error]
     #[arg(long, short, default_value = "info")]
     log_level: String,
+
+    /// Config file to use
+    #[arg(long, short, default_value = "machine-api.toml")]
+    config: String,
 
     #[command(subcommand)]
     command: Commands,
@@ -30,30 +35,10 @@ enum Commands {
         /// `host:port` to bind to on the host system.
         #[arg(long, short, default_value = "127.0.0.1:8080")]
         bind: String,
-
-        /// Config file to use
-        #[arg(long, short, default_value = "machine-api.toml")]
-        config: String,
     },
-}
 
-async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
-    let cfg: Config = toml::from_str(
-        &std::fs::read_to_string(config).map_err(|_| anyhow::anyhow!("Config file not found at {config}"))?,
-    )?;
-
-    server::serve(
-        bind,
-        HashMap::new(),
-        // cfg.load()
-        //     .await?
-        //     .into_iter()
-        //     .map(|(machine_id, machine)| (machine_id, RwLock::new(machine)))
-        //     .collect(),
-    )
-    .await?;
-
-    Ok(())
+    /// Enumerate all visable Machines, connected or otherwise.
+    Discover {},
 }
 
 async fn handle_signals() -> Result<()> {
@@ -109,7 +94,13 @@ async fn main() -> Result<()> {
 
     tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
 
+    let cfg: Config = toml::from_str(
+        &std::fs::read_to_string(&cli.config)
+            .map_err(|_| anyhow::anyhow!("Config file not found at {}", &cli.config))?,
+    )?;
+
     match cli.command {
-        Commands::Serve { ref bind, ref config } => main_serve(&cli, bind, config).await,
+        Commands::Serve { ref bind } => cmd_serve::main(&cli, &cfg, bind).await,
+        Commands::Discover {} => cmd_discover::main(&cli, &cfg).await,
     }
 }

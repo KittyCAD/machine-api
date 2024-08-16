@@ -60,9 +60,6 @@ pub struct UsbMachineInfo {
     make_model: MachineMakeModel,
     volume: Option<Volume>,
 
-    /// Machine's Identifier
-    pub machine_id: String,
-
     /// USB Vendor ID
     pub vendor_id: u16,
 
@@ -79,7 +76,6 @@ pub struct UsbMachineInfo {
 impl UsbMachineInfo {
     /// Create a new USB Machine Info directly (not via discovery).
     pub fn new(
-        machine_id: String,
         machine_type: MachineType,
         make_model: MachineMakeModel,
         volume: Option<Volume>,
@@ -89,7 +85,6 @@ impl UsbMachineInfo {
         baud: u32,
     ) -> Self {
         Self {
-            machine_id,
             machine_type,
             make_model,
             volume,

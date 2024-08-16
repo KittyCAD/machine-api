@@ -2,4 +2,4 @@ mod control;
 mod discover;
 
 pub use control::{Usb, UsbMachineInfo};
-pub use discover::UsbDiscover;
+pub use discover::{UsbDiscover, UsbHardwareMetadata};

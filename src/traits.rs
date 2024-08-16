@@ -1,8 +1,7 @@
 use crate::{DesignFile, TemporaryFile, Volume};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{future::Future, sync::Arc};
-use tokio::sync::Mutex;
+use std::future::Future;
 
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.

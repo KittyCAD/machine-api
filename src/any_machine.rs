@@ -1,6 +1,6 @@
 use crate::{Control as ControlTrait, Discover as DiscoverTrait, MachineInfo, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
-use std::{future::Future, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::{mpsc::Sender, Mutex};
 
 /// AnyMachine is any supported machine.

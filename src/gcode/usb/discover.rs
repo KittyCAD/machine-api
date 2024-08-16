@@ -1,7 +1,7 @@
 use super::{Usb, UsbMachineInfo};
 use crate::{Discover as DiscoverTrait, MachineMakeModel, MachineType, SimpleDiscovery, Volume};
 use anyhow::Result;
-use std::{collections::HashMap, future::Future, sync::Arc};
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::{mpsc::Sender, Mutex};
 use tokio_serial::{SerialPortBuilderExt, SerialPortType};
 
@@ -9,9 +9,10 @@ use tokio_serial::{SerialPortBuilderExt, SerialPortType};
 ///
 /// MachineType of the hardware, Volume of the print bed, baud rate,
 /// manufacturer, and model.
-type UsbHardwareMetadata = (String, MachineType, Option<Volume>, u32, Option<String>, Option<String>);
+pub type UsbHardwareMetadata = (MachineType, Option<Volume>, u32, Option<String>, Option<String>);
 
 /// Handle to allow for USB based discovery of hardware.
+#[derive(Clone)]
 pub struct UsbDiscover {
     known_hardware: HashMap<(u16, u16, String), UsbHardwareMetadata>,
     discovery: Arc<Mutex<Option<SimpleDiscovery<(u16, u16, String), UsbHardwareMetadata, Usb>>>>,
@@ -37,84 +38,81 @@ impl DiscoverTrait for UsbDiscover {
         let discovery = SimpleDiscovery::new(self.known_hardware.clone(), found);
         *self.discovery.lock().await = Some(discovery.clone());
 
-        let discovery1 = discovery.clone();
-        tokio::spawn(async move {
-            let discovery = discovery1;
-            loop {
-                tracing::debug!("scanning serial ports");
-                let ports = match tokio_serial::available_ports() {
+        loop {
+            tracing::debug!("scanning serial ports");
+            let ports = match tokio_serial::available_ports() {
+                Err(e) => {
+                    tracing::warn!(error = format!("{:?}", e), "can not enumerate usb devices");
+                    continue;
+                }
+                Ok(v) => v,
+            };
+
+            for port in ports {
+                let SerialPortType::UsbPort(port_info) = port.port_type else {
+                    tracing::trace!("skipping {:?}", port);
+                    continue;
+                };
+
+                tracing::trace!("found a usb port");
+
+                let Some(serial) = port_info.serial_number else {
+                    tracing::trace!(port_name = port.port_name, "no serial reported");
+                    continue;
+                };
+
+                let key = (port_info.vid, port_info.pid, serial.clone());
+
+                if discovery.machine_info(&key).await.is_some() {
+                    tracing::trace!(serial = serial, "found already known machine");
+                    continue;
+                }
+
+                let Some(usb_metadata) = discovery.machine_config(&key).await else {
+                    tracing::trace!(serial = serial, "machine not configured; skipping");
+                    continue;
+                };
+
+                let (machine_type, machine_volume, serial_baud, machine_make, machine_model) = usb_metadata;
+                tracing::debug!(port_name = port.port_name, serial = serial, "discovered new device");
+
+                let make_model = MachineMakeModel {
+                    manufacturer: machine_make.clone(),
+                    model: machine_model.clone(),
+                    serial: Some(serial.to_string()),
+                };
+
+                let stream = match tokio_serial::new(port.port_name.clone(), serial_baud).open_native_async() {
                     Err(e) => {
-                        tracing::warn!(error = format!("{:?}", e), "can not enumerate usb devices");
+                        tracing::warn!(
+                            port_name = port.port_name,
+                            serial = serial,
+                            error = format!("{:?}", e),
+                            "failed to open USB device"
+                        );
                         continue;
                     }
                     Ok(v) => v,
                 };
 
-                for port in ports {
-                    let SerialPortType::UsbPort(port_info) = port.port_type else {
-                        continue;
-                    };
-                    let Some(serial) = port_info.serial_number else {
-                        tracing::trace!(port_name = port.port_name, "no serial reported");
-                        continue;
-                    };
+                tracing::info!(port_name = port.port_name, serial = serial, "connected to new device");
 
-                    let key = (port_info.vid, port_info.pid, serial.clone());
+                let machine_info = UsbMachineInfo::new(
+                    machine_type,
+                    make_model.clone(),
+                    machine_volume,
+                    port_info.vid,
+                    port_info.pid,
+                    port.port_name.clone(),
+                    serial_baud,
+                );
 
-                    if discovery.machine_info(&key).await.is_some() {
-                        tracing::trace!(serial = serial, "found already known machine");
-                        continue;
-                    }
-
-                    let Some(usb_metadata) = discovery.machine_config(&key).await else {
-                        tracing::trace!(serial = serial, "machine not configured; skipping");
-                        continue;
-                    };
-
-                    let (machine_id, machine_type, machine_volume, serial_baud, machine_make, machine_model) =
-                        usb_metadata;
-                    tracing::debug!(port_name = port.port_name, serial = serial, "discovered new device");
-
-                    let make_model = MachineMakeModel {
-                        manufacturer: machine_make.clone(),
-                        model: machine_model.clone(),
-                        serial: Some(serial.to_string()),
-                    };
-
-                    let stream = match tokio_serial::new(port.port_name.clone(), serial_baud).open_native_async() {
-                        Err(e) => {
-                            tracing::warn!(
-                                port_name = port.port_name,
-                                serial = serial,
-                                error = format!("{:?}", e),
-                                "failed to open USB device"
-                            );
-                            continue;
-                        }
-                        Ok(v) => v,
-                    };
-
-                    tracing::info!(port_name = port.port_name, serial = serial, "connected to new device");
-
-                    let machine_info = UsbMachineInfo::new(
-                        machine_id.clone(),
-                        machine_type,
-                        make_model.clone(),
-                        machine_volume,
-                        port_info.vid,
-                        port_info.pid,
-                        port.port_name.clone(),
-                        serial_baud,
-                    );
-
-                    let usb = Usb::new(stream, machine_info.clone());
-                    let key = discovery.insert(key, machine_info, usb);
-                }
-
-                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                let usb = Usb::new(stream, machine_info.clone());
+                discovery.insert(key, machine_info, usb).await;
             }
-        });
-        Ok(())
+
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        }
     }
 
     async fn connect(&self, machine: UsbMachineInfo) -> Result<Arc<Mutex<Usb>>> {
