@@ -56,11 +56,7 @@ impl DiscoverTrait for UsbDiscover {
 
                 tracing::trace!("found a usb port");
 
-                let Some(serial) = port_info.serial_number else {
-                    tracing::trace!(port_name = port.port_name, "no serial reported");
-                    continue;
-                };
-
+                let serial = port_info.serial_number.unwrap_or("".to_string());
                 let key = (port_info.vid, port_info.pid, serial.clone());
 
                 if discovery.machine_info(&key).await.is_some() {
@@ -109,6 +105,7 @@ impl DiscoverTrait for UsbDiscover {
 
                 let usb = Usb::new(stream, machine_info.clone());
                 discovery.insert(key, machine_info, usb).await;
+                tracing::trace!(port_name = port.port_name, serial = serial, "logged as discovered");
             }
 
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;

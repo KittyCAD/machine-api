@@ -59,7 +59,7 @@ tracing = "0.1"
 tracing-opentelemetry = "0.25.0"
 tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.10.0"
-tokio-serial = { version = "5", optional = true, features = ["tokio-util"] }
+tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 tracing-slog = "0.3.0"
 
 [dev-dependencies]

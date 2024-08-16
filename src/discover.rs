@@ -112,10 +112,15 @@ where
     }
 
     pub async fn insert(&self, key: KeyT, mi: ControlT::MachineInfo, control: ControlT) {
-        self.found_machine_infos.lock().await.insert(key.clone(), mi);
+        tracing::trace!("locking found_machine_infos");
+        self.found_machine_infos.lock().await.insert(key.clone(), mi.clone());
+        tracing::trace!("locking found_machines");
         self.found_machines
             .lock()
             .await
             .insert(key.clone(), Arc::new(Mutex::new(control)));
+        tracing::debug!("inserted new machine");
+        let _ = self.sender.send(mi).await;
+        tracing::trace!("info broadcasted to listeners");
     }
 }

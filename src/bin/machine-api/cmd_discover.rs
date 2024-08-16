@@ -15,10 +15,9 @@ where
     let (send, mut recv) = mpsc::channel::<DiscoverT::MachineInfo>(1);
     tokio::spawn(async move {
         while let Some(found) = recv.recv().await {
-            eprintln!("[{}] {:?}", name, found);
+            println!("[{}] {:?}", name, found);
         }
     });
-
     let _ = discover.discover(send).await;
 }
 
