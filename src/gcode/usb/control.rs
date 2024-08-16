@@ -60,6 +60,9 @@ pub struct UsbMachineInfo {
     make_model: MachineMakeModel,
     volume: Option<Volume>,
 
+    /// Machine's Identifier
+    pub machine_id: String,
+
     /// USB Vendor ID
     pub vendor_id: u16,
 
@@ -76,6 +79,7 @@ pub struct UsbMachineInfo {
 impl UsbMachineInfo {
     /// Create a new USB Machine Info directly (not via discovery).
     pub fn new(
+        machine_id: String,
         machine_type: MachineType,
         make_model: MachineMakeModel,
         volume: Option<Volume>,
@@ -85,6 +89,7 @@ impl UsbMachineInfo {
         baud: u32,
     ) -> Self {
         Self {
+            machine_id,
             machine_type,
             make_model,
             volume,
@@ -93,6 +98,11 @@ impl UsbMachineInfo {
             port,
             baud,
         }
+    }
+
+    /// return the discovery key
+    pub(crate) fn discovery_key(&self) -> (u16, u16, String) {
+        (self.vendor_id, self.product_id, self.make_model.serial.clone().unwrap())
     }
 }
 

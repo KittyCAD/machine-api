@@ -14,6 +14,7 @@
 mod any_machine;
 #[cfg(feature = "bambu")]
 pub mod bambu;
+mod discover;
 mod file;
 #[cfg(feature = "formlabs")]
 pub mod formlabs;
@@ -29,12 +30,14 @@ mod tests;
 mod traits;
 
 pub use any_machine::{AnyMachine, AnyMachineInfo, StaticDiscover};
+pub use discover::Discover;
+pub(crate) use discover::SimpleDiscovery;
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;
 pub use traits::{
-    Control, Discover, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType,
-    SuspendControl, ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
+    Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType, SuspendControl,
+    ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
 };
 
 use schemars::JsonSchema;

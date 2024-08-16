@@ -1,7 +1,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use machine_api::server;
-use std::str::FromStr;
+use std::{collections::HashMap, str::FromStr};
 use tokio::sync::RwLock;
 use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
 
@@ -44,11 +44,12 @@ async fn main_serve(_cli: &Cli, bind: &str, config: &str) -> Result<()> {
 
     server::serve(
         bind,
-        cfg.load()
-            .await?
-            .into_iter()
-            .map(|(machine_id, machine)| (machine_id, RwLock::new(machine)))
-            .collect(),
+        HashMap::new(),
+        // cfg.load()
+        //     .await?
+        //     .into_iter()
+        //     .map(|(machine_id, machine)| (machine_id, RwLock::new(machine)))
+        //     .collect(),
     )
     .await?;
 

@@ -1,7 +1,7 @@
 use crate::{Control as ControlTrait, Discover as DiscoverTrait, MachineInfo, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
-use std::sync::Arc;
-use tokio::sync::Mutex;
+use std::{future::Future, sync::Arc};
+use tokio::sync::{mpsc::Sender, Mutex};
 
 /// AnyMachine is any supported machine.
 pub enum AnyMachine {
@@ -25,21 +25,25 @@ pub enum AnyMachine {
 /// [DiscoverTrait]
 pub struct StaticDiscover(Vec<Arc<Mutex<AnyMachine>>>);
 
+impl StaticDiscover {
+    /// Create a new static discovery system
+    pub fn new(machines: Vec<Arc<Mutex<AnyMachine>>>) -> Self {
+        Self(machines)
+    }
+}
+
 impl DiscoverTrait for StaticDiscover {
     type Error = anyhow::Error;
     type MachineInfo = AnyMachineInfo;
     type Control = AnyMachine;
 
-    async fn discover(&self) -> Result<()> {
-        Ok(())
-    }
-
-    async fn discovered(&self) -> Result<Vec<AnyMachineInfo>> {
-        let mut info = vec![];
+    async fn discover(&self, found: Sender<AnyMachineInfo>) -> Result<()> {
         for machine in self.0.iter() {
-            info.push(machine.lock().await.machine_info().await?);
+            // fire once for every static config
+            found.send(machine.lock().await.machine_info().await?).await?;
         }
-        Ok(info)
+
+        Ok(())
     }
 
     async fn connect(&self, mi: AnyMachineInfo) -> Result<Arc<Mutex<AnyMachine>>> {
