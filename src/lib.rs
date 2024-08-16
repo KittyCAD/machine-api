@@ -29,9 +29,10 @@ pub mod slicer;
 mod tests;
 mod traits;
 
-pub use any_machine::{AnyMachine, AnyMachineInfo, StaticDiscover};
+pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use discover::Discover;
 pub(crate) use discover::SimpleDiscovery;
+pub use discover::StaticDiscover;
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;

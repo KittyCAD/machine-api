@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+mod moonraker;
 mod slicer;
 mod usb;
 
@@ -17,7 +18,7 @@ pub struct Config {
 pub enum MachineConfig {
     Usb(usb::MachineConfigUsb),
     Noop {},
-    Moonraker {},
+    Moonraker(moonraker::MachineConfigMoonraker),
     Bambu {},
 }
 

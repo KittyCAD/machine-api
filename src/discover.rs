@@ -1,4 +1,4 @@
-use crate::{Control, MachineInfo};
+use crate::{AnyMachine, AnyMachineInfo, Control, MachineInfo};
 use anyhow::Result;
 use std::{collections::HashMap, future::Future, hash::Hash, sync::Arc};
 use tokio::sync::{mpsc::Sender, Mutex};
@@ -122,5 +122,40 @@ where
         tracing::debug!("inserted new machine");
         let _ = self.sender.send(mi).await;
         tracing::trace!("info broadcasted to listeners");
+    }
+}
+
+/// StaticDiscover is a static list of [AnyMachine] that implements the
+/// [Discover]
+pub struct StaticDiscover(Vec<Arc<Mutex<AnyMachine>>>);
+
+impl StaticDiscover {
+    /// Create a new static discovery system
+    pub fn new(machines: Vec<Arc<Mutex<AnyMachine>>>) -> Self {
+        Self(machines)
+    }
+}
+
+impl Discover for StaticDiscover {
+    type Error = anyhow::Error;
+    type MachineInfo = AnyMachineInfo;
+    type Control = AnyMachine;
+
+    async fn discover(&self, found: Sender<AnyMachineInfo>) -> Result<()> {
+        for machine in self.0.iter() {
+            // fire once for every static config
+            found.send(machine.lock().await.machine_info().await?).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn connect(&self, mi: AnyMachineInfo) -> Result<Arc<Mutex<AnyMachine>>> {
+        for machine in self.0.iter() {
+            if mi == machine.lock().await.machine_info().await? {
+                return Ok(machine.clone());
+            }
+        }
+        anyhow::bail!("machine not found");
     }
 }
