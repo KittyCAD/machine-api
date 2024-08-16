@@ -117,11 +117,19 @@ impl DiscoverTrait for UsbDiscover {
         Ok(())
     }
 
-    async fn connect(&self, _machine: UsbMachineInfo) -> Result<Arc<Mutex<Usb>>> {
-        let Some(discovery) = self.discovery.lock().await.as_ref() else {
-            anyhow::bail!("UsbDiscover::discover not called yet");
+    async fn connect(&self, machine: UsbMachineInfo) -> Result<Arc<Mutex<Usb>>> {
+        let discovery = {
+            let discovery = self.discovery.lock().await;
+            let Some(discovery) = discovery.as_ref() else {
+                anyhow::bail!("UsbDiscover::discover not called yet");
+            };
+            discovery.clone()
         };
+        let key = machine.discovery_key();
 
-        unimplemented!()
+        let Some(machine) = discovery.machine(&key).await else {
+            anyhow::bail!("unknown machine");
+        };
+        Ok(machine)
     }
 }
