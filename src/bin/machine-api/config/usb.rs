@@ -118,14 +118,13 @@ impl Config {
         for (_machine_key, machine) in self
             .machines
             .iter()
-            .map(|(machine_key, machine)| {
+            .filter_map(|(machine_key, machine)| {
                 if let MachineConfig::Usb(usb) = machine {
                     Some((machine_key, usb))
                 } else {
                     None
                 }
             })
-            .flatten()
         {
             machine.check()?;
             known_devices.insert(machine.get_key(), machine.usb_hardware_metadata()?);

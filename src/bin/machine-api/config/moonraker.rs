@@ -61,14 +61,13 @@ impl Config {
         for (_machine_key, machine) in self
             .machines
             .iter()
-            .map(|(machine_key, machine)| {
+            .filter_map(|(machine_key, machine)| {
                 if let MachineConfig::Moonraker(moonraker) = machine {
                     Some((machine_key, moonraker))
                 } else {
                     None
                 }
             })
-            .flatten()
         {
             let (manufacturer, model) = machine.variant.manufacturer_model();
             let volume = machine.variant.max_part_volume();
