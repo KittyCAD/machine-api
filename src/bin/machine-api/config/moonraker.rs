@@ -16,13 +16,13 @@ pub enum MoonrakerVariant {
 }
 
 impl MoonrakerVariant {
-    /// Return the [MachineType] of the variant.
-    pub fn machine_type(&self) -> MachineType {
-        match self {
-            MoonrakerVariant::ElegooNeptune4 => MachineType::FusedDeposition,
-            MoonrakerVariant::Generic => MachineType::FusedDeposition,
-        }
-    }
+    // /// Return the [MachineType] of the variant.
+    // pub fn machine_type(&self) -> MachineType {
+    //     match self {
+    //         MoonrakerVariant::ElegooNeptune4 => MachineType::FusedDeposition,
+    //         MoonrakerVariant::Generic => MachineType::FusedDeposition,
+    //     }
+    // }
 
     /// Return the max part volume.
     pub fn max_part_volume(&self) -> Option<Volume> {
@@ -49,26 +49,22 @@ pub struct MachineConfigMoonraker {
 }
 
 impl MachineConfigMoonraker {
-    pub fn get_key(&self) -> String {
-        self.endpoint.clone()
-    }
+    // pub fn get_key(&self) -> String {
+    //     self.endpoint.clone()
+    // }
 }
 
 impl Config {
     /// Load a StaticDiscover stub based on the provided machine config.
     pub async fn load_discover_moonraker(&self) -> Result<Option<StaticDiscover>> {
         let mut all_machines: Vec<Arc<Mutex<AnyMachine>>> = vec![];
-        for (_machine_key, machine) in self
-            .machines
-            .iter()
-            .filter_map(|(machine_key, machine)| {
-                if let MachineConfig::Moonraker(moonraker) = machine {
-                    Some((machine_key, moonraker))
-                } else {
-                    None
-                }
-            })
-        {
+        for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
+            if let MachineConfig::Moonraker(moonraker) = machine {
+                Some((machine_key, moonraker))
+            } else {
+                None
+            }
+        }) {
             let (manufacturer, model) = machine.variant.manufacturer_model();
             let volume = machine.variant.max_part_volume();
 
