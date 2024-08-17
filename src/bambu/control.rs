@@ -51,6 +51,11 @@ impl ControlTrait for X1Carbon {
         self.client.publish(Command::stop()).await?;
         Ok(())
     }
+
+    async fn healthy(&self) -> bool {
+        // TODO: fix this
+        true
+    }
 }
 
 impl SuspendControlTrait for X1Carbon {

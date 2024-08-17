@@ -121,4 +121,8 @@ impl ControlTrait for AnyMachine {
     async fn stop(&mut self) -> Result<()> {
         for_all!(|self, machine| { machine.stop().await })
     }
+
+    async fn healthy(&self) -> bool {
+        for_all!(|self, machine| { machine.healthy().await })
+    }
 }

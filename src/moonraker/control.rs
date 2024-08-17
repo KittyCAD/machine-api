@@ -58,6 +58,10 @@ impl ControlTrait for Client {
         tracing::debug!("stop requested");
         self.client.cancel_print().await
     }
+
+    async fn healthy(&self) -> bool {
+        self.client.info().await.is_ok()
+    }
 }
 
 impl SuspendControlTrait for Client {

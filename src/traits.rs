@@ -77,6 +77,14 @@ pub trait Control {
 
     /// Request that the machine stop any current job(s).
     fn stop(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
+
+    /// Check to see if the machine is still connected and this connection
+    /// remains alive.
+    ///
+    /// `true` means the machine is alive and healthy, ready for use.
+    /// `false` means the machine is no longer reachable or usable, and
+    /// ought to be removed.
+    fn healthy(&self) -> impl Future<Output = bool>;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands

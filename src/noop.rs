@@ -65,6 +65,10 @@ impl ControlTrait for Noop {
     async fn stop(&mut self) -> Result<()> {
         Ok(())
     }
+
+    async fn healthy(&self) -> bool {
+        true
+    }
 }
 
 impl SuspendControlTrait for Noop {

@@ -126,8 +126,14 @@ impl ControlTrait for Usb {
     async fn emergency_stop(&mut self) -> Result<()> {
         self.client.emergency_stop().await
     }
+
     async fn stop(&mut self) -> Result<()> {
         self.client.stop().await
+    }
+
+    async fn healthy(&self) -> bool {
+        // TODO: fix this, do a gcode ping or something?
+        true
     }
 }
 
