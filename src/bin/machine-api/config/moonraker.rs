@@ -1,6 +1,6 @@
 use super::{Config, MachineConfig, SlicerConfig};
 use anyhow::Result;
-use machine_api::{moonraker::Client, AnyMachine, MachineMakeModel, MachineType, StaticDiscover, Volume};
+use machine_api::{moonraker::Client, AnyMachine, MachineMakeModel, StaticDiscover, Volume};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;

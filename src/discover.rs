@@ -1,4 +1,4 @@
-use crate::{AnyMachine, AnyMachineInfo, Control, MachineInfo};
+use crate::{AnyMachine, AnyMachineInfo, Control};
 use anyhow::Result;
 use std::{collections::HashMap, future::Future, hash::Hash, sync::Arc};
 use tokio::sync::{mpsc::Sender, Mutex};
@@ -8,9 +8,6 @@ use tokio::sync::{mpsc::Sender, Mutex};
 pub trait Discover {
     /// Error type returned by this trait, and any relient traits.
     type Error;
-
-    /// Underlying type containing information about the discovered printer.
-    type MachineInfo: MachineInfo;
 
     /// Underlying type allowing for control of a printer.
     type Control: Control;
@@ -22,12 +19,15 @@ pub trait Discover {
     /// stopped. You likely want to spawn this on a separate tokio task.
     ///
     /// When a new Machine is found, the callback will be invoked.
-    fn discover(&self, found: Sender<Self::MachineInfo>) -> impl Future<Output = Result<(), Self::Error>>;
+    fn discover(
+        &self,
+        found: Sender<<Self::Control as Control>::MachineInfo>,
+    ) -> impl Future<Output = Result<(), Self::Error>>;
 
     /// Connect to a discovered printer.
     fn connect(
         &self,
-        machine: Self::MachineInfo,
+        machine: <Self::Control as Control>::MachineInfo,
     ) -> impl Future<Output = Result<Arc<Mutex<Self::Control>>, Self::Error>>;
 }
 
@@ -139,7 +139,6 @@ impl StaticDiscover {
 
 impl Discover for StaticDiscover {
     type Error = anyhow::Error;
-    type MachineInfo = AnyMachineInfo;
     type Control = AnyMachine;
 
     async fn discover(&self, found: Sender<AnyMachineInfo>) -> Result<()> {

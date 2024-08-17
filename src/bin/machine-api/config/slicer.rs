@@ -1,7 +1,7 @@
-use anyhow::Result;
-use machine_api::slicer::{orca, prusa, AnySlicer};
+// use anyhow::Result;
+// use machine_api::slicer::{orca, prusa, AnySlicer};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+// use std::path::PathBuf;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "type")]
@@ -14,16 +14,16 @@ pub enum SlicerConfig {
 }
 
 impl SlicerConfig {
-    pub async fn load(&self) -> Result<AnySlicer> {
-        Ok(match self {
-            Self::Prusa { config } => {
-                let path: PathBuf = config.parse().unwrap();
-                prusa::Slicer::new(&path).into()
-            }
-            Self::Orca { config } => {
-                let path: PathBuf = config.parse().unwrap();
-                orca::Slicer::new(&path).into()
-            }
-        })
-    }
+    // pub async fn load(&self) -> Result<AnySlicer> {
+    //     Ok(match self {
+    //         Self::Prusa { config } => {
+    //             let path: PathBuf = config.parse().unwrap();
+    //             prusa::Slicer::new(&path).into()
+    //         }
+    //         Self::Orca { config } => {
+    //             let path: PathBuf = config.parse().unwrap();
+    //             orca::Slicer::new(&path).into()
+    //         }
+    //     })
+    // }
 }

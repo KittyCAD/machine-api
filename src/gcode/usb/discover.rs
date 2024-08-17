@@ -31,7 +31,6 @@ impl UsbDiscover {
 
 impl DiscoverTrait for UsbDiscover {
     type Error = anyhow::Error;
-    type MachineInfo = UsbMachineInfo;
     type Control = Usb;
 
     async fn discover(&self, found: Sender<UsbMachineInfo>) -> Result<()> {

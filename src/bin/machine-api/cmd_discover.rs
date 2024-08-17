@@ -1,6 +1,6 @@
 use super::{Cli, Config};
 use anyhow::Result;
-use machine_api::Discover;
+use machine_api::{Control, Discover};
 use std::fmt::Debug;
 use tokio::{sync::mpsc, task::JoinSet};
 
@@ -9,10 +9,10 @@ where
     DiscoverT: Discover,
     DiscoverT: Clone,
     DiscoverT: 'static,
-    DiscoverT::MachineInfo: Send,
-    DiscoverT::MachineInfo: Debug,
+    <DiscoverT::Control as Control>::MachineInfo: Send,
+    <DiscoverT::Control as Control>::MachineInfo: Debug,
 {
-    let (send, mut recv) = mpsc::channel::<DiscoverT::MachineInfo>(1);
+    let (send, mut recv) = mpsc::channel::<<DiscoverT::Control as Control>::MachineInfo>(1);
     let name1 = name.clone();
     tokio::spawn(async move {
         let name = name1;
