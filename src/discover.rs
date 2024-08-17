@@ -127,6 +127,7 @@ where
 
 /// StaticDiscover is a static list of [AnyMachine] that implements the
 /// [Discover]
+#[derive(Clone)]
 pub struct StaticDiscover(Vec<Arc<Mutex<AnyMachine>>>);
 
 impl StaticDiscover {

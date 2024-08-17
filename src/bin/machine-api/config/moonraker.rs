@@ -1,12 +1,8 @@
 use super::{Config, MachineConfig, SlicerConfig};
 use anyhow::Result;
-use machine_api::{
-    gcode::{UsbDiscover, UsbHardwareMetadata},
-    moonraker::Client,
-    AnyMachine, Machine, MachineMakeModel, MachineType, StaticDiscover, Volume,
-};
+use machine_api::{moonraker::Client, AnyMachine, MachineMakeModel, MachineType, StaticDiscover, Volume};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Specific make/model of device we're connected to.
@@ -74,7 +70,6 @@ impl Config {
             })
             .flatten()
         {
-            let slicer = machine.slicer.load().await?;
             let (manufacturer, model) = machine.variant.manufacturer_model();
             let volume = machine.variant.max_part_volume();
 
