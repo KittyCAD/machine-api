@@ -1,4 +1,5 @@
-//! This module contains support for printing to moonraker 3D printers.
+//! This module contains support for printing to gcode based 3D printers
+//! over some [AsyncRead]/[AsyncWrite] traited object.
 
 use anyhow::Result;
 use std::{
