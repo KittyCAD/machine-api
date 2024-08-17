@@ -25,6 +25,7 @@ pub mod moonraker;
 pub mod noop;
 pub mod server;
 pub mod slicer;
+mod sync;
 #[cfg(test)]
 mod tests;
 mod traits;
@@ -38,6 +39,7 @@ pub use discover::StaticDiscover;
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;
+pub use sync::SharedMachine;
 pub use traits::{
     Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType, SuspendControl,
     ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
