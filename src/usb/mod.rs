@@ -1,3 +1,5 @@
+//! Support for G-Code USB based 3D Printers.
+
 mod control;
 mod discover;
 

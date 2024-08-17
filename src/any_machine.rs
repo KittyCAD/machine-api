@@ -13,7 +13,7 @@ pub enum AnyMachine {
 
     /// Generic USB-based gcode printer
     #[cfg(feature = "serial")]
-    Usb(crate::gcode::Usb),
+    Usb(crate::usb::Usb),
 
     /// No-op Machine
     Noop(crate::noop::Noop),
@@ -32,7 +32,7 @@ pub enum AnyMachineInfo {
 
     /// Generic USB-based gcode printer
     #[cfg(feature = "serial")]
-    Usb(crate::gcode::UsbMachineInfo),
+    Usb(crate::usb::UsbMachineInfo),
 
     /// No-op Machine Info
     Noop(crate::noop::MachineInfo),
@@ -71,7 +71,7 @@ macro_rules! def_machine_stubs {
 
 def_machine_stubs!(if "bambu",     BambuX1Carbon(crate::bambu::X1Carbon, crate::bambu::PrinterInfo));
 def_machine_stubs!(if "moonraker", Moonraker(crate::moonraker::Client, crate::moonraker::MachineInfo));
-def_machine_stubs!(if "serial",    Usb(crate::gcode::Usb, crate::gcode::UsbMachineInfo));
+def_machine_stubs!(if "serial",    Usb(crate::usb::Usb, crate::usb::UsbMachineInfo));
 
 def_machine_stubs!(Noop(crate::noop::Noop, crate::noop::MachineInfo));
 

@@ -1,7 +1,7 @@
 use super::{Config, MachineConfig, SlicerConfig};
 use anyhow::Result;
 use machine_api::{
-    gcode::{UsbDiscover, UsbHardwareMetadata},
+    usb::{UsbDiscover, UsbHardwareMetadata},
     MachineType, Volume,
 };
 use serde::{Deserialize, Serialize};
@@ -115,17 +115,13 @@ impl Config {
     /// Load a UsbDiscover stub based on the provided machine config.
     pub async fn load_discover_usb(&self) -> Result<Option<UsbDiscover>> {
         let mut known_devices = HashMap::new();
-        for (_machine_key, machine) in self
-            .machines
-            .iter()
-            .filter_map(|(machine_key, machine)| {
-                if let MachineConfig::Usb(usb) = machine {
-                    Some((machine_key, usb))
-                } else {
-                    None
-                }
-            })
-        {
+        for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
+            if let MachineConfig::Usb(usb) = machine {
+                Some((machine_key, usb))
+            } else {
+                None
+            }
+        }) {
             machine.check()?;
             known_devices.insert(machine.get_key(), machine.usb_hardware_metadata()?);
         }

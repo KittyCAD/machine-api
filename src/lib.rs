@@ -28,6 +28,8 @@ pub mod slicer;
 #[cfg(test)]
 mod tests;
 mod traits;
+#[cfg(feature = "serial")]
+pub mod usb;
 
 pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use discover::Discover;

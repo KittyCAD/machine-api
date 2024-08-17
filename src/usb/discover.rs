@@ -1,5 +1,7 @@
 use super::{Usb, UsbMachineInfo};
-use crate::{Discover as DiscoverTrait, MachineMakeModel, MachineType, SimpleDiscovery, Volume};
+use crate::{
+    Discover as DiscoverTrait, MachineMakeModel, MachineType, SimpleDiscovery as CrateSimpleDiscovery, Volume,
+};
 use anyhow::Result;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::{mpsc::Sender, Mutex};
@@ -11,11 +13,13 @@ use tokio_serial::{SerialPortBuilderExt, SerialPortType};
 /// manufacturer, and model.
 pub type UsbHardwareMetadata = (MachineType, Option<Volume>, u32, Option<String>, Option<String>);
 
+type SimpleDiscovery = CrateSimpleDiscovery<(u16, u16, String), UsbHardwareMetadata, Usb>;
+
 /// Handle to allow for USB based discovery of hardware.
 #[derive(Clone)]
 pub struct UsbDiscover {
     known_hardware: HashMap<(u16, u16, String), UsbHardwareMetadata>,
-    discovery: Arc<Mutex<Option<SimpleDiscovery<(u16, u16, String), UsbHardwareMetadata, Usb>>>>,
+    discovery: Arc<Mutex<Option<SimpleDiscovery>>>,
 }
 
 impl UsbDiscover {

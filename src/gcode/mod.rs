@@ -1,11 +1,5 @@
 //! This module contains support for printing to moonraker 3D printers.
 
-#[cfg(feature = "serial")]
-mod usb;
-
-#[cfg(feature = "serial")]
-pub use usb::{Usb, UsbDiscover, UsbHardwareMetadata, UsbMachineInfo};
-
 use anyhow::Result;
 use std::{
     pin::Pin,
