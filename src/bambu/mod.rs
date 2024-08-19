@@ -11,7 +11,7 @@ use std::{net::IpAddr, path::PathBuf, sync::Arc};
 #[derive(Clone)]
 pub struct X1Carbon {
     client: Arc<Client>,
-    info: PrinterInfo,
+    // info: PrinterInfo,
 }
 
 /// Information regarding a discovered X1 Carbon.

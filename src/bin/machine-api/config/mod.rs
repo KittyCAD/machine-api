@@ -1,12 +1,6 @@
+use machine_api::usb;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-mod moonraker;
-mod slicer;
-mod usb;
-
-use slicer::SlicerConfig;
-// use usb::{MachineConfigUsb, UsbVariant};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
@@ -16,10 +10,6 @@ pub struct Config {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum MachineConfig {
-    Usb(usb::MachineConfigUsb),
+    Usb(usb::Config),
     Noop {},
-    Moonraker(moonraker::MachineConfigMoonraker),
-    Bambu {},
 }
-
-impl Config {}

@@ -14,6 +14,7 @@
 mod any_machine;
 #[cfg(feature = "bambu")]
 pub mod bambu;
+mod discover;
 mod file;
 #[cfg(feature = "formlabs")]
 pub mod formlabs;
@@ -32,6 +33,7 @@ mod traits;
 pub mod usb;
 
 pub use any_machine::{AnyMachine, AnyMachineInfo};
+pub use discover::Discover;
 pub use file::TemporaryFile;
 pub use machine::Machine;
 pub use slicer::AnySlicer;

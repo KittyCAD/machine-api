@@ -2,6 +2,7 @@
 //! implementation(s) to take a [crate::DesignFile] and produce gcode for
 //! a specific make/model printer, given some config.
 
+mod config;
 pub mod noop;
 pub mod orca;
 pub mod prusa;
@@ -11,6 +12,7 @@ use crate::{
     ThreeMfTemporaryFile,
 };
 use anyhow::Result;
+pub use config::Config;
 
 /// All Slicers that are supported by the machine-api.
 pub enum AnySlicer {

@@ -1,8 +1,8 @@
 use super::{Cli, Config};
 use anyhow::Result;
-// use machine_api::{Control, Discover};
-use std::fmt::Debug;
-use tokio::{sync::mpsc, task::JoinSet};
+use machine_api::{slicer, usb, Control, Discover};
+use std::{collections::HashMap, sync::Arc};
+use tokio::sync::RwLock;
 
 // async fn print_discovered<DiscoverT>(name: String, discover: DiscoverT)
 // where
@@ -26,21 +26,22 @@ use tokio::{sync::mpsc, task::JoinSet};
 // }
 
 pub async fn main(_cli: &Cli, cfg: &Config) -> Result<()> {
-    // let mut join_set = JoinSet::new();
+    let usb_discover = usb::UsbDiscovery::new([(
+        "foo".to_owned(),
+        usb::Config {
+            slicer: slicer::Config::Prusa {
+                config: "config/prusa/neptune4.ini".to_owned(),
+            },
+            baud: Some(115200),
+            vendor_id: Some(0x1a86),
+            product_id: Some(0x7523),
+            serial: None,
+            variant: usb::UsbVariant::Generic,
+        },
+    )]);
 
-    // if let Some(discover) = cfg.load_discover_usb().await? {
-    //     join_set.spawn(async move {
-    //         print_discovered("usb".to_owned(), discover).await;
-    //     });
-    // };
-
-    // if let Some(discover) = cfg.load_discover_moonraker().await? {
-    //     join_set.spawn(async move {
-    //         print_discovered("moonraker".to_owned(), discover).await;
-    //     });
-    // };
-
-    // join_set.join_next().await;
+    let machines = Arc::new(RwLock::new(HashMap::new()));
+    usb_discover.discover(machines.clone()).await?;
 
     Ok(())
 }

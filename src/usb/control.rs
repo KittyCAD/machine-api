@@ -95,10 +95,10 @@ impl UsbMachineInfo {
         }
     }
 
-    /// return the discovery key
-    pub(crate) fn discovery_key(&self) -> (u16, u16, String) {
-        (self.vendor_id, self.product_id, self.make_model.serial.clone().unwrap())
-    }
+    // /// return the discovery key
+    // pub(crate) fn discovery_key(&self) -> (u16, u16, String) {
+    //     (self.vendor_id, self.product_id, self.make_model.serial.clone().unwrap())
+    // }
 }
 
 impl MachineInfoTrait for UsbMachineInfo {
