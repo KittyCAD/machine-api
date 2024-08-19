@@ -2,6 +2,7 @@ use machine_api::usb as crate_usb;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+mod noop;
 mod usb;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
