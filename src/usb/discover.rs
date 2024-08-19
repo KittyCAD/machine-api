@@ -182,21 +182,30 @@ impl Discover for UsbDiscovery {
                 };
 
                 let (manufacturer, model) = config.variant.get_manufacturer_model();
-                usb::Usb::new(
-                    stream,
-                    usb::UsbMachineInfo::new(
-                        config.variant.get_machine_type(),
-                        MachineMakeModel {
-                            manufacturer,
-                            model,
-                            serial: port.2,
-                        },
-                        config.variant.get_max_part_volume(),
-                        port.0,
-                        port.1,
-                        port_name.clone(),
-                        baud,
-                    ),
+
+                let slicer = config.slicer.load()?;
+
+                found.write().await.insert(
+                    machine_id.clone(),
+                    RwLock::new(Machine::new(
+                        usb::Usb::new(
+                            stream,
+                            usb::UsbMachineInfo::new(
+                                config.variant.get_machine_type(),
+                                MachineMakeModel {
+                                    manufacturer,
+                                    model,
+                                    serial: port.2,
+                                },
+                                config.variant.get_max_part_volume(),
+                                port.0,
+                                port.1,
+                                port_name.clone(),
+                                baud,
+                            ),
+                        ),
+                        slicer,
+                    )),
                 );
             }
 
