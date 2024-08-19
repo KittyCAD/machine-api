@@ -106,11 +106,6 @@ pub async fn serve(bind: &str, machines: HashMap<String, RwLock<Machine>>) -> Re
         }
     });
 
-    // // Start all the discovery tasks.
-    // tokio::spawn(async move {
-    //     unimplemented!();
-    // });
-
     server.await.map_err(|error| anyhow!("server failed: {}", error))?;
 
     Ok(())

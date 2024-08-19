@@ -1,7 +1,7 @@
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait,
-    ThreeMfTemporaryFile,
+    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType,
+    SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
@@ -32,6 +32,18 @@ impl X1Carbon {
         };
 
         Ok(ams_exists != "0")
+    }
+}
+
+impl MachineInfoTrait for PrinterInfo {
+    fn machine_type(&self) -> MachineType {
+        unimplemented!();
+    }
+    fn make_model(&self) -> MachineMakeModel {
+        unimplemented!();
+    }
+    fn max_part_volume(&self) -> Option<Volume> {
+        unimplemented!();
     }
 }
 

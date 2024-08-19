@@ -1,9 +1,6 @@
 //! This module contains support for printing to Bambu Lab 3D printers.
 
 mod control;
-mod discover;
-
-pub use discover::Discover;
 
 use crate::MachineMakeModel;
 use bambulabs::client::Client;

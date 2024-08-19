@@ -1,9 +1,6 @@
 use super::{Config, MachineConfig, SlicerConfig};
 use anyhow::Result;
-use machine_api::{
-    usb::{UsbDiscover, UsbHardwareMetadata},
-    MachineType, Volume,
-};
+use machine_api::{MachineType, Volume};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -102,34 +99,34 @@ impl MachineConfigUsb {
         Ok(())
     }
 
-    pub fn usb_hardware_metadata(&self) -> Result<UsbHardwareMetadata> {
-        let volume = self.variant.max_part_volume();
-        let (manufacturer, model) = self.variant.manufacturer_model();
-        let baud = self.get_baud();
+    // pub fn usb_hardware_metadata(&self) -> Result<UsbHardwareMetadata> {
+    //     let volume = self.variant.max_part_volume();
+    //     let (manufacturer, model) = self.variant.manufacturer_model();
+    //     let baud = self.get_baud();
 
-        Ok((self.variant.machine_type(), volume, baud, manufacturer, model))
-    }
+    //     Ok((self.variant.machine_type(), volume, baud, manufacturer, model))
+    // }
 }
 
 impl Config {
-    /// Load a UsbDiscover stub based on the provided machine config.
-    pub async fn load_discover_usb(&self) -> Result<Option<UsbDiscover>> {
-        let mut known_devices = HashMap::new();
-        for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
-            if let MachineConfig::Usb(usb) = machine {
-                Some((machine_key, usb))
-            } else {
-                None
-            }
-        }) {
-            machine.check()?;
-            known_devices.insert(machine.get_key(), machine.usb_hardware_metadata()?);
-        }
+    // /// Load a UsbDiscover stub based on the provided machine config.
+    // pub async fn load_discover_usb(&self) -> Result<Option<UsbDiscover>> {
+    //     let mut known_devices = HashMap::new();
+    //     for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
+    //         if let MachineConfig::Usb(usb) = machine {
+    //             Some((machine_key, usb))
+    //         } else {
+    //             None
+    //         }
+    //     }) {
+    //         machine.check()?;
+    //         known_devices.insert(machine.get_key(), machine.usb_hardware_metadata()?);
+    //     }
 
-        if !known_devices.is_empty() {
-            Ok(Some(UsbDiscover::new(known_devices)))
-        } else {
-            Ok(None)
-        }
-    }
+    //     if !known_devices.is_empty() {
+    //         Ok(Some(UsbDiscover::new(known_devices)))
+    //     } else {
+    //         Ok(None)
+    //     }
+    // }
 }

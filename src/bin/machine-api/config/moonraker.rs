@@ -1,6 +1,6 @@
 use super::{Config, MachineConfig, SlicerConfig};
 use anyhow::Result;
-use machine_api::{moonraker::Client, AnyMachine, MachineMakeModel, StaticDiscover, Volume};
+use machine_api::{moonraker::Client, AnyMachine, MachineMakeModel, Volume};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use tokio::sync::Mutex;
@@ -55,35 +55,35 @@ impl MachineConfigMoonraker {
 }
 
 impl Config {
-    /// Load a StaticDiscover stub based on the provided machine config.
-    pub async fn load_discover_moonraker(&self) -> Result<Option<StaticDiscover>> {
-        let mut all_machines: Vec<Arc<Mutex<AnyMachine>>> = vec![];
-        for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
-            if let MachineConfig::Moonraker(moonraker) = machine {
-                Some((machine_key, moonraker))
-            } else {
-                None
-            }
-        }) {
-            let (manufacturer, model) = machine.variant.manufacturer_model();
-            let volume = machine.variant.max_part_volume();
+    // /// Load a StaticDiscover stub based on the provided machine config.
+    // pub async fn load_discover_moonraker(&self) -> Result<Option<StaticDiscover>> {
+    //     let mut all_machines: Vec<Arc<Mutex<AnyMachine>>> = vec![];
+    //     for (_machine_key, machine) in self.machines.iter().filter_map(|(machine_key, machine)| {
+    //         if let MachineConfig::Moonraker(moonraker) = machine {
+    //             Some((machine_key, moonraker))
+    //         } else {
+    //             None
+    //         }
+    //     }) {
+    //         let (manufacturer, model) = machine.variant.manufacturer_model();
+    //         let volume = machine.variant.max_part_volume();
 
-            let moonraker = Client::new(
-                &machine.endpoint,
-                MachineMakeModel {
-                    manufacturer,
-                    model,
-                    serial: None,
-                },
-                volume,
-            )?;
-            all_machines.push(Arc::new(Mutex::new(moonraker.into())));
-        }
+    //         let moonraker = Client::new(
+    //             &machine.endpoint,
+    //             MachineMakeModel {
+    //                 manufacturer,
+    //                 model,
+    //                 serial: None,
+    //             },
+    //             volume,
+    //         )?;
+    //         all_machines.push(Arc::new(Mutex::new(moonraker.into())));
+    //     }
 
-        if !all_machines.is_empty() {
-            Ok(Some(StaticDiscover::new(all_machines)))
-        } else {
-            Ok(None)
-        }
-    }
+    //     if !all_machines.is_empty() {
+    //         Ok(Some(StaticDiscover::new(all_machines)))
+    //     } else {
+    //         Ok(None)
+    //     }
+    // }
 }
