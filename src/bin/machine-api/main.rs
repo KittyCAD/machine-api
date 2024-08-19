@@ -6,7 +6,6 @@ use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
 mod config;
 use config::Config;
 
-mod cmd_discover;
 mod cmd_serve;
 
 /// Serve the machine-api server.
@@ -36,9 +35,6 @@ enum Commands {
         #[arg(long, short, default_value = "127.0.0.1:8080")]
         bind: String,
     },
-
-    /// Enumerate all visable Machines, connected or otherwise.
-    Discover {},
 }
 
 async fn handle_signals() -> Result<()> {
@@ -101,6 +97,5 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Serve { ref bind } => cmd_serve::main(&cli, &cfg, bind).await,
-        Commands::Discover {} => cmd_discover::main(&cli, &cfg).await,
     }
 }

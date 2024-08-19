@@ -112,7 +112,7 @@ pub async fn get_machines(
     tracing::info!("listing machines");
     let ctx = rqctx.context();
     let mut machines = HashMap::new();
-    for (key, machine) in ctx.machines.iter() {
+    for (key, machine) in ctx.machines.read().await.iter() {
         let api_machine = MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?;
         machines.insert(key.clone(), api_machine);
     }
@@ -138,10 +138,9 @@ pub async fn get_machine(
 ) -> Result<HttpResponseOk<MachineInfoResponse>, HttpError> {
     let params = path_params.into_inner();
     let ctx = rqctx.context();
-    eprintln!("{:?}", ctx.machines.keys().collect::<Vec<_>>());
 
     tracing::info!(id = params.id, "finding machine");
-    match ctx.machines.get(&params.id) {
+    match ctx.machines.read().await.get(&params.id) {
         Some(machine) => Ok(HttpResponseOk(
             MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?,
         )),
@@ -179,7 +178,8 @@ pub(crate) async fn print_file(
     let job_id = uuid::Uuid::new_v4();
     let job_name = &params.job_name;
 
-    let machine = match ctx.machines.get(&machine_id) {
+    let machines = ctx.machines.read().await;
+    let machine = match machines.get(&machine_id) {
         Some(machine) => machine,
         None => {
             tracing::warn!(id = machine_id, "machine not found");

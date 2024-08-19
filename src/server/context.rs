@@ -1,5 +1,5 @@
 use crate::Machine;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
 /// Context for a given server -- this contains all the informatio required
@@ -10,5 +10,5 @@ pub struct Context {
     pub schema: serde_json::Value,
 
     /// List of [Machine] objects to serve via the Machine API.
-    pub machines: HashMap<String, RwLock<Machine>>,
+    pub machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
 }

@@ -111,6 +111,11 @@ impl Discover for UsbDiscovery {
     type Error = anyhow::Error;
 
     async fn discover(&self, found: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+        if self.configs.is_empty() {
+            tracing::debug!("no usb devices configured, shutting down usb scans");
+            return Ok(());
+        }
+
         loop {
             tracing::debug!("scanning serial ports");
             let ports = match tokio_serial::available_ports() {

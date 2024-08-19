@@ -1,6 +1,8 @@
-use machine_api::usb;
+use machine_api::usb as crate_usb;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+
+mod usb;
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Config {
@@ -10,6 +12,6 @@ pub struct Config {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type")]
 pub enum MachineConfig {
-    Usb(usb::Config),
+    Usb(crate_usb::Config),
     Noop {},
 }
