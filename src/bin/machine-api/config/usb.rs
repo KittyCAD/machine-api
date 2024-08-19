@@ -21,7 +21,6 @@ impl Config {
 
         tokio::spawn(async move {
             let _ = discovery.discover(machines).await;
-            panic!("usb discovery broke");
         });
 
         Ok(())
