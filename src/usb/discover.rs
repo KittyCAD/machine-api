@@ -84,7 +84,7 @@ impl UsbDiscovery {
                 config_serial = configuration.serial,
                 "checking to see if device matches config"
             );
-            if configuration.matches(&port) {
+            if configuration.matches(port) {
                 tracing::trace!(
                     vid = port.0,
                     pid = port.1,
