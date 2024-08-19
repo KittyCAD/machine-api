@@ -1,10 +1,11 @@
 use super::{Config, MachineConfig};
+use anyhow::Result;
 use machine_api::{noop, slicer, Machine, MachineMakeModel, MachineType, Volume};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
 impl Config {
-    pub async fn create_noop(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) {
+    pub async fn create_noop(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
         for (key, _config) in self
             .machines
             .iter()
@@ -37,5 +38,6 @@ impl Config {
                 )),
             );
         }
+        Ok(())
     }
 }

@@ -1,12 +1,28 @@
 //! This module contains support for printing to moonraker 3D printers.
 
 mod control;
+mod variants;
 
 pub use control::MachineInfo;
+pub use variants::MoonrakerVariant;
 
-use crate::{MachineMakeModel, Volume};
+use crate::{slicer, MachineMakeModel, Volume};
 use anyhow::Result;
 use moonraker::Client as MoonrakerClient;
+use serde::{Deserialize, Serialize};
+
+/// Configuration information for a Moonraker-based endpoint.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Config {
+    /// Slicer to use with this printer
+    pub slicer: slicer::Config,
+
+    /// Specific make/model of Moonraker-based printer.
+    pub variant: MoonrakerVariant,
+
+    /// HTTP URL to use for this printer.
+    pub endpoint: String,
+}
 
 /// Client is a connection to a Moonraker instance.
 pub struct Client {
@@ -24,22 +40,5 @@ impl Client {
             volume,
             client: MoonrakerClient::new(base_url)?,
         })
-    }
-
-    /// Create a handle to a Elegoo Neptune 4.
-    pub fn neptune4(base_url: &str) -> Result<Self> {
-        Self::new(
-            base_url,
-            MachineMakeModel {
-                manufacturer: Some("Elegoo".to_owned()),
-                model: Some("Neptune 4".to_owned()),
-                serial: None,
-            },
-            Some(Volume {
-                width: 255.0,
-                height: 255.0,
-                depth: 255.0,
-            }),
-        )
     }
 }

@@ -1,7 +1,8 @@
-use machine_api::usb as crate_usb;
+use machine_api::{moonraker as crate_moonraker, usb as crate_usb};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+mod moonraker;
 mod noop;
 mod usb;
 
@@ -15,4 +16,5 @@ pub struct Config {
 pub enum MachineConfig {
     Usb(crate_usb::Config),
     Noop {},
+    Moonraker(crate_moonraker::Config),
 }

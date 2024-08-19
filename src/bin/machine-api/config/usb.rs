@@ -1,10 +1,11 @@
 use super::{Config, MachineConfig};
+use anyhow::Result;
 use machine_api::{usb, Discover, Machine};
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
 impl Config {
-    pub async fn spawn_discover_usb(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) {
+    pub async fn spawn_discover_usb(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
         let discovery = usb::UsbDiscovery::new(
             self.machines
                 .iter()
@@ -22,5 +23,7 @@ impl Config {
             let _ = discovery.discover(machines).await;
             panic!("usb discovery broke");
         });
+
+        Ok(())
     }
 }
