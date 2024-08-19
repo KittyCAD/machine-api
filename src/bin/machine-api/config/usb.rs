@@ -8,14 +8,13 @@ impl Config {
         let discovery = usb::UsbDiscovery::new(
             self.machines
                 .iter()
-                .map(|(key, config)| {
+                .filter_map(|(key, config)| {
                     if let MachineConfig::Usb(config) = config {
                         Some((key.clone(), config.clone()))
                     } else {
                         None
                     }
                 })
-                .flatten()
                 .collect::<HashMap<_, _>>(),
         );
 

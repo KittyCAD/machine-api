@@ -8,14 +8,13 @@ impl Config {
         for (key, _config) in self
             .machines
             .iter()
-            .map(|(key, config)| {
+            .filter_map(|(key, config)| {
                 if let MachineConfig::Noop {} = config {
                     Some((key.clone(), config.clone()))
                 } else {
                     None
                 }
             })
-            .flatten()
             .collect::<HashMap<_, _>>()
         {
             machines.write().await.insert(
