@@ -1,7 +1,7 @@
 use dropshot::{endpoint, HttpError, HttpResponseOk, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 use super::Context;
 use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
@@ -112,13 +112,13 @@ impl MachineInfoResponse {
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<HashMap<String, MachineInfoResponse>>, HttpError> {
+) -> Result<HttpResponseOk<Vec<MachineInfoResponse>>, HttpError> {
     tracing::info!("listing machines");
     let ctx = rqctx.context();
-    let mut machines = HashMap::new();
+    let mut machines = vec![];
     for (key, machine) in ctx.machines.read().await.iter() {
         let api_machine = MachineInfoResponse::from_machine_http(key, machine.read().await.get_machine()).await?;
-        machines.insert(key.clone(), api_machine);
+        machines.push(api_machine);
     }
     Ok(HttpResponseOk(machines))
 }

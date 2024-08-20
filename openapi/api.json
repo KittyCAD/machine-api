@@ -294,11 +294,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": {
+                  "items": {
                     "$ref": "#/components/schemas/MachineInfoResponse"
                   },
-                  "title": "Map_of_MachineInfoResponse",
-                  "type": "object"
+                  "title": "Array_of_MachineInfoResponse",
+                  "type": "array"
                 }
               }
             },
