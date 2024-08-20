@@ -88,19 +88,18 @@ usb_devices!(
         Some(0x0002),
         Some("MK3".to_owned()),
         Some(115200)
-    ),
-    // // Prusa Research Mk4
-    // PrusaMk4(
-    //     MachineType::FusedDeposition,
-    //     Some(Volume {
-    //         width: 250.0,
-    //         depth: 210.0,
-    //         height: 220.0,
-    //     }),
-    //     Some(0x2c99),
-    //     Some("Prusa Research".to_owned()),
-    //     Some(0x000d),
-    //     Some("MK4".to_owned()),
-    //     Some(115200)
-    // )
+    ) // // Prusa Research Mk4
+      // PrusaMk4(
+      //     MachineType::FusedDeposition,
+      //     Some(Volume {
+      //         width: 250.0,
+      //         depth: 210.0,
+      //         height: 220.0,
+      //     }),
+      //     Some(0x2c99),
+      //     Some("Prusa Research".to_owned()),
+      //     Some(0x000d),
+      //     Some("MK4".to_owned()),
+      //     Some(115200)
+      // )
 );
