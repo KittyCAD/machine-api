@@ -48,6 +48,9 @@ pub enum ExtraMachineInfoResponse {
 /// Information regarding a connected machine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct MachineInfoResponse {
+    /// Machine Identifier (ID) for the specific Machine.
+    pub id: String,
+
     /// Information regarding the make and model of the attached Machine.
     pub make_model: MachineMakeModel,
 
@@ -72,9 +75,10 @@ pub struct MachineInfoResponse {
 impl MachineInfoResponse {
     /// Create a new API JSON Machine from a Machine struct containing the
     /// handle(s) to actually construct a part.
-    pub(crate) async fn from_machine(machine: &AnyMachine) -> anyhow::Result<Self> {
+    pub(crate) async fn from_machine(id: &str, machine: &AnyMachine) -> anyhow::Result<Self> {
         let machine_info = machine.machine_info().await?;
         Ok(MachineInfoResponse {
+            id: id.to_owned(),
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
@@ -89,8 +93,8 @@ impl MachineInfoResponse {
 
     /// Return an API JSON Machine from a Machine struct, returning a 500
     /// if the machine fails to enumerate.
-    pub(crate) async fn from_machine_http(machine: &AnyMachine) -> Result<MachineInfoResponse, HttpError> {
-        Self::from_machine(machine).await.map_err(|e| {
+    pub(crate) async fn from_machine_http(id: &str, machine: &AnyMachine) -> Result<MachineInfoResponse, HttpError> {
+        Self::from_machine(id, machine).await.map_err(|e| {
             tracing::warn!(
                 error = format!("{:?}", e),
                 "Error while fetching information for an API Machine response"
@@ -113,7 +117,7 @@ pub async fn get_machines(
     let ctx = rqctx.context();
     let mut machines = HashMap::new();
     for (key, machine) in ctx.machines.read().await.iter() {
-        let api_machine = MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?;
+        let api_machine = MachineInfoResponse::from_machine_http(key, machine.read().await.get_machine()).await?;
         machines.insert(key.clone(), api_machine);
     }
     Ok(HttpResponseOk(machines))
@@ -142,7 +146,7 @@ pub async fn get_machine(
     tracing::info!(id = params.id, "finding machine");
     match ctx.machines.read().await.get(&params.id) {
         Some(machine) => Ok(HttpResponseOk(
-            MachineInfoResponse::from_machine_http(machine.read().await.get_machine()).await?,
+            MachineInfoResponse::from_machine_http(&params.id, machine.read().await.get_machine()).await?,
         )),
         None => Err(HttpError::for_not_found(
             None,
