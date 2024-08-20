@@ -43,7 +43,7 @@ impl Drop for TemporaryFile {
     fn drop(&mut self) {
         let path = self.path.clone();
         tokio::spawn(async {
-            eprintln!("removing {}", path.display());
+            tracing::trace!(path = format!("{:?}", path), "removing dropped file");
             let _ = tokio::fs::remove_file(path).await;
         });
     }
