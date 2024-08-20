@@ -156,7 +156,8 @@ pub(crate) async fn print_file(
                 .await
                 .map_err(|e| {
                     tracing::error!("failed to print file: {:?}", e);
-                    HttpError::for_bad_request(None, "failed to print file".to_string())
+                    HttpError::for_bad_request(None, "Failed to print file. This could be because the print is too big for the build plate or too high.".to_string())
+
                 })?;
 
             tracing::info!("result: {:?}", result);

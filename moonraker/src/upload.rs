@@ -1,8 +1,9 @@
+use std::path::{Path, PathBuf};
+
 use anyhow::Result;
 use bytes::Bytes;
 use reqwest::multipart;
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
 
 use super::PrintManager;
 
