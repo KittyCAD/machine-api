@@ -266,9 +266,9 @@ pub struct AmsChangeFilament {
     /// The result of the command.
     pub result: Result,
     /// The error number.
-    pub errorno: i64,
+    pub errorno: Option<i64>,
     /// The target temperature.
-    pub tar_temp: i64,
+    pub tar_temp: Option<i64>,
     /// The target.
     pub target: i64,
     #[serde(flatten)]

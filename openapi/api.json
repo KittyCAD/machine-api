@@ -631,6 +631,7 @@
               "errorno": {
                 "description": "The error number.",
                 "format": "int64",
+                "nullable": true,
                 "type": "integer"
               },
               "reason": {
@@ -661,6 +662,7 @@
               "tar_temp": {
                 "description": "The target temperature.",
                 "format": "int64",
+                "nullable": true,
                 "type": "integer"
               },
               "target": {
@@ -671,10 +673,8 @@
             },
             "required": [
               "command",
-              "errorno",
               "result",
               "sequence_id",
-              "tar_temp",
               "target"
             ],
             "type": "object"
