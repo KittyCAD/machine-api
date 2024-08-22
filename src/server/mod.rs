@@ -1,9 +1,11 @@
 //! REST-ful JSON API
 
 mod context;
+mod cors;
 mod endpoints;
 
 pub use context::Context;
+pub use cors::CorsResponseOk;
 
 use anyhow::{anyhow, Result};
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};

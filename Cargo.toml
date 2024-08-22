@@ -34,7 +34,6 @@ dropshot = "0.10"
 futures = "0.3.28"
 futures-util = "0.3.30"
 git_rev = "0.1.0"
-http = "1.1.0"
 libmdns = "0.8.0"
 mdns = "3.0.0"
 multer = { version = "3.1.0", features = ["json"] }
@@ -61,6 +60,8 @@ tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt",
 uuid = "1.10.0"
 tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 tracing-slog = "0.3.0"
+http = "0.2.9"
+hyper = "0.14"
 
 [dev-dependencies]
 async-trait = "0.1"

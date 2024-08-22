@@ -1,9 +1,9 @@
-use dropshot::{endpoint, HttpError, HttpResponseOk, Path, RequestContext};
+use dropshot::{endpoint, HttpError, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
-use super::Context;
+use super::{Context, CorsResponseOk};
 use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
 
 /// Return the OpenAPI schema in JSON format.
@@ -14,8 +14,8 @@ use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, Mach
 }]
 pub async fn api_get_schema(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<serde_json::Value>, HttpError> {
-    Ok(HttpResponseOk(rqctx.context().schema.clone()))
+) -> Result<CorsResponseOk<serde_json::Value>, HttpError> {
+    Ok(CorsResponseOk(rqctx.context().schema.clone()))
 }
 
 /// The response from the `/ping` endpoint.
@@ -31,8 +31,8 @@ pub struct Pong {
     path = "/ping",
     tags = ["meta"],
 }]
-pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk<Pong>, HttpError> {
-    Ok(HttpResponseOk(Pong {
+pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<CorsResponseOk<Pong>, HttpError> {
+    Ok(CorsResponseOk(Pong {
         message: "pong".to_string(),
     }))
 }
@@ -112,7 +112,7 @@ impl MachineInfoResponse {
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<Vec<MachineInfoResponse>>, HttpError> {
+) -> Result<CorsResponseOk<Vec<MachineInfoResponse>>, HttpError> {
     tracing::info!("listing machines");
     let ctx = rqctx.context();
     let mut machines = vec![];
@@ -120,7 +120,7 @@ pub async fn get_machines(
         let api_machine = MachineInfoResponse::from_machine_http(key, machine.read().await.get_machine()).await?;
         machines.push(api_machine);
     }
-    Ok(HttpResponseOk(machines))
+    Ok(CorsResponseOk(machines))
 }
 
 /// The path parameters for performing operations on an machine.
@@ -139,13 +139,13 @@ pub struct MachinePathParams {
 pub async fn get_machine(
     rqctx: RequestContext<Arc<Context>>,
     path_params: Path<MachinePathParams>,
-) -> Result<HttpResponseOk<MachineInfoResponse>, HttpError> {
+) -> Result<CorsResponseOk<MachineInfoResponse>, HttpError> {
     let params = path_params.into_inner();
     let ctx = rqctx.context();
 
     tracing::info!(id = params.id, "finding machine");
     match ctx.machines.read().await.get(&params.id) {
-        Some(machine) => Ok(HttpResponseOk(
+        Some(machine) => Ok(CorsResponseOk(
             MachineInfoResponse::from_machine_http(&params.id, machine.read().await.get_machine()).await?,
         )),
         None => Err(HttpError::for_not_found(
@@ -174,7 +174,7 @@ pub struct PrintJobResponse {
 pub(crate) async fn print_file(
     rqctx: RequestContext<Arc<Context>>,
     body_param: dropshot::MultipartBody,
-) -> Result<HttpResponseOk<PrintJobResponse>, HttpError> {
+) -> Result<CorsResponseOk<PrintJobResponse>, HttpError> {
     let mut multipart = body_param.content;
     let (file, params) = parse_multipart_print_request(&mut multipart).await?;
     let ctx = rqctx.context().clone();
@@ -223,7 +223,7 @@ pub(crate) async fn print_file(
             HttpError::for_internal_error(format!("{:?}", e))
         })?;
 
-    Ok(HttpResponseOk(PrintJobResponse {
+    Ok(CorsResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
         parameters: params,
     }))
