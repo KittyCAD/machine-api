@@ -208,6 +208,8 @@ pub enum Print {
     PushStatus(PushStatus),
     /// The gcode line.
     GcodeLine(GcodeLine),
+    /// A gcode file.
+    GcodeFile(GcodeFile),
     /// Project file.
     ProjectFile(ProjectFile),
     /// Pause the print.
@@ -231,6 +233,7 @@ impl Print {
             Print::Calibration(calibration) => calibration.sequence_id.clone(),
             Print::PushStatus(push_status) => push_status.sequence_id.clone(),
             Print::GcodeLine(gcode_line) => gcode_line.sequence_id.clone(),
+            Print::GcodeFile(gcode_file) => gcode_file.sequence_id.clone(),
             Print::ProjectFile(project_file) => project_file.sequence_id.clone(),
             Print::Pause(pause) => pause.sequence_id.clone(),
             Print::PrintSpeed(print_speed) => print_speed.sequence_id.clone(),
@@ -266,9 +269,9 @@ pub struct AmsChangeFilament {
     /// The result of the command.
     pub result: Result,
     /// The error number.
-    pub errorno: i64,
+    pub errorno: Option<i64>,
     /// The target temperature.
-    pub tar_temp: i64,
+    pub tar_temp: Option<i64>,
     /// The target.
     pub target: i64,
     #[serde(flatten)]
@@ -305,6 +308,23 @@ pub struct GcodeLine {
     pub source: Option<i64>,
     /// The return code.
     pub return_code: Option<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
+}
+
+/// A gcode file.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct GcodeFile {
+    /// The sequence id.
+    pub sequence_id: SequenceId,
+    /// The reason for the message.
+    pub reason: Reason,
+    /// The result of the command.
+    pub result: Result,
+    /// The param.
+    pub param: Option<String>,
+    /// The print type.
+    pub print_type: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
