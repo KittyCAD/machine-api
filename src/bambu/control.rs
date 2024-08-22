@@ -37,22 +37,27 @@ impl X1Carbon {
 
 impl MachineInfoTrait for PrinterInfo {
     fn machine_type(&self) -> MachineType {
-        unimplemented!();
+        MachineType::Stereolithography
     }
+
     fn make_model(&self) -> MachineMakeModel {
-        unimplemented!();
+        self.make_model.clone()
     }
+
     fn max_part_volume(&self) -> Option<Volume> {
-        unimplemented!();
+        Some(Volume {
+            width: 256.0,
+            height: 256.0,
+            depth: 256.0,
+        })
     }
 }
-
 impl ControlTrait for X1Carbon {
     type Error = anyhow::Error;
     type MachineInfo = PrinterInfo;
 
     async fn machine_info(&self) -> Result<PrinterInfo> {
-        unimplemented!()
+        Ok(self.info.clone())
     }
 
     async fn emergency_stop(&mut self) -> Result<()> {
