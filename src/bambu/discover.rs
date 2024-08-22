@@ -48,9 +48,7 @@ impl X1CarbonDiscover {
 
     fn config_for_name(&self, name: &str) -> Option<(String, Config)> {
         self.config
-            .iter()
-            .filter(|(_, config)| config.name == name)
-            .next()
+            .iter().find(|(_, config)| config.name == name)
             .map(|(k, v)| (k.clone(), v.clone()))
     }
 }
