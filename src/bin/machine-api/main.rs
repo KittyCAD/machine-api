@@ -1,7 +1,9 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use std::str::FromStr;
-use tracing_subscriber::{fmt::format::FmtSpan, FmtSubscriber};
+use opentelemetry::{trace::TracerProvider, KeyValue};
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_sdk::Resource;
+use tracing_subscriber::prelude::*;
 
 mod config;
 use config::Config;
@@ -14,10 +16,6 @@ mod cmd_serve;
 #[command(name = "machine-api")]
 #[command(version = "1.0")]
 struct Cli {
-    /// verbosity of logging output [tracing, debug, info, warn, error]
-    #[arg(long, short, default_value = "info")]
-    log_level: String,
-
     /// Config file to use
     #[arg(long, short, default_value = "machine-api.toml")]
     config: String,
@@ -82,13 +80,54 @@ async fn main() -> Result<()> {
 
     tokio::spawn(async { handle_signals().await });
 
-    let subscriber = FmtSubscriber::builder()
-        .with_writer(std::io::stderr)
-        .with_max_level(tracing::Level::from_str(&cli.log_level).unwrap())
-        .with_span_events(FmtSpan::NEW | FmtSpan::CLOSE)
-        .finish();
+    let level_filter = tracing_subscriber::filter::LevelFilter::DEBUG;
 
-    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+    let otlp_host = match std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT") {
+        Ok(val) => val,
+        Err(_) => "http://localhost:4317".to_string(),
+    };
+
+    let provider = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(opentelemetry_otlp::new_exporter().tonic().with_endpoint(otlp_host))
+        .with_trace_config(
+            opentelemetry_sdk::trace::Config::default()
+                .with_resource(Resource::new(vec![KeyValue::new("service.name", "machine-api")])),
+        )
+        .install_batch(opentelemetry_sdk::runtime::Tokio)?;
+
+    opentelemetry::global::set_tracer_provider(provider.clone());
+    let tracer = provider.tracer("tracing-otel-subscriber");
+
+    let telemetry = tracing_opentelemetry::layer()
+        .with_tracer(tracer)
+        .with_filter(level_filter);
+
+    // Initialize tracing.
+    tracing_subscriber::registry()
+        // .with(tracing_subscriber::EnvFilter::from_default_env())
+        .with(tracing_subscriber::fmt::Layer::default())
+        .with(telemetry)
+        .with({
+            #[cfg(feature = "debug")]
+            {
+                // When running with `debug`, we're going to hook in the console
+                // subscriber for tokio-console.
+                console_subscriber::spawn()
+            }
+            #[cfg(not(feature = "debug"))]
+            {
+                // Under normal cases, we need a blank Layer that doesn't
+                // do anything.
+                tracing_subscriber::layer::Identity::new()
+            }
+        })
+        .init();
+
+    #[cfg(feature = "debug")]
+    {
+        delouse::init()?;
+    }
 
     let cfg: Config = toml::from_str(
         &std::fs::read_to_string(&cli.config)
