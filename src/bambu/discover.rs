@@ -59,6 +59,11 @@ impl DiscoverTrait for X1CarbonDiscover {
     type Error = anyhow::Error;
 
     async fn discover(&self, printers: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+        if self.config.is_empty() {
+            tracing::debug!("no bambu devices configured, shutting down bambu scans");
+            return Ok(());
+        }
+
         tracing::info!("Spawning Bambu discovery task");
 
         // Any interface, port 2021, which is a non-standard port for any kind of UPnP/SSDP protocol.
