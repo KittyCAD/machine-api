@@ -4,12 +4,18 @@ use crate::{
     MachineMakeModel, MachineType, Volume,
 };
 use anyhow::Result;
-use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf};
+use std::sync::Arc;
+use tokio::{
+    io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
+    sync::Mutex,
+    task::JoinHandle,
+};
 use tokio_serial::SerialStream;
 
 /// Handle to a USB based gcode 3D printer.
+#[derive(Clone)]
 pub struct Usb {
-    client: Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>,
+    client: Arc<Mutex<Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>>>,
     machine_info: UsbMachineInfo,
 }
 
@@ -19,7 +25,7 @@ impl Usb {
         let (reader, writer) = tokio::io::split(stream);
 
         Self {
-            client: Client::new(writer, reader),
+            client: Arc::new(Mutex::new(Client::new(writer, reader))),
             machine_info,
         }
     }
@@ -27,7 +33,7 @@ impl Usb {
     async fn wait_for_start(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
-            if let Err(e) = self.client.get_read().read_line(&mut line).await {
+            if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
                 println!("wait_for_start err: {}", e);
             } else {
                 // Use ends with because sometimes we may still have some data left on the buffer
@@ -41,7 +47,7 @@ impl Usb {
     async fn wait_for_ok(&mut self) -> Result<()> {
         loop {
             let mut line = String::new();
-            if let Err(e) = self.client.get_read().read_line(&mut line).await {
+            if let Err(e) = self.client.lock().await.get_read().read_line(&mut line).await {
                 println!("wait_for_ok err: {}", e);
             } else {
                 println!("RCVD: {}", line);
@@ -50,36 +56,6 @@ impl Usb {
                 }
             }
         }
-    }
-
-    async fn send_gcode(&mut self, _job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
-        let mut gcode = gcode.0;
-
-        let mut buf = String::new();
-        gcode.as_mut().read_to_string(&mut buf).await?;
-
-        let lines: Vec<String> = buf
-            .lines() // split the string into an iterator of string slices
-            .map(|s| {
-                let s = String::from(s);
-                match s.split_once(';') {
-                    Some((command, _)) => command.trim().to_string(),
-                    None => s.trim().to_string(),
-                }
-            })
-            .filter(|s| !s.is_empty()) // make each slice into a string
-            .collect();
-
-        self.wait_for_start().await?;
-
-        for line in lines.iter() {
-            let msg = format!("{}\r\n", line);
-            println!("writing: {}", line);
-            self.client.write_all(msg.as_bytes()).await?;
-            self.wait_for_ok().await?;
-        }
-
-        Ok(())
     }
 }
 
@@ -124,11 +100,6 @@ impl UsbMachineInfo {
             baud,
         }
     }
-
-    // /// return the discovery key
-    // pub(crate) fn discovery_key(&self) -> (u16, u16, String) {
-    //     (self.vendor_id, self.product_id, self.make_model.serial.clone().unwrap())
-    // }
 }
 
 impl MachineInfoTrait for UsbMachineInfo {
@@ -154,11 +125,11 @@ impl ControlTrait for Usb {
     }
 
     async fn emergency_stop(&mut self) -> Result<()> {
-        self.client.emergency_stop().await
+        self.client.lock().await.emergency_stop().await
     }
 
     async fn stop(&mut self) -> Result<()> {
-        self.client.stop().await
+        self.client.lock().await.stop().await
     }
 
     async fn healthy(&self) -> bool {
@@ -168,7 +139,40 @@ impl ControlTrait for Usb {
 }
 
 impl GcodeControlTrait for Usb {
-    async fn build(&mut self, job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
-        self.send_gcode(job_name, gcode).await
+    async fn build(&mut self, _job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
+        let mut gcode = gcode.0;
+
+        let mut buf = String::new();
+        gcode.as_mut().read_to_string(&mut buf).await?;
+
+        let lines: Vec<String> = buf
+            .lines() // split the string into an iterator of string slices
+            .map(|s| {
+                let s = String::from(s);
+                match s.split_once(';') {
+                    Some((command, _)) => command.trim().to_string(),
+                    None => s.trim().to_string(),
+                }
+            })
+            .filter(|s| !s.is_empty()) // make each slice into a string
+            .collect();
+
+        self.wait_for_start().await?;
+
+        let self1 = self.clone();
+        let _: JoinHandle<Result<()>> = tokio::spawn(async move {
+            let mut usb = self1;
+            for line in lines.iter() {
+                let msg = format!("{}\r\n", line);
+                println!("writing: {}", line);
+                usb.client.lock().await.write_all(msg.as_bytes()).await?;
+                usb.wait_for_ok().await?;
+            }
+            Ok(())
+        });
+
+        // store a handle to the joinhandle in an option in self or something?
+
+        Ok(())
     }
 }
