@@ -8,7 +8,6 @@ use std::sync::Arc;
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
     sync::Mutex,
-    task::JoinHandle,
 };
 use tokio_serial::SerialStream;
 
@@ -160,7 +159,7 @@ impl GcodeControlTrait for Usb {
         self.wait_for_start().await?;
 
         let self1 = self.clone();
-        let _: JoinHandle<Result<()>> = tokio::spawn(async move {
+        tokio::spawn(async move {
             let mut usb = self1;
             for line in lines.iter() {
                 let msg = format!("{}\r\n", line);
@@ -168,7 +167,7 @@ impl GcodeControlTrait for Usb {
                 usb.client.lock().await.write_all(msg.as_bytes()).await?;
                 usb.wait_for_ok().await?;
             }
-            Ok(())
+            Ok::<(), anyhow::Error>(())
         });
 
         // store a handle to the joinhandle in an option in self or something?
