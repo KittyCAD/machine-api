@@ -2,6 +2,7 @@ use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineType,
 use anyhow::Result;
 
 /// AnyMachine is any supported machine.
+#[non_exhaustive]
 pub enum AnyMachine {
     /// Bambu Labs X1 Carbon
     #[cfg(feature = "bambu")]
@@ -20,6 +21,7 @@ pub enum AnyMachine {
 }
 
 /// AnyMachineInfo is any supported machine's MachineInfo.
+#[non_exhaustive]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AnyMachineInfo {
     /// Bambu Labs X1 Carbon

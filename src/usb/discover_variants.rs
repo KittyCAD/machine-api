@@ -15,6 +15,7 @@ macro_rules! usb_devices {
     ),+) => {
         /// All known USB Machines.
         #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+        #[non_exhaustive]
         pub enum UsbVariant {
             $(
                 /// USB connected machine-api Machine.

@@ -48,6 +48,7 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// A specific file containing a design to be manufactured.
+#[non_exhaustive]
 pub enum DesignFile {
     /// Stl ("stereolithography") 3D export, as seen in `.stl` (`model/stl`)
     /// files.

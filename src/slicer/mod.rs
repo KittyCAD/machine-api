@@ -15,6 +15,7 @@ use anyhow::Result;
 pub use config::Config;
 
 /// All Slicers that are supported by the machine-api.
+#[non_exhaustive]
 pub enum AnySlicer {
     /// Prusa Slicer
     Prusa(prusa::Slicer),

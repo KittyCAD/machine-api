@@ -12,6 +12,7 @@ macro_rules! moonraker_devices {
     ),+) => {
         /// All known Moonraker based Machines.
         #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize)]
+        #[non_exhaustive]
         pub enum MoonrakerVariant {
             $(
                 /// Moonraker connected machine-api Machine.
