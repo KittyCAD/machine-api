@@ -51,6 +51,36 @@ impl Usb {
             }
         }
     }
+
+    async fn send_gcode(&mut self, _job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
+        let mut gcode = gcode.0;
+
+        let mut buf = String::new();
+        gcode.as_mut().read_to_string(&mut buf).await?;
+
+        let lines: Vec<String> = buf
+            .lines() // split the string into an iterator of string slices
+            .map(|s| {
+                let s = String::from(s);
+                match s.split_once(';') {
+                    Some((command, _)) => command.trim().to_string(),
+                    None => s.trim().to_string(),
+                }
+            })
+            .filter(|s| !s.is_empty()) // make each slice into a string
+            .collect();
+
+        self.wait_for_start().await?;
+
+        for line in lines.iter() {
+            let msg = format!("{}\r\n", line);
+            println!("writing: {}", line);
+            self.client.write_all(msg.as_bytes()).await?;
+            self.wait_for_ok().await?;
+        }
+
+        Ok(())
+    }
 }
 
 /// Information regarding a USB connected Machine.
@@ -138,33 +168,7 @@ impl ControlTrait for Usb {
 }
 
 impl GcodeControlTrait for Usb {
-    async fn build(&mut self, _job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
-        let mut gcode = gcode.0;
-
-        let mut buf = String::new();
-        gcode.as_mut().read_to_string(&mut buf).await?;
-
-        let lines: Vec<String> = buf
-            .lines() // split the string into an iterator of string slices
-            .map(|s| {
-                let s = String::from(s);
-                match s.split_once(';') {
-                    Some((command, _)) => command.trim().to_string(),
-                    None => s.trim().to_string(),
-                }
-            })
-            .filter(|s| !s.is_empty()) // make each slice into a string
-            .collect();
-
-        self.wait_for_start().await?;
-
-        for line in lines.iter() {
-            let msg = format!("{}\r\n", line);
-            println!("writing: {}", line);
-            self.client.write_all(msg.as_bytes()).await?;
-            self.wait_for_ok().await?;
-        }
-
-        Ok(())
+    async fn build(&mut self, job_name: &str, gcode: GcodeTemporaryFile) -> Result<()> {
+        self.send_gcode(job_name, gcode).await
     }
 }
