@@ -14,6 +14,7 @@ pub struct Config {
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(tag = "type")]
+#[non_exhaustive]
 pub enum MachineConfig {
     Usb(crate_usb::Config),
     Noop {},

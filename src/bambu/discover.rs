@@ -11,6 +11,7 @@ use tokio::{net::UdpSocket, sync::RwLock};
 
 /// Specific make/model of Bambu device.
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
+#[non_exhaustive]
 pub enum BambuVariant {
     /// Bambu Labs X1 Carbon printer
     X1Carbon,
