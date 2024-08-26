@@ -84,6 +84,7 @@ pub async fn create_server(
         bind_address: s.address.parse()?,
         request_body_max_bytes: 107374182400, // 100 Gigiabytes.
         default_handler_task_mode: dropshot::HandlerTaskMode::CancelOnDisconnect,
+        log_headers: Default::default(),
     };
 
     let logger = opts.create_logger("server");
