@@ -18,6 +18,8 @@ pub enum Command {
     System(System),
     /// A pushing command.
     Pushing(Pushing),
+    /// A camera command.
+    Camera(Camera),
 }
 
 impl Command {
@@ -28,6 +30,7 @@ impl Command {
             Command::Print(print) => print.sequence_id(),
             Command::System(system) => system.sequence_id(),
             Command::Pushing(pushing) => pushing.sequence_id(),
+            Command::Camera(camera) => camera.sequence_id(),
         }
     }
 
@@ -174,6 +177,85 @@ impl Print {
             Print::ProjectFile(ProjectFile { sequence_id, .. }) => sequence_id,
         }
     }
+}
+
+/// A camera command.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case", tag = "command")]
+pub enum Camera {
+    /// Record.
+    #[serde(rename = "ipcam_record_set")]
+    Record(Record),
+    /// Time lapse.
+    #[serde(rename = "ipcam_timelapse")]
+    Timelapse(Timelapse),
+    /// Resolution.
+    #[serde(rename = "ipcam_resolution_set")]
+    Resolution(Resolution),
+}
+
+impl Camera {
+    /// Get the sequence ID.
+    pub fn sequence_id(&self) -> &SequenceId {
+        match self {
+            Camera::Record(Record { sequence_id, .. }) => sequence_id,
+            Camera::Timelapse(Timelapse { sequence_id, .. }) => sequence_id,
+            Camera::Resolution(Resolution { sequence_id, .. }) => sequence_id,
+        }
+    }
+}
+
+/// The payload for recording.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Record {
+    /// The sequence ID.
+    pub sequence_id: SequenceId,
+    /// Control.
+    pub control: RecordControl,
+}
+
+/// The payload for time lapsing.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Timelapse {
+    /// The sequence ID.
+    pub sequence_id: SequenceId,
+    /// Control.
+    pub control: RecordControl,
+}
+
+/// The payload for setting the resolution.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Resolution {
+    /// The sequence ID.
+    pub sequence_id: SequenceId,
+    /// The resolution.
+    pub resolution: ResolutionType,
+}
+
+/// The resolution type.
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq, JsonSchema)]
+#[display(style = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum ResolutionType {
+    /// 1080p.
+    #[serde(rename = "1080p")]
+    #[display("1080p")]
+    P1080,
+    /// 720p.
+    #[serde(rename = "720p")]
+    #[display("720p")]
+    P720,
+}
+
+/// The control for recording.
+#[derive(Debug, Clone, Serialize, Deserialize, Display, FromStr, PartialEq, Eq, JsonSchema)]
+#[display(style = "snake_case")]
+#[serde(rename_all = "snake_case")]
+pub enum RecordControl {
+    /// Enable recording.
+    Enable,
+    /// Disable recording.
+    Disable,
 }
 
 /// A system command.
