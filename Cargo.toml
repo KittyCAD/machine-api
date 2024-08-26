@@ -30,7 +30,7 @@ clap = { version = "4.5.16", features = ["cargo", "derive", "env", "unicode"] }
 console-subscriber = { version = "0", optional = true }
 dashmap = "6.0.1"
 delouse = { version = "0.1", optional = true }
-dropshot = "0.10"
+dropshot = "0.11"
 futures = "0.3.28"
 futures-util = "0.3.30"
 git_rev = "0.1.0"
