@@ -85,6 +85,9 @@ impl Slicer {
         // Find the orcaslicer executable path.
         let orca_slicer_path = find_orca_slicer()?;
 
+        println!("orca_slicer_path: {:?}", orca_slicer_path);
+        println!("args: {:?}", args);
+
         let output = Command::new(orca_slicer_path)
             .args(&args)
             .output()

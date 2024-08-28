@@ -27,10 +27,12 @@ impl Config {
         Ok(match self {
             Self::Prusa { config } => {
                 let path: PathBuf = config.parse()?;
+                let path = std::fs::canonicalize(&path)?;
                 prusa::Slicer::new(&path).into()
             }
             Self::Orca { config } => {
                 let path: PathBuf = config.parse()?;
+                let path = std::fs::canonicalize(&path)?;
                 orca::Slicer::new(&path).into()
             }
         })

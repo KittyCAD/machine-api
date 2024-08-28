@@ -220,7 +220,25 @@ pub(crate) async fn print_file(
         .await
         .map_err(|e| {
             tracing::warn!(error = format!("{:?}", e), "failed to build file");
-            HttpError::for_internal_error(format!("{:?}", e))
+            // Get the last 100 characters of the error message
+            let mut error_message = format!("{:?}", e);
+            if error_message.len() > 100 {
+                error_message = error_message
+                    .chars()
+                    .rev()
+                    .take(100)
+                    .collect::<String>()
+                    .chars()
+                    .rev()
+                    .collect::<String>();
+            }
+            HttpError::for_bad_request(
+                None,
+                format!(
+                    "Your print failed, it might be too big for the slicer or something else. {}",
+                    error_message
+                ),
+            )
         })?;
 
     Ok(CorsResponseOk(PrintJobResponse {
