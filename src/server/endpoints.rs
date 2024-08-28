@@ -67,7 +67,7 @@ pub struct MachineInfoResponse {
     /// What "close" means is up to you!
     pub max_part_volume: Option<Volume>,
 
-    /// Additional, per-machine information which is specfic to the
+    /// Additional, per-machine information which is specific to the
     /// underlying machine type.
     pub extra: Option<ExtraMachineInfoResponse>,
 }
