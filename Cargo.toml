@@ -6,12 +6,24 @@ edition = "2021"
 [profile.dev]
 panic = "abort"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[workspace]
+members = [
+	"bambulabs",
+	"moonraker"
+]
+
+[features]
+default = ["bambu", "formlabs", "moonraker", "serial"]
+debug = ["dep:delouse", "dep:console-subscriber"]
+bambu = ["dep:bambulabs"]
+formlabs = []
+serial = ["dep:tokio-serial"]
+moonraker = ["dep:moonraker"]
 
 [dependencies]
 anyhow = "1.0.86"
 async-trait = "0.1.81"
-bambulabs = { path = "bambulabs" }
+bambulabs = { path = "bambulabs", optional = true }
 bytes = "1.7.1"
 chrono = { version = "0.4", default-features = false, features = ["serde"] }
 clap = { version = "4.5.16", features = ["cargo", "derive", "env", "unicode"] }
@@ -22,10 +34,10 @@ dropshot = "0.11"
 futures = "0.3.28"
 futures-util = "0.3.30"
 git_rev = "0.1.0"
-http = "1.1.0"
-libmdns = "0.9.1"
+libmdns = "0.8.0"
 mdns = "3.0.0"
 multer = { version = "3.1.0", features = ["json"] }
+moonraker = { path = "moonraker", optional = true }
 opentelemetry = "0.24.0"
 opentelemetry-otlp = "0.17.0"
 opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
@@ -33,7 +45,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 schemars = { version = "0.8", features = ["chrono", "uuid1", "bigdecimal"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-serialport = "4.5.0"
+signal-hook = "0.3"
 slog = "2.7.0"
 slog-async = "2.7.0"
 slog-json = "2.6.1"
@@ -46,6 +58,10 @@ tracing = "0.1"
 tracing-opentelemetry = "0.25.0"
 tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.10.0"
+tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
+tracing-slog = "0.3.0"
+http = "0.2.9"
+hyper = "0.14"
 
 [dev-dependencies]
 async-trait = "0.1"
@@ -56,13 +72,3 @@ pretty_assertions = "1"
 rand = "0.8"
 test-context = "0.3.0"
 testresult = "0.4.1"
-
-[features]
-debug = ["dep:delouse", "dep:console-subscriber"]
-
-[workspace]
-members = [
-	"bambulabs",
-	"moonraker"
-]
-

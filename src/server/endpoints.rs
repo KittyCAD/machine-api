@@ -1,14 +1,12 @@
-use std::{collections::HashMap, sync::Arc};
-
-use dropshot::{endpoint, HttpError, HttpResponseOk, Path, RequestContext};
+use dropshot::{endpoint, HttpError, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::sync::Arc;
 
-use crate::{print_manager::PrintJob, server::context::Context};
+use super::{Context, CorsResponseOk};
+use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
 
-/**
- * Return the OpenAPI schema in JSON format.
- */
+/// Return the OpenAPI schema in JSON format.
 #[endpoint {
     method = GET,
     path = "/",
@@ -16,8 +14,8 @@ use crate::{print_manager::PrintJob, server::context::Context};
 }]
 pub async fn api_get_schema(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<serde_json::Value>, HttpError> {
-    Ok(HttpResponseOk(rqctx.context().schema.clone()))
+) -> Result<CorsResponseOk<serde_json::Value>, HttpError> {
+    Ok(CorsResponseOk(rqctx.context().schema.clone()))
 }
 
 /// The response from the `/ping` endpoint.
@@ -33,13 +31,80 @@ pub struct Pong {
     path = "/ping",
     tags = ["meta"],
 }]
-pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk<Pong>, HttpError> {
-    Ok(HttpResponseOk(Pong {
+pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<CorsResponseOk<Pong>, HttpError> {
+    Ok(CorsResponseOk(Pong {
         message: "pong".to_string(),
     }))
 }
 
-/** List available machines and their statuses */
+/// Extra machine-specific information regarding a connected machine.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub enum ExtraMachineInfoResponse {
+    Moonraker {},
+    Usb {},
+    Bambu {},
+}
+
+/// Information regarding a connected machine.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+pub struct MachineInfoResponse {
+    /// Machine Identifier (ID) for the specific Machine.
+    pub id: String,
+
+    /// Information regarding the make and model of the attached Machine.
+    pub make_model: MachineMakeModel,
+
+    /// Information regarding the method of manufacture.
+    pub machine_type: MachineType,
+
+    /// Maximum part size that can be manufactured by this device. This may
+    /// be some sort of theoretical upper bound, getting close to this limit
+    /// seems like maybe a bad idea.
+    ///
+    /// This may be `None` if the maximum size is not knowable by the
+    /// Machine API.
+    ///
+    /// What "close" means is up to you!
+    pub max_part_volume: Option<Volume>,
+
+    /// Additional, per-machine information which is specfic to the
+    /// underlying machine type.
+    pub extra: Option<ExtraMachineInfoResponse>,
+}
+
+impl MachineInfoResponse {
+    /// Create a new API JSON Machine from a Machine struct containing the
+    /// handle(s) to actually construct a part.
+    pub(crate) async fn from_machine(id: &str, machine: &AnyMachine) -> anyhow::Result<Self> {
+        let machine_info = machine.machine_info().await?;
+        Ok(MachineInfoResponse {
+            id: id.to_owned(),
+            make_model: machine_info.make_model(),
+            machine_type: machine_info.machine_type(),
+            max_part_volume: machine_info.max_part_volume(),
+            extra: match machine {
+                AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
+                AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
+                AnyMachine::BambuX1Carbon(_) => Some(ExtraMachineInfoResponse::Bambu {}),
+                _ => None,
+            },
+        })
+    }
+
+    /// Return an API JSON Machine from a Machine struct, returning a 500
+    /// if the machine fails to enumerate.
+    pub(crate) async fn from_machine_http(id: &str, machine: &AnyMachine) -> Result<MachineInfoResponse, HttpError> {
+        Self::from_machine(id, machine).await.map_err(|e| {
+            tracing::warn!(
+                error = format!("{:?}", e),
+                "Error while fetching information for an API Machine response"
+            );
+            HttpError::for_internal_error(format!("{:?}", e))
+        })
+    }
+}
+
+/// List available machines and their statuses
 #[endpoint {
     method = GET,
     path = "/machines",
@@ -47,13 +112,15 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<HttpResponseOk
 }]
 pub async fn get_machines(
     rqctx: RequestContext<Arc<Context>>,
-) -> Result<HttpResponseOk<HashMap<String, crate::machine::Machine>>, HttpError> {
+) -> Result<CorsResponseOk<Vec<MachineInfoResponse>>, HttpError> {
+    tracing::info!("listing machines");
     let ctx = rqctx.context();
-    let machines = ctx.list_machines().map_err(|e| {
-        tracing::error!("failed to list machines: {:?}", e);
-        HttpError::for_bad_request(None, "failed to list machines".to_string())
-    })?;
-    Ok(HttpResponseOk(machines))
+    let mut machines = vec![];
+    for (key, machine) in ctx.machines.read().await.iter() {
+        let api_machine = MachineInfoResponse::from_machine_http(key, machine.read().await.get_machine()).await?;
+        machines.push(api_machine);
+    }
+    Ok(CorsResponseOk(machines))
 }
 
 /// The path parameters for performing operations on an machine.
@@ -63,7 +130,7 @@ pub struct MachinePathParams {
     pub id: String,
 }
 
-/** Get the status of a specific machine */
+/// Get the status of a specific machine
 #[endpoint {
     method = GET,
     path = "/machines/{id}",
@@ -72,26 +139,20 @@ pub struct MachinePathParams {
 pub async fn get_machine(
     rqctx: RequestContext<Arc<Context>>,
     path_params: Path<MachinePathParams>,
-) -> Result<HttpResponseOk<crate::machine::Message>, HttpError> {
+) -> Result<CorsResponseOk<MachineInfoResponse>, HttpError> {
     let params = path_params.into_inner();
     let ctx = rqctx.context();
-    let machine = ctx
-        .find_machine_handle_by_id(&params.id)
-        .map_err(|e| {
-            tracing::error!("failed to find machine by id: {:?}", e);
-            HttpError::for_bad_request(None, format!("machine not found by id: {:?}", params.id))
-        })?
-        .ok_or_else(|| {
-            tracing::error!("machine not found by id: {:?}", params.id);
-            HttpError::for_not_found(None, format!("machine not found by id: {:?}", params.id))
-        })?;
 
-    let message = machine.status().await.map_err(|e| {
-        tracing::error!("failed to get machine status: {:?}", e);
-        HttpError::for_bad_request(None, "failed to get machine status".to_string())
-    })?;
-
-    Ok(HttpResponseOk(message))
+    tracing::info!(id = params.id, "finding machine");
+    match ctx.machines.read().await.get(&params.id) {
+        Some(machine) => Ok(CorsResponseOk(
+            MachineInfoResponse::from_machine_http(&params.id, machine.read().await.get_machine()).await?,
+        )),
+        None => Err(HttpError::for_not_found(
+            None,
+            format!("machine not found by id: {:?}", &params.id),
+        )),
+    }
 }
 
 /// The response from the `/print` endpoint.
@@ -113,58 +174,56 @@ pub struct PrintJobResponse {
 pub(crate) async fn print_file(
     rqctx: RequestContext<Arc<Context>>,
     body_param: dropshot::MultipartBody,
-) -> Result<HttpResponseOk<PrintJobResponse>, HttpError> {
+) -> Result<CorsResponseOk<PrintJobResponse>, HttpError> {
     let mut multipart = body_param.content;
     let (file, params) = parse_multipart_print_request(&mut multipart).await?;
     let ctx = rqctx.context().clone();
     let machine_id = params.machine_id.clone();
     let job_id = uuid::Uuid::new_v4();
+    let job_name = &params.job_name;
 
-    let machine = ctx
-        .find_machine_handle_by_id(&machine_id)
-        .map_err(|e| {
-            tracing::error!("failed to find machine by id: {:?}", e);
-            HttpError::for_bad_request(None, format!("machine not found by id: {:?}", machine_id))
-        })?
-        .ok_or_else(|| {
-            tracing::error!("machine not found by id: {:?}", machine_id);
-            HttpError::for_not_found(None, format!("machine not found by id: {:?}", machine_id))
-        })?;
-    let filepath = std::env::temp_dir().join(format!("{}-{}", job_id, file.file_name.unwrap_or("file".to_string())));
+    let machines = ctx.machines.read().await;
+    let machine = match machines.get(&machine_id) {
+        Some(machine) => machine,
+        None => {
+            tracing::warn!(id = machine_id, "machine not found");
+            return Err(HttpError::for_not_found(
+                None,
+                format!("machine not found by id: {:?}", machine_id),
+            ));
+        }
+    };
+
+    let filepath = std::env::temp_dir().join(format!(
+        "{}_{}",
+        job_id.simple(),
+        file.file_name.unwrap_or("file".to_string())
+    ));
+    tracing::info!(path = format!("{:?}", filepath), "Writing file to disk");
+
     // TODO: we likely want to use the kittycad api to convert the file to the right format if its
     // not already an stl file.
+
     tokio::fs::write(&filepath, file.content).await.map_err(|e| {
-        tracing::error!("failed to write stl file: {:?}", e);
+        tracing::error!(error = format!("{:?}", e), "failed to write stl file");
         HttpError::for_bad_request(None, "failed to write stl file".to_string())
     })?;
 
-    match machine {
-        crate::machine::MachineHandle::UsbPrinter(_) => {
-            let print_job = PrintJob {
-                file: filepath,
-                machine,
-                job_name: params.job_name.to_string(),
-            };
-            let handle = print_job.spawn().await;
-            let mut active_jobs = ctx.active_jobs.lock().await;
-            active_jobs.insert(job_id.to_string(), handle);
-        }
-        crate::machine::MachineHandle::NetworkPrinter(printer) => {
-            let result = printer
-                .client
-                .slice_and_print(&params.job_name, &filepath)
-                .await
-                .map_err(|e| {
-                    tracing::error!("failed to print file: {:?}", e);
-                    HttpError::for_bad_request(None, "Failed to print file. This could be because the print is too big for the build plate or too high.".to_string())
+    let tmpfile = TemporaryFile::new(&filepath)
+        .await
+        .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
 
-                })?;
+    machine
+        .write()
+        .await
+        .build(job_name, &DesignFile::Stl(tmpfile.path().to_path_buf()))
+        .await
+        .map_err(|e| {
+            tracing::warn!(error = format!("{:?}", e), "failed to build file");
+            HttpError::for_internal_error(format!("{:?}", e))
+        })?;
 
-            tracing::info!("result: {:?}", result);
-        }
-    }
-
-    Ok(HttpResponseOk(PrintJobResponse {
+    Ok(CorsResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),
         parameters: params,
     }))

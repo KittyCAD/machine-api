@@ -1,10 +1,10 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
-use super::PrintManager;
+use super::Client;
 
 /// Temperature readings from a heated element controlled by klipper.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct ControlledTemperatureReadings {
     /// Observed temperatures, from oldest (0th) to latest (last)
     pub temperatures: Vec<f64>,
@@ -17,7 +17,7 @@ pub struct ControlledTemperatureReadings {
 }
 
 /// TemperatureReadings as reported by klipper.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct TemperatureReadings {
     /// Information about the 3D printer extruder head.
     pub extruder: ControlledTemperatureReadings,
@@ -26,14 +26,15 @@ pub struct TemperatureReadings {
     pub heater_bed: Option<ControlledTemperatureReadings>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 struct TemperatureReadingsWrapper {
     result: TemperatureReadings,
 }
 
-impl PrintManager {
+impl Client {
     /// Print an uploaded file.
     pub async fn temperatures(&self) -> Result<TemperatureReadings> {
+        tracing::debug!(base = self.url_base, "requesting temperatures");
         let client = reqwest::Client::new();
 
         let resp: TemperatureReadingsWrapper = client

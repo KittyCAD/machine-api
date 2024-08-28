@@ -1,23 +1,35 @@
-use std::path::PathBuf;
+//! Support for the orca Slicer.
 
 use anyhow::{Context, Result};
+use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
-use crate::slicer::Slicer;
+use crate::{
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, TemporaryFile,
+    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+};
 
-pub struct OrcaSlicer {
+/// Handle to invoke the Orca Slicer with some specific machine-specific config.
+pub struct Slicer {
     config: PathBuf,
 }
 
-impl OrcaSlicer {
-    pub fn new(config: PathBuf) -> Self {
-        Self { config }
+impl Slicer {
+    /// Create a new [Slicer], which will invoke the Orca Slicer binary
+    /// with the specified configuration file.
+    pub fn new(config: &Path) -> Self {
+        Self {
+            config: config.to_path_buf(),
+        }
     }
-}
 
-#[async_trait::async_trait]
-impl Slicer for OrcaSlicer {
-    async fn slice(&self, file: &std::path::Path) -> Result<std::path::PathBuf> {
+    /// Generate 3MF or gcode from some input file.
+    async fn generate_via_cli(
+        &self,
+        output_flag: &str,
+        output_extension: &str,
+        design_file: &DesignFile,
+    ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
             anyhow::bail!(
@@ -26,8 +38,12 @@ impl Slicer for OrcaSlicer {
             );
         }
 
+        let (file_path, _file_type) = match design_file {
+            DesignFile::Stl(path) => (path, "stl"),
+        };
+
         let uid = uuid::Uuid::new_v4();
-        let gcode_path = std::env::temp_dir().join(format!("{}.3mf", uid));
+        let output_path = std::env::temp_dir().join(format!("{}.{}", uid, output_extension));
         let process_config = self
             .config
             .join("process.json")
@@ -58,13 +74,14 @@ impl Slicer for OrcaSlicer {
             "0".to_string(),
             "--orient".to_string(),
             "1".to_string(),
-            "--export-3mf".to_string(),
-            gcode_path
+            output_flag.to_string(),
+            output_path
                 .to_str()
-                .ok_or_else(|| anyhow::anyhow!("Invalid output G-code path: {}", gcode_path.display()))?
+                .ok_or_else(|| anyhow::anyhow!("Invalid slicer output path: {}", output_path.display()))?
                 .to_string(),
-            file.to_str()
-                .ok_or_else(|| anyhow::anyhow!("Invalid original file path: {}", file.display()))?
+            file_path
+                .to_str()
+                .ok_or_else(|| anyhow::anyhow!("Invalid original file path: {}", file_path.display()))?
                 .to_string(),
         ];
 
@@ -85,43 +102,65 @@ impl Slicer for OrcaSlicer {
         }
 
         // Make sure the G-code file was created.
-        if !gcode_path.exists() {
-            anyhow::bail!("Failed to create G-code file");
+        if !output_path.exists() {
+            anyhow::bail!("Failed to create output file");
         }
 
-        Ok(gcode_path.to_path_buf())
+        TemporaryFile::new(&output_path).await
+    }
+}
+
+impl GcodeSlicerTrait for Slicer {
+    type Error = anyhow::Error;
+
+    /// Generate gcode from some input file.
+    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
+        Ok(GcodeTemporaryFile(
+            self.generate_via_cli("--export-gcode", "gcode", design_file).await?,
+        ))
+    }
+}
+
+impl ThreeMfSlicerTrait for Slicer {
+    type Error = anyhow::Error;
+
+    /// Generate gcode from some input file.
+    async fn generate(&self, design_file: &DesignFile) -> Result<ThreeMfTemporaryFile> {
+        Ok(ThreeMfTemporaryFile(
+            self.generate_via_cli("--export-3mf", "3mf", design_file).await?,
+        ))
     }
 }
 
 // Find the orcaslicer executable path on macOS.
 #[cfg(target_os = "macos")]
-fn find_orca_slicer() -> anyhow::Result<PathBuf> {
-    let app_path = std::path::PathBuf::from("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer");
+fn find_orca_slicer() -> Result<PathBuf> {
+    let app_path = PathBuf::from("/Applications/Slicer.app/Contents/MacOS/Slicer");
     if app_path.exists() {
         Ok(app_path)
     } else {
-        anyhow::bail!("OrcaSlicer not found")
+        anyhow::bail!("Slicer not found")
     }
 }
 
 // Find the orcaslicer executable path on Windows.
 #[cfg(target_os = "windows")]
-fn find_orca_slicer() -> anyhow::Result<PathBuf> {
-    let app_path = std::path::PathBuf::from("C:\\Program Files\\OrcaSlicer\\orca-slicer.exe");
+fn find_orca_slicer() -> Result<PathBuf> {
+    let app_path = PathBuf::from("C:\\Program Files\\Slicer\\orca-slicer.exe");
     if app_path.exists() {
         Ok(app_path)
     } else {
-        anyhow::bail!("OrcaSlicer not found")
+        anyhow::bail!("Slicer not found")
     }
 }
 
 // Find the orcaslicer executable path on Linux.
 #[cfg(target_os = "linux")]
-fn find_orca_slicer() -> anyhow::Result<PathBuf> {
-    let app_path = std::path::PathBuf::from("/usr/bin/orca-slicer");
+fn find_orca_slicer() -> Result<PathBuf> {
+    let app_path = PathBuf::from("/usr/bin/orca-slicer");
     if app_path.exists() {
         Ok(app_path)
     } else {
-        anyhow::bail!("OrcaSlicer not found")
+        anyhow::bail!("Slicer not found")
     }
 }

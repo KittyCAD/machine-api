@@ -1,110 +1,69 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
+use anyhow::Result;
 
-use crate::{network_printer::NetworkPrinterInfo, usb_printer::UsbPrinterInfo};
-
-/// Details for a 3d printer connected over USB.
-#[derive(Debug, Clone, JsonSchema, Serialize, Deserialize)]
-#[serde(tag = "type")]
-pub enum Machine {
-    UsbPrinter(UsbPrinterInfo),
-    NetworkPrinter(NetworkPrinterInfo),
-}
-
-impl From<UsbPrinterInfo> for Machine {
-    fn from(printer: UsbPrinterInfo) -> Self {
-        Machine::UsbPrinter(printer)
-    }
-}
-
-impl From<NetworkPrinterInfo> for Machine {
-    fn from(printer: NetworkPrinterInfo) -> Self {
-        Machine::NetworkPrinter(printer)
-    }
+/// Create a handle to a specific Machine which is capable of producing a 3D
+/// object in the real world from a specific [crate::DesignFile].
+pub struct Machine {
+    machine: AnyMachine,
+    slicer: AnySlicer,
 }
 
 impl Machine {
-    pub fn id(&self) -> String {
-        match self {
-            Machine::UsbPrinter(printer) => printer.id.clone(),
-            Machine::NetworkPrinter(printer) => printer.hostname.clone().unwrap_or_else(|| printer.ip.to_string()),
-        }
-    }
-}
-
-/// A handle for machines with their client traits.
-#[derive(Clone)]
-pub enum MachineHandle {
-    UsbPrinter(crate::usb_printer::UsbPrinterInfo),
-    NetworkPrinter(crate::network_printer::NetworkPrinterHandle),
-}
-
-impl MachineHandle {
-    pub async fn slice_and_print(&self, job_name: &str, file: &std::path::Path) -> anyhow::Result<Message> {
-        match self {
-            MachineHandle::UsbPrinter(printer) => {
-                let mut machine = crate::usb_printer::UsbPrinter::new(printer.clone());
-                let result = machine.slice_and_print(file).await?;
-                Ok(result.into())
-            }
-            MachineHandle::NetworkPrinter(printer) => {
-                let result = printer.client.slice_and_print(job_name, file).await?;
-                Ok(result.into())
-            }
+    /// Create a new [Machine] from a specific [AnyMachine] control channel,
+    /// and a specific [AnySlicer] slicer.
+    pub fn new<MachineT, SlicerT>(machine: MachineT, slicer: SlicerT) -> Self
+    where
+        MachineT: Into<AnyMachine>,
+        SlicerT: Into<AnySlicer>,
+    {
+        Self {
+            machine: machine.into(),
+            slicer: slicer.into(),
         }
     }
 
-    pub async fn status(&self) -> anyhow::Result<Message> {
-        match self {
-            MachineHandle::UsbPrinter(printer) => {
-                let machine = crate::usb_printer::UsbPrinter::new(printer.clone());
-                let status = machine.status()?;
-                Ok(status.into())
+    /// Return the underlying [AnyMachine] enum.
+    pub fn get_machine(&self) -> &AnyMachine {
+        &self.machine
+    }
+
+    /// Return the underlying [AnyMachine] enum as a mutable borrow.
+    pub fn get_machine_mut(&mut self) -> &mut AnyMachine {
+        &mut self.machine
+    }
+
+    /// Return the underlying [AnySlicer] enum.
+    pub fn get_slicer(&self) -> &AnySlicer {
+        &self.slicer
+    }
+
+    /// Return the underlying [AnySlicer] enum as a mutable borrow.
+    pub fn get_slicer_mut(&mut self) -> &mut AnySlicer {
+        &mut self.slicer
+    }
+
+    /// Take a specific [DesignFile], and produce a real-world 3D object
+    /// from it.
+    pub async fn build(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
+        tracing::debug!(name = job_name, "building");
+
+        match &mut self.machine {
+            AnyMachine::BambuX1Carbon(machine) => {
+                let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
+                ThreeMfControl::build(machine, job_name, three_mf).await
             }
-            MachineHandle::NetworkPrinter(printer) => {
-                let status = printer.client.status().await?;
-                Ok(status.into())
+            AnyMachine::Moonraker(machine) => {
+                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                GcodeControl::build(machine, job_name, gcode).await
+            }
+            AnyMachine::Usb(machine) => {
+                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                GcodeControl::build(machine, job_name, gcode).await
+            }
+            AnyMachine::Noop(_) => {
+                // why even bother ;)
+                Ok(())
             }
         }
-    }
-}
-
-impl From<MachineHandle> for Machine {
-    fn from(handle: MachineHandle) -> Self {
-        match handle {
-            MachineHandle::UsbPrinter(printer) => Machine::UsbPrinter(printer),
-            MachineHandle::NetworkPrinter(printer) => Machine::NetworkPrinter(printer.info),
-        }
-    }
-}
-
-impl From<UsbPrinterInfo> for MachineHandle {
-    fn from(printer: UsbPrinterInfo) -> Self {
-        MachineHandle::UsbPrinter(printer)
-    }
-}
-
-impl From<crate::network_printer::NetworkPrinterHandle> for MachineHandle {
-    fn from(printer: crate::network_printer::NetworkPrinterHandle) -> Self {
-        MachineHandle::NetworkPrinter(printer)
-    }
-}
-
-/// A message from a machine.
-#[derive(Clone, Serialize, Deserialize, JsonSchema, Debug)]
-pub enum Message {
-    UsbPrinter(crate::usb_printer::Message),
-    NetworkPrinter(crate::network_printer::Message),
-}
-
-impl From<crate::usb_printer::Message> for Message {
-    fn from(msg: crate::usb_printer::Message) -> Self {
-        Message::UsbPrinter(msg)
-    }
-}
-
-impl From<crate::network_printer::Message> for Message {
-    fn from(msg: crate::network_printer::Message) -> Self {
-        Message::NetworkPrinter(msg)
     }
 }

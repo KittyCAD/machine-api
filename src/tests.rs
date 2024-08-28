@@ -1,16 +1,17 @@
-use std::{collections::BTreeMap, sync::Arc};
-
 use anyhow::{Context, Result};
 use expectorate::assert_contents;
 use pretty_assertions::assert_eq;
+use std::{
+    collections::{BTreeMap, HashMap},
+    sync::Arc,
+};
 use test_context::{test_context, AsyncTestContext};
 use testresult::TestResult;
-
-use crate::config::Config;
+use tokio::sync::RwLock;
 
 struct ServerContext {
-    config: crate::Server,
-    server: dropshot::HttpServer<Arc<crate::server::context::Context>>,
+    bind: String,
+    server: dropshot::HttpServer<Arc<crate::server::Context>>,
     client: reqwest::Client,
 }
 
@@ -18,29 +19,16 @@ impl ServerContext {
     pub async fn new() -> Result<Self> {
         // Find an unused port.
         let port = portpicker::pick_unused_port().ok_or_else(|| anyhow::anyhow!("no port available"))?;
-        let config = crate::Server {
-            address: format!("127.0.0.1:{}", port),
-        };
+        let bind = format!("127.0.0.1:{}", port);
 
         // Create the server in debug mode.
-        let config_file: Config = Default::default();
-        let (server, _context) = crate::server::create_server(
-            &config,
-            &crate::Opts {
-                debug: true,
-                json: false,
-                subcmd: crate::SubCommand::Server(config.clone()),
-                config: Default::default(),
-            },
-            &config_file,
-        )
-        .await?;
+        let (server, _context) = crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new()))).await?;
 
         // Sleep for 5 seconds while the server is comes up.
         std::thread::sleep(std::time::Duration::from_secs(5));
 
         Ok(ServerContext {
-            config,
+            bind,
             server,
             client: reqwest::Client::new(),
         })
@@ -55,7 +43,7 @@ impl ServerContext {
     }
 
     pub fn get_url(&self, path: &str) -> String {
-        format!("http://{}/{}", self.config.address, path.trim_start_matches('/'))
+        format!("http://{}/{}", self.bind, path.trim_start_matches('/'))
     }
 }
 
