@@ -139,7 +139,7 @@ fn find_prusa_slicer() -> Result<PathBuf> {
 // Find the prusaslicer executable path on Windows.
 #[cfg(target_os = "windows")]
 fn find_prusa_slicer() -> Result<PathBuf> {
-    let app_path = PathBuf::from("C:\\Program Files\\Slicer\\Slicer.exe");
+    let app_path = PathBuf::from("C:\\Program Files\\PrusaSlicer\\PrusaSlicer.exe");
     if app_path.exists() {
         Ok(app_path)
     } else {
