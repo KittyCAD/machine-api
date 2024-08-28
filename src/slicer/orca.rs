@@ -4,10 +4,7 @@ use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
-use crate::{
-    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, TemporaryFile,
-    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
-};
+use crate::{DesignFile, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile};
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
 pub struct Slicer {
@@ -23,7 +20,7 @@ impl Slicer {
         }
     }
 
-    /// Generate 3MF or gcode from some input file.
+    /// Generate 3MF from some input file.
     async fn generate_via_cli(
         &self,
         output_flag: &str,
@@ -107,17 +104,6 @@ impl Slicer {
         }
 
         TemporaryFile::new(&output_path).await
-    }
-}
-
-impl GcodeSlicerTrait for Slicer {
-    type Error = anyhow::Error;
-
-    /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
-        Ok(GcodeTemporaryFile(
-            self.generate_via_cli("--export-gcode", "gcode", design_file).await?,
-        ))
     }
 }
 

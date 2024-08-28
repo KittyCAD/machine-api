@@ -52,8 +52,8 @@ impl GcodeSlicerTrait for AnySlicer {
     async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
         match self {
             Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
-            Self::Orca(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
             Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
+            _ => Err(anyhow::anyhow!("slicer doesn't support 3mf")),
         }
     }
 }
