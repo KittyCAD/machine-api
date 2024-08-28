@@ -135,7 +135,7 @@ impl ThreeMfSlicerTrait for Slicer {
 // Find the orcaslicer executable path on macOS.
 #[cfg(target_os = "macos")]
 fn find_orca_slicer() -> Result<PathBuf> {
-    let app_path = PathBuf::from("/Applications/Slicer.app/Contents/MacOS/Slicer");
+    let app_path = PathBuf::from("/Applications/OrcaSlicer.app/Contents/MacOS/OrcaSlicer");
     if app_path.exists() {
         Ok(app_path)
     } else {
