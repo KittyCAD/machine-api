@@ -22,6 +22,14 @@ struct Cli {
 
     #[command(subcommand)]
     command: Commands,
+
+    /// Print debug info
+    #[clap(short, long)]
+    pub debug: bool,
+
+    /// Print logs as json
+    #[clap(short, long)]
+    pub json: bool,
 }
 
 #[derive(Subcommand)]
@@ -80,7 +88,46 @@ async fn main() -> Result<()> {
 
     tokio::spawn(async { handle_signals().await });
 
-    let level_filter = tracing_subscriber::filter::LevelFilter::INFO;
+    let level_filter = if cli.debug {
+        tracing_subscriber::filter::LevelFilter::DEBUG
+    } else {
+        tracing_subscriber::filter::LevelFilter::INFO
+    };
+
+    // Format fields using the provided closure.
+    // We want to make this very consise otherwise the logs are not able to be read by humans.
+    let format = tracing_subscriber::fmt::format::debug_fn(|writer, field, value| {
+        if format!("{field}") == "message" {
+            write!(writer, "{field}: {value:?}")
+        } else {
+            write!(writer, "{field}")
+        }
+    })
+    // Separate each field with a comma.
+    // This method is provided by an extension trait in the
+    // `tracing-subscriber` prelude.
+    .delimited(", ");
+
+    let (json, plain) = if cli.json {
+        // Cloud run likes json formatted logs if possible.
+        // See: https://cloud.google.com/run/docs/logging
+        // We could probably format these specifically for cloud run if we wanted,
+        // will save that as a TODO: https://cloud.google.com/run/docs/logging#special-fields
+        (
+            Some(tracing_subscriber::fmt::layer().json().with_filter(level_filter)),
+            None,
+        )
+    } else {
+        (
+            None,
+            Some(
+                tracing_subscriber::fmt::layer()
+                    .pretty()
+                    .fmt_fields(format)
+                    .with_filter(level_filter),
+            ),
+        )
+    };
 
     let otlp_host = match std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT") {
         Ok(val) => val,
@@ -105,8 +152,8 @@ async fn main() -> Result<()> {
 
     // Initialize tracing.
     tracing_subscriber::registry()
-        // .with(tracing_subscriber::EnvFilter::from_default_env())
-        .with(tracing_subscriber::fmt::Layer::default())
+        .with(json)
+        .with(plain)
         .with(telemetry)
         .with({
             #[cfg(feature = "debug")]
