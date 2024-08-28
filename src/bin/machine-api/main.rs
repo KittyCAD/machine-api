@@ -80,7 +80,7 @@ async fn main() -> Result<()> {
 
     tokio::spawn(async { handle_signals().await });
 
-    let level_filter = tracing_subscriber::filter::LevelFilter::DEBUG;
+    let level_filter = tracing_subscriber::filter::LevelFilter::INFO;
 
     let otlp_host = match std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT") {
         Ok(val) => val,
