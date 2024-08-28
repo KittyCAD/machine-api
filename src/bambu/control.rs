@@ -37,7 +37,7 @@ impl X1Carbon {
 
 impl MachineInfoTrait for PrinterInfo {
     fn machine_type(&self) -> MachineType {
-        MachineType::Stereolithography
+        MachineType::FusedDeposition
     }
 
     fn make_model(&self) -> MachineMakeModel {
