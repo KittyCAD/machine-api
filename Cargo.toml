@@ -60,7 +60,7 @@ tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt",
 uuid = "1.10.0"
 tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 tracing-slog = "0.3.0"
-http = "0.2.9"
+http = "1.1.0"
 hyper = "0.14"
 
 [dev-dependencies]
