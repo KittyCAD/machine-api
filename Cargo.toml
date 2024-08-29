@@ -61,7 +61,7 @@ uuid = "1.10.0"
 tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 tracing-slog = "0.3.0"
 http = "0.2.9"
-hyper = "0.14"
+hyper = "1.4"
 
 [dev-dependencies]
 async-trait = "0.1"
