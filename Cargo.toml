@@ -21,7 +21,7 @@ serial = ["dep:tokio-serial"]
 moonraker = ["dep:moonraker"]
 
 [dependencies]
-anyhow = "1.0.86"
+anyhow = "1.0.87"
 async-trait = "0.1.82"
 bambulabs = { path = "bambulabs", optional = true }
 bytes = "1.7.1"
