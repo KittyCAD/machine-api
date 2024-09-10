@@ -160,11 +160,6 @@ impl DiscoverTrait for X1CarbonDiscover {
                 continue;
             }
 
-            if printers.read().await.contains_key(&ip.to_string()) {
-                tracing::debug!("Printer already discovered, skipping");
-                continue;
-            }
-
             let Some(name) = name else {
                 tracing::warn!("No name found for printer at {}", ip);
                 continue;
@@ -174,6 +169,11 @@ impl DiscoverTrait for X1CarbonDiscover {
                 tracing::warn!("No config found for printer at {}", ip);
                 continue;
             };
+
+            if printers.read().await.contains_key(&machine_api_id) {
+                tracing::debug!("Printer already discovered, skipping");
+                continue;
+            }
 
             // Add a mqtt client for this printer.
             let serial = serial.as_deref().unwrap_or_default();
