@@ -11,7 +11,6 @@ Here is a sample config file:
 ```toml
 [machines.mk3]
 type = "Usb"
-port = "/dev/ttyUSB0"
 baud = 115200
 variant = "PrusaMk3"
 slicer.type = "Prusa"
