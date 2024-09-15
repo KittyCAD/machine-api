@@ -29,6 +29,13 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
         );
     });
 
-    server::serve(bind, machines).await?;
+    server::serve(
+        bind,
+        machines,
+        server::Options {
+            hook: cfg.server.clone().map(|v| v.hook),
+        },
+    )
+    .await?;
     Ok(())
 }

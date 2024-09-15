@@ -2,6 +2,7 @@ use dropshot::{endpoint, HttpError, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use tokio::process::Command;
 
 use super::{Context, CorsResponseOk};
 use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
@@ -213,33 +214,47 @@ pub(crate) async fn print_file(
         .await
         .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
 
-    machine
-        .write()
-        .await
-        .build(job_name, &DesignFile::Stl(tmpfile.path().to_path_buf()))
-        .await
-        .map_err(|e| {
-            tracing::warn!(error = format!("{:?}", e), "failed to build file");
-            // Get the last 100 characters of the error message
-            let mut error_message = format!("{:?}", e);
-            if error_message.len() > 100 {
-                error_message = error_message
-                    .chars()
-                    .rev()
-                    .take(100)
-                    .collect::<String>()
-                    .chars()
-                    .rev()
-                    .collect::<String>();
-            }
-            HttpError::for_bad_request(
+    let stl = DesignFile::Stl(tmpfile.path().to_path_buf());
+
+    if let Some(cmd) = &ctx.options.hook {
+        let status = Command::new(cmd)
+            .arg(tmpfile.path())
+            .spawn()
+            .map_err(|_| HttpError::for_bad_request(None, "hook failed to spawn".to_string()))?
+            .wait_with_output()
+            .await
+            .map_err(|_| HttpError::for_bad_request(None, "hook failed to wait".to_string()))?;
+
+        if !status.status.success() {
+            return Err(HttpError::for_bad_request(
                 None,
-                format!(
-                    "Your print failed, it might be too big for the slicer or something else. {}",
-                    error_message
-                ),
-            )
-        })?;
+                format!("hook failed with: {:?}", status.status.code()),
+            ));
+        }
+    }
+
+    machine.write().await.build(job_name, &stl).await.map_err(|e| {
+        tracing::warn!(error = format!("{:?}", e), "failed to build file");
+        // Get the last 100 characters of the error message
+        let mut error_message = format!("{:?}", e);
+        if error_message.len() > 100 {
+            error_message = error_message
+                .chars()
+                .rev()
+                .take(100)
+                .collect::<String>()
+                .chars()
+                .rev()
+                .collect::<String>();
+        }
+        HttpError::for_bad_request(
+            None,
+            format!(
+                "Your print failed, it might be too big for the slicer or something else. {}",
+                error_message
+            ),
+        )
+    })?;
 
     Ok(CorsResponseOk(PrintJobResponse {
         job_id: job_id.to_string(),

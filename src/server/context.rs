@@ -1,3 +1,4 @@
+use super::Options;
 use crate::Machine;
 use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
@@ -11,4 +12,7 @@ pub struct Context {
 
     /// List of [Machine] objects to serve via the Machine API.
     pub machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+
+    /// Optional knobs for the server to use
+    pub options: Options,
 }

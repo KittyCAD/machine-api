@@ -13,7 +13,7 @@ use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
 };
-use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
+use std::{collections::HashMap, env, net::SocketAddr, path::PathBuf, sync::Arc};
 use tokio::sync::RwLock;
 
 use crate::Machine;
@@ -47,6 +47,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
 pub async fn create_server(
     bind: &str,
     machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    options: Options,
 ) -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
     let mut api = create_api_description()?;
     let schema = get_openapi(&mut api)?;
@@ -58,7 +59,11 @@ pub async fn create_server(
         log_headers: Default::default(),
     };
 
-    let api_context = Arc::new(Context { schema, machines });
+    let api_context = Arc::new(Context {
+        schema,
+        machines,
+        options,
+    });
 
     let server = HttpServerStarter::new(
         &config_dropshot,
@@ -84,9 +89,20 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
         .map_err(|e| e.into())
 }
 
+/// Things that the server may optionally do for us.
+#[derive(Debug, Clone, Default)]
+pub struct Options {
+    /// program to execute
+    pub hook: Option<PathBuf>,
+}
+
 /// Create a new Server, and serve.
-pub async fn serve(bind: &str, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
-    let (server, _api_context) = create_server(bind, machines).await?;
+pub async fn serve(
+    bind: &str,
+    machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    options: Options,
+) -> Result<()> {
+    let (server, _api_context) = create_server(bind, machines, options).await?;
     let addr: SocketAddr = bind.parse()?;
 
     let responder = libmdns::Responder::new().unwrap();
