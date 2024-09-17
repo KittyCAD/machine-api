@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.88"
+anyhow = "1.0.89"
 dashmap = "6.1.0"
 format_serde_error = { version = "0.3.0", default-features = false, features = ["serde_json"] }
 lazy_static = "1.5.0"
@@ -20,4 +20,4 @@ tracing = "0.1.40"
 url = "2.5"
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions = "1.4.1"
