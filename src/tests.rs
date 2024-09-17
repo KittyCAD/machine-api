@@ -22,7 +22,8 @@ impl ServerContext {
         let bind = format!("127.0.0.1:{}", port);
 
         // Create the server in debug mode.
-        let (server, _context) = crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new()))).await?;
+        let (server, _context) =
+            crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new())), Default::default()).await?;
 
         // Sleep for 5 seconds while the server is comes up.
         std::thread::sleep(std::time::Duration::from_secs(5));
