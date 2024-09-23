@@ -48,7 +48,7 @@ slog = "2.7.0"
 slog-async = "2.7.0"
 slog-json = "2.6.1"
 slog-term = "2.9.1"
-thiserror = "1.0.63"
+thiserror = "1.0.64"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
 toml = "0.8.19"
 tracing = "0.1"
