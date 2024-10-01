@@ -1,5 +1,6 @@
-use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
 use anyhow::Result;
+
+use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
 /// object in the real world from a specific [crate::DesignFile].

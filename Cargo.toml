@@ -30,12 +30,14 @@ clap = { version = "4.5.18", features = ["cargo", "derive", "env", "unicode"] }
 console-subscriber = { version = "0", optional = true }
 dashmap = "6.1.0"
 delouse = { version = "0.1", optional = true }
-dropshot = "0.11"
+dropshot = "0.12"
 futures = "0.3.28"
 futures-util = "0.3.30"
+http = "1"
+hyper = "1"
 libmdns = "0.9.1"
-multer = { version = "3.1.0", features = ["json"] }
 moonraker = { path = "moonraker", optional = true }
+multer = { version = "3.1.0", features = ["json"] }
 opentelemetry = "0.24.0"
 opentelemetry-otlp = "0.17.0"
 opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
@@ -50,15 +52,13 @@ slog-json = "2.6.1"
 slog-term = "2.9.1"
 thiserror = "1.0.64"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"] }
+tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 toml = "0.8.19"
 tracing = "0.1"
 tracing-opentelemetry = "0.25.0"
+tracing-slog = "0.3.0"
 tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.10.0"
-tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
-tracing-slog = "0.3.0"
-http = "0.2.9"
-hyper = "0.14"
 
 [dev-dependencies]
 async-trait = "0.1"

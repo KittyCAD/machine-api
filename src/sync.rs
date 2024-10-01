@@ -1,6 +1,8 @@
-use crate::Control;
 use std::sync::Arc;
+
 use tokio::sync::Mutex;
+
+use crate::Control;
 
 /// Wrapper around an `Arc<Mutex<Control>>`, which helpfully will handle
 /// the locking to expose a [Control] without the caller having to care

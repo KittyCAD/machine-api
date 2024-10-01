@@ -1,6 +1,5 @@
-use dropshot::{HttpCodedResponse, HttpError};
+use dropshot::{Body, HttpCodedResponse, HttpError};
 use http::{Response, StatusCode};
-use hyper::Body;
 use schemars::JsonSchema;
 use serde::Serialize;
 

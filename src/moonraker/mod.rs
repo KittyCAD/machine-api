@@ -3,13 +3,13 @@
 mod control;
 mod variants;
 
+use anyhow::Result;
 pub use control::MachineInfo;
+use moonraker::Client as MoonrakerClient;
+use serde::{Deserialize, Serialize};
 pub use variants::MoonrakerVariant;
 
 use crate::{slicer, MachineMakeModel, Volume};
-use anyhow::Result;
-use moonraker::Client as MoonrakerClient;
-use serde::{Deserialize, Serialize};
 
 /// Configuration information for a Moonraker-based endpoint.
 #[derive(Clone, Debug, Serialize, Deserialize)]

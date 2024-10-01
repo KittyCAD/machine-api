@@ -1,5 +1,6 @@
-use anyhow::Result;
 use std::path::{Path, PathBuf};
+
+use anyhow::Result;
 use tokio::fs::File;
 
 /// A TemporaryFile wraps a normal [tokio::fs::File]`, but will attempt to

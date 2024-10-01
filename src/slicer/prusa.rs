@@ -1,8 +1,9 @@
 //! Support for the Prusa Slicer (https://github.com/prusa3d/PrusaSlicer/),
 //! which is based on slic3r.
 
-use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
+
+use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{

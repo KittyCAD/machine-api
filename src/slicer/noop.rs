@@ -1,11 +1,12 @@
 //! `noop` implements a no-op Machine, one that will accept Control commands
 //! and do exactly nothing with it.
 
+use anyhow::Result;
+
 use crate::{
     DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, TemporaryFile,
     ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
-use anyhow::Result;
 
 /// Noop-slicer won't slice anything at all!
 #[derive(Copy, Clone, Debug)]

@@ -32,20 +32,20 @@ mod traits;
 #[cfg(feature = "serial")]
 pub mod usb;
 
+use std::path::PathBuf;
+
 pub use any_machine::{AnyMachine, AnyMachineInfo};
 pub use discover::Discover;
 pub use file::TemporaryFile;
 pub use machine::Machine;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 pub use slicer::AnySlicer;
 pub use sync::SharedMachine;
 pub use traits::{
     Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType, SuspendControl,
     ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
 };
-
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 /// A specific file containing a design to be manufactured.
 #[non_exhaustive]

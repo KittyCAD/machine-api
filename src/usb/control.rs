@@ -1,15 +1,16 @@
-use crate::gcode::Client;
-use crate::{
-    Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
-    MachineMakeModel, MachineType, Volume,
-};
-use anyhow::Result;
 use std::sync::Arc;
+
+use anyhow::Result;
 use tokio::{
     io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt, ReadHalf, WriteHalf},
     sync::Mutex,
 };
 use tokio_serial::SerialStream;
+
+use crate::{
+    gcode::Client, Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
+    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume,
+};
 
 /// Handle to a USB based gcode 3D printer.
 #[derive(Clone)]

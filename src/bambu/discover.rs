@@ -1,13 +1,15 @@
-use super::{PrinterInfo, X1Carbon};
-use crate::{slicer, Discover as DiscoverTrait, Machine, MachineMakeModel};
-use anyhow::Result;
-use serde::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
     net::{IpAddr, Ipv4Addr},
     sync::Arc,
 };
+
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
 use tokio::{net::UdpSocket, sync::RwLock};
+
+use super::{PrinterInfo, X1Carbon};
+use crate::{slicer, Discover as DiscoverTrait, Machine, MachineMakeModel};
 
 /// Specific make/model of Bambu device.
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]

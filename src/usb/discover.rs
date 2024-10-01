@@ -1,10 +1,12 @@
-use super::UsbVariant;
-use crate::{slicer, usb, Discover, Machine, MachineMakeModel};
+use std::{collections::HashMap, sync::Arc};
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 use tokio_serial::{SerialPortBuilderExt, SerialPortType};
+
+use super::UsbVariant;
+use crate::{slicer, usb, Discover, Machine, MachineMakeModel};
 
 /// Configuration block for a USB based device.
 #[derive(Clone, Debug, Deserialize, Serialize)]

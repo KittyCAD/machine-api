@@ -7,12 +7,13 @@ pub mod noop;
 pub mod orca;
 pub mod prusa;
 
+use anyhow::Result;
+pub use config::Config;
+
 use crate::{
     DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
     ThreeMfTemporaryFile,
 };
-use anyhow::Result;
-pub use config::Config;
 
 /// All Slicers that are supported by the machine-api.
 #[non_exhaustive]

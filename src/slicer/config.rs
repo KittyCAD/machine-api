@@ -1,7 +1,9 @@
-use super::{orca, prusa, AnySlicer};
+use std::path::PathBuf;
+
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+
+use super::{orca, prusa, AnySlicer};
 
 /// Standard slicer config -- as used by the machine-api server and any
 /// other consumers.

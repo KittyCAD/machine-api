@@ -3,11 +3,12 @@
 mod control;
 mod discover;
 
+use std::{net::IpAddr, sync::Arc};
+
+use bambulabs::client::Client;
 pub use discover::{BambuVariant, Config, X1CarbonDiscover};
 
 use crate::MachineMakeModel;
-use bambulabs::client::Client;
-use std::{net::IpAddr, sync::Arc};
 
 /// Control channel handle to a Bambu Labs X1 Carbon.
 #[derive(Clone)]

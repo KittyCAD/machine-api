@@ -1,6 +1,8 @@
-use crate::Machine;
 use std::{collections::HashMap, future::Future, sync::Arc};
+
 use tokio::sync::RwLock;
+
+use crate::Machine;
 
 /// Discover trait implemented by backends in order to add or remove
 /// configured machines.
