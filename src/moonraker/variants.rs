@@ -1,5 +1,6 @@
-use crate::{MachineType, Volume};
 use serde::{Deserialize, Serialize};
+
+use crate::{MachineType, Volume};
 
 macro_rules! moonraker_devices {
     ($(

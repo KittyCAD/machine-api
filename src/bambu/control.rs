@@ -1,10 +1,11 @@
+use anyhow::Result;
+use bambulabs::{client::Client, command::Command};
+
 use super::{PrinterInfo, X1Carbon};
 use crate::{
     Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
-use anyhow::Result;
-use bambulabs::{client::Client, command::Command};
 
 impl X1Carbon {
     /// Return a borrow of the underlying Client.

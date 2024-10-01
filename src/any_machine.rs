@@ -1,5 +1,6 @@
-use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineType, Volume};
 use anyhow::Result;
+
+use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineType, Volume};
 
 /// AnyMachine is any supported machine.
 #[non_exhaustive]

@@ -1,10 +1,11 @@
-use anyhow::{Context, Result};
-use expectorate::assert_contents;
-use pretty_assertions::assert_eq;
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
 };
+
+use anyhow::{Context, Result};
+use expectorate::assert_contents;
+use pretty_assertions::assert_eq;
 use test_context::{test_context, AsyncTestContext};
 use testresult::TestResult;
 use tokio::sync::RwLock;

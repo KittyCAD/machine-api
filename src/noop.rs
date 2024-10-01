@@ -1,12 +1,13 @@
 //! `noop` implements a no-op Machine, one that will accept Control commands
 //! and do exactly nothing with it.
 
+use anyhow::Result;
+
 use crate::{
     Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
     MachineMakeModel, MachineType, SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait,
     ThreeMfTemporaryFile, Volume,
 };
-use anyhow::Result;
 
 /// Noop-machine will no-op, well, everything.
 pub struct Noop {

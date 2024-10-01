@@ -1,7 +1,9 @@
-use crate::{DesignFile, TemporaryFile, Volume};
+use std::future::Future;
+
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::future::Future;
+
+use crate::{DesignFile, TemporaryFile, Volume};
 
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.

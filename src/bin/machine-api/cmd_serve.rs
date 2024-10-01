@@ -1,8 +1,10 @@
-use super::{Cli, Config};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
+
 use anyhow::Result;
 use machine_api::server;
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use tokio::sync::RwLock;
+
+use super::{Cli, Config};
 
 pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     let machines = Arc::new(RwLock::new(HashMap::new()));

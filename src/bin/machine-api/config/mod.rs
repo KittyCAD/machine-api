@@ -1,6 +1,7 @@
+use std::collections::HashMap;
+
 use machine_api::{bambu as crate_bambu, moonraker as crate_moonraker, usb as crate_usb};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 mod bambu;
 mod moonraker;

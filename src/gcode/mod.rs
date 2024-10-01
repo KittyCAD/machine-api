@@ -1,11 +1,12 @@
 //! This module contains support for printing to gcode based 3D printers
 //! over some [AsyncRead]/[AsyncWrite] traited object.
 
-use anyhow::Result;
 use std::{
     pin::Pin,
     task::{Context as TaskContext, Poll},
 };
+
+use anyhow::Result;
 use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt, BufReader, ReadBuf};
 
 /// Create a handle to some [tokio::io::AsyncWrite]

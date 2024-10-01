@@ -1,8 +1,10 @@
-use super::{Config, MachineConfig};
+use std::{collections::HashMap, sync::Arc};
+
 use anyhow::Result;
 use machine_api::{bambu, Discover, Machine};
-use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
+
+use super::{Config, MachineConfig};
 
 impl Config {
     pub async fn spawn_discover_bambu(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {

@@ -1,11 +1,13 @@
+use std::path::PathBuf;
+
+use anyhow::Result;
+use moonraker::InfoResponse;
+
 use super::Client;
 use crate::{
     Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
     MachineMakeModel, MachineType, SuspendControl as SuspendControlTrait, Volume,
 };
-use anyhow::Result;
-use moonraker::InfoResponse;
-use std::path::PathBuf;
 
 /// Information about the connected Moonraker-based printer.
 #[derive(Debug, Clone, PartialEq)]

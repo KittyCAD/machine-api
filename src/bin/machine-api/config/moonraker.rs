@@ -1,8 +1,10 @@
-use super::{Config, MachineConfig};
+use std::{collections::HashMap, sync::Arc};
+
 use anyhow::Result;
 use machine_api::{moonraker, Machine, MachineMakeModel};
-use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
+
+use super::{Config, MachineConfig};
 
 impl Config {
     pub async fn create_moonraker(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
