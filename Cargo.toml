@@ -38,9 +38,9 @@ hyper = "1"
 libmdns = "0.9.1"
 moonraker = { path = "moonraker", optional = true }
 multer = { version = "3.1.0", features = ["json"] }
-opentelemetry = "0.24.0"
-opentelemetry-otlp = "0.17.0"
-opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
+opentelemetry = "0.25.0"
+opentelemetry-otlp = "0.25.0"
+opentelemetry_sdk = { version = "0.25.0", features = ["rt-tokio"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 schemars = { version = "0.8", features = ["chrono", "uuid1", "bigdecimal"] }
 serde = { version = "1.0", features = ["derive"] }
@@ -55,7 +55,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"]
 tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 toml = "0.8.19"
 tracing = "0.1"
-tracing-opentelemetry = "0.25.0"
+tracing-opentelemetry = "0.26.0"
 tracing-slog = "0.3.0"
 tracing-subscriber = { version = "0.3.18", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.10.0"
