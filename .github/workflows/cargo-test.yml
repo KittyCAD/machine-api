@@ -36,7 +36,7 @@ jobs:
         run: |
           cargo llvm-cov nextest --all --lcov --output-path lcov.info --test-threads=1 --no-fail-fast
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4.6.0
         with:
           slug: KittyCAD/machine-api
           token: ${{secrets.CODECOV_TOKEN}}
