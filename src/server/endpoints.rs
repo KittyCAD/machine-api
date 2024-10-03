@@ -5,7 +5,9 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use super::{Context, CorsResponseOk};
-use crate::{AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, TemporaryFile, Volume};
+use crate::{
+    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, PrintState, TemporaryFile, Volume,
+};
 
 /// Return the OpenAPI schema in JSON format.
 #[endpoint {
@@ -68,6 +70,10 @@ pub struct MachineInfoResponse {
     /// What "close" means is up to you!
     pub max_part_volume: Option<Volume>,
 
+    /// Status of the printer -- be it printing, idle, or unreachable. This
+    /// may dictate if a machine is capable of taking a new job.
+    pub print_state: PrintState,
+
     /// Additional, per-machine information which is specific to the
     /// underlying machine type.
     pub extra: Option<ExtraMachineInfoResponse>,
@@ -83,6 +89,7 @@ impl MachineInfoResponse {
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
+            print_state: machine.print_state().await?,
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
                 AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),

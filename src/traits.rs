@@ -68,6 +68,12 @@ pub enum PrintState {
     /// Machine is currently offline or unreachable.
     Offline,
 
+    /// Job is underway but halted, waiting for some action to take place.
+    Paused,
+
+    /// Job is finished, but waiting manual action to move back to Idle.
+    Complete,
+
     /// The printer has failed and is in an unknown state that may require
     /// manual attention to resolve. The inner value is a human
     /// readable description of what specifically has failed.

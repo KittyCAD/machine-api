@@ -6,10 +6,10 @@ use super::Client;
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct VirtualSdcard {
     pub progress: f64,
-    pub file_position: usize,
+    pub file_position: f64,
     pub is_active: bool,
-    pub file_path: String,
-    pub file_size: usize,
+    pub file_path: Option<String>,
+    pub file_size: f64,
 }
 
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]

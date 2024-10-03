@@ -66,7 +66,17 @@ impl ControlTrait for Client {
     }
 
     async fn print_state(&self) -> Result<PrintState> {
-        Ok(PrintState::Unknown)
+        let status = self.client.status().await?;
+
+        Ok(match status.print_stats.state.as_str() {
+            "printing" => PrintState::Running,
+            "standby" => PrintState::Idle,
+            "paused" => PrintState::Paused,
+            "complete" => PrintState::Complete,
+            "cancelled" => PrintState::Complete,
+            "error" => PrintState::Failed(Some(status.print_stats.message.to_owned())),
+            _ => PrintState::Unknown,
+        })
     }
 }
 
