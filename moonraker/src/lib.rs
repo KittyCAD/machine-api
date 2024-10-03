@@ -12,6 +12,7 @@
 
 mod metrics;
 mod print;
+mod status;
 mod upload;
 
 use anyhow::Result;
