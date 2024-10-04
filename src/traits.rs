@@ -50,6 +50,36 @@ pub trait MachineInfo {
     fn max_part_volume(&self) -> Option<Volume>;
 }
 
+/// Current state of the machine -- be it printing, idle or offline. This can
+/// be used to determine if a printer is in the correct state to take a new
+/// job.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub enum MachineState {
+    /// If a print state can not be resolved at this time, an Unknown may
+    /// be returned.
+    Unknown,
+
+    /// Idle, and ready for another job.
+    Idle,
+
+    /// Running a job -- 3D printing or CNC-ing a part.
+    Running,
+
+    /// Machine is currently offline or unreachable.
+    Offline,
+
+    /// Job is underway but halted, waiting for some action to take place.
+    Paused,
+
+    /// Job is finished, but waiting manual action to move back to Idle.
+    Complete,
+
+    /// The printer has failed and is in an unknown state that may require
+    /// manual attention to resolve. The inner value is a human
+    /// readable description of what specifically has failed.
+    Failed(Option<String>),
+}
+
 /// A `Machine` is something that can take a 3D model (in one of the
 /// supported formats), and create a physical, real-world copy of
 /// that model.
@@ -87,6 +117,9 @@ pub trait Control {
     /// `false` means the machine is no longer reachable or usable, and
     /// ought to be removed.
     fn healthy(&self) -> impl Future<Output = bool>;
+
+    /// Return the state of the printer.
+    fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands

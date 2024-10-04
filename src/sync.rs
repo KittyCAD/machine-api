@@ -1,8 +1,6 @@
+use crate::{Control, MachineState};
 use std::sync::Arc;
-
 use tokio::sync::Mutex;
-
-use crate::Control;
 
 /// Wrapper around an `Arc<Mutex<Control>>`, which helpfully will handle
 /// the locking to expose a [Control] without the caller having to care
@@ -41,5 +39,8 @@ where
     }
     async fn healthy(&self) -> bool {
         self.0.lock().await.healthy().await
+    }
+    async fn state(&self) -> Result<MachineState, Self::Error> {
+        self.0.lock().await.state().await
     }
 }

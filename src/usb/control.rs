@@ -9,7 +9,7 @@ use tokio_serial::SerialStream;
 
 use crate::{
     gcode::Client, Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
-    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, Volume,
+    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType, Volume,
 };
 
 /// Handle to a USB based gcode 3D printer.
@@ -130,6 +130,10 @@ impl ControlTrait for Usb {
 
     async fn stop(&mut self) -> Result<()> {
         self.client.lock().await.stop().await
+    }
+
+    async fn state(&self) -> Result<MachineState> {
+        Ok(MachineState::Unknown)
     }
 
     async fn healthy(&self) -> bool {
