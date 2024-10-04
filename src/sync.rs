@@ -1,4 +1,4 @@
-use crate::{Control, PrintState};
+use crate::{Control, MachineState};
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -40,7 +40,7 @@ where
     async fn healthy(&self) -> bool {
         self.0.lock().await.healthy().await
     }
-    async fn print_state(&self) -> Result<PrintState, Self::Error> {
-        self.0.lock().await.print_state().await
+    async fn state(&self) -> Result<MachineState, Self::Error> {
+        self.0.lock().await.state().await
     }
 }

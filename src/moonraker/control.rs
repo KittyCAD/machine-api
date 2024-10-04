@@ -6,7 +6,7 @@ use moonraker::InfoResponse;
 use super::Client;
 use crate::{
     Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
-    MachineMakeModel, MachineType, PrintState, SuspendControl as SuspendControlTrait, Volume,
+    MachineMakeModel, MachineState, MachineType, SuspendControl as SuspendControlTrait, Volume,
 };
 
 /// Information about the connected Moonraker-based printer.
@@ -65,17 +65,17 @@ impl ControlTrait for Client {
         self.client.info().await.is_ok()
     }
 
-    async fn print_state(&self) -> Result<PrintState> {
+    async fn state(&self) -> Result<MachineState> {
         let status = self.client.status().await?;
 
         Ok(match status.print_stats.state.as_str() {
-            "printing" => PrintState::Running,
-            "standby" => PrintState::Idle,
-            "paused" => PrintState::Paused,
-            "complete" => PrintState::Complete,
-            "cancelled" => PrintState::Complete,
-            "error" => PrintState::Failed(Some(status.print_stats.message.to_owned())),
-            _ => PrintState::Unknown,
+            "printing" => MachineState::Running,
+            "standby" => MachineState::Idle,
+            "paused" => MachineState::Paused,
+            "complete" => MachineState::Complete,
+            "cancelled" => MachineState::Complete,
+            "error" => MachineState::Failed(Some(status.print_stats.message.to_owned())),
+            _ => MachineState::Unknown,
         })
     }
 }

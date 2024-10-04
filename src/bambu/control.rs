@@ -3,7 +3,7 @@ use bambulabs::{client::Client, command::Command};
 
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineType, PrintState,
+    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
@@ -75,8 +75,8 @@ impl ControlTrait for X1Carbon {
         true
     }
 
-    async fn print_state(&self) -> Result<PrintState> {
-        Ok(PrintState::Unknown)
+    async fn state(&self) -> Result<MachineState> {
+        Ok(MachineState::Unknown)
     }
 }
 

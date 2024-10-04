@@ -43,7 +43,7 @@ use serde::{Deserialize, Serialize};
 pub use slicer::AnySlicer;
 pub use sync::SharedMachine;
 pub use traits::{
-    Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType, PrintState,
+    Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineType, MachineState,
     SuspendControl, ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
 };
 

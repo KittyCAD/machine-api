@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineType, PrintState, Volume};
+use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineState, MachineType, Volume};
 
 /// AnyMachine is any supported machine.
 #[non_exhaustive]
@@ -129,7 +129,7 @@ impl ControlTrait for AnyMachine {
         for_all!(|self, machine| { machine.healthy().await })
     }
 
-    async fn print_state(&self) -> Result<PrintState> {
-        for_all!(|self, machine| { machine.print_state().await })
+    async fn state(&self) -> Result<MachineState> {
+        for_all!(|self, machine| { machine.state().await })
     }
 }

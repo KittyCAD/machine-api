@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use crate::{
     Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
-    MachineMakeModel, MachineType, PrintState, SuspendControl as SuspendControlTrait,
+    MachineMakeModel, MachineState, MachineType, SuspendControl as SuspendControlTrait,
     ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
@@ -71,8 +71,8 @@ impl ControlTrait for Noop {
         true
     }
 
-    async fn print_state(&self) -> Result<PrintState> {
-        Ok(PrintState::Unknown)
+    async fn state(&self) -> Result<MachineState> {
+        Ok(MachineState::Unknown)
     }
 }
 

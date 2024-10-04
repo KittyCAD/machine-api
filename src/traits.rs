@@ -50,11 +50,11 @@ pub trait MachineInfo {
     fn max_part_volume(&self) -> Option<Volume>;
 }
 
-/// Current state of the printer -- be it printing, idle or offline. This can
+/// Current state of the machine -- be it printing, idle or offline. This can
 /// be used to determine if a printer is in the correct state to take a new
 /// job.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
-pub enum PrintState {
+pub enum MachineState {
     /// If a print state can not be resolved at this time, an Unknown may
     /// be returned.
     Unknown,
@@ -119,7 +119,7 @@ pub trait Control {
     fn healthy(&self) -> impl Future<Output = bool>;
 
     /// Return the state of the printer.
-    fn print_state(&self) -> impl Future<Output = Result<PrintState, Self::Error>>;
+    fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands

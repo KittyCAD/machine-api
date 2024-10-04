@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Context, CorsResponseOk};
 use crate::{
-    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, PrintState, TemporaryFile, Volume,
+    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, MachineState, TemporaryFile, Volume,
 };
 
 /// Return the OpenAPI schema in JSON format.
@@ -72,7 +72,7 @@ pub struct MachineInfoResponse {
 
     /// Status of the printer -- be it printing, idle, or unreachable. This
     /// may dictate if a machine is capable of taking a new job.
-    pub print_state: PrintState,
+    pub state: MachineState,
 
     /// Additional, per-machine information which is specific to the
     /// underlying machine type.
@@ -89,7 +89,7 @@ impl MachineInfoResponse {
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
-            print_state: machine.print_state().await?,
+            state: machine.state().await?,
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
                 AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
