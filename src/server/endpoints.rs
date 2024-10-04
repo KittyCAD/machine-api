@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Context, CorsResponseOk};
 use crate::{
-    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineType, MachineState, TemporaryFile, Volume,
+    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, TemporaryFile, Volume,
 };
 
 /// Return the OpenAPI schema in JSON format.
