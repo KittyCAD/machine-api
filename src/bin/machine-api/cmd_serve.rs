@@ -38,12 +38,30 @@ async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &m
         extruder_temperature_target.clone(),
     );
 
+    let bed_temperature = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "bead_temperature",
+        "Last temp of the bed",
+        Unit::Celsius,
+        bed_temperature.clone(),
+    );
+
+    let bed_temperature_target = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "bed_temperature_target",
+        "Target temp of the bed",
+        Unit::Celsius,
+        bed_temperature_target.clone(),
+    );
+
     let key = key.to_owned();
     tokio::spawn(async move {
         let key = key;
         let machine = machine;
         let extruder_temperature = extruder_temperature;
         let extruder_temperature_target = extruder_temperature_target;
+        let bed_temperature = bed_temperature;
+        let bed_temperature_target = bed_temperature_target;
 
         loop {
             let Ok(readings) = machine.get_client().temperatures().await else {
@@ -56,6 +74,11 @@ async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &m
 
             extruder_temperature.set(*readings.extruder.temperatures.last().unwrap_or(&0.0));
             extruder_temperature_target.set(*readings.extruder.targets.last().unwrap_or(&0.0));
+
+            if let Some(heater_bed) = readings.heater_bed {
+                bed_temperature.set(*heater_bed.temperatures.last().unwrap_or(&0.0));
+                bed_temperature_target.set(*heater_bed.targets.last().unwrap_or(&0.0));
+            }
 
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
         }
