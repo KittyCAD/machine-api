@@ -21,6 +21,7 @@ pub use print::InfoResponse;
 pub use upload::{DeleteResponse, DeleteResponseItem, UploadResponse, UploadResponseItem};
 
 /// Client is a moonraker instance which can accept gcode for printing.
+#[derive(Clone, Debug, PartialEq)]
 pub struct Client {
     pub(crate) url_base: String,
 }

@@ -25,6 +25,7 @@ pub struct Config {
 }
 
 /// Client is a connection to a Moonraker instance.
+#[derive(Clone)]
 pub struct Client {
     client: MoonrakerClient,
     make_model: MachineMakeModel,
@@ -40,5 +41,10 @@ impl Client {
             volume,
             client: MoonrakerClient::new(base_url)?,
         })
+    }
+
+    /// Return the underling [MoonrakerClient].
+    pub fn get_client(&self) -> &MoonrakerClient {
+        &self.client
     }
 }

@@ -139,10 +139,8 @@ pub async fn get_machines(
 }]
 pub async fn get_metrics(_rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
     Ok(RawResponseOk(
-        "foo
-            bar
-            baz"
-        .to_owned(),
+        autometrics::prometheus_exporter::encode_to_string()
+            .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?,
     ))
 }
 
