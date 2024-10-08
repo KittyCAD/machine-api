@@ -40,7 +40,7 @@ async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &m
 
     let bed_temperature = Gauge::<f64, AtomicU64>::default();
     registry.register_with_unit(
-        "bead_temperature",
+        "bed_temperature",
         "Last temp of the bed",
         Unit::Celsius,
         bed_temperature.clone(),
