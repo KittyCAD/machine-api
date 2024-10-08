@@ -4,7 +4,7 @@ use dropshot::{endpoint, HttpError, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{Context, CorsResponseOk};
+use super::{Context, CorsResponseOk, RawResponseOk};
 use crate::{
     AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, TemporaryFile, Volume,
 };
@@ -129,6 +129,21 @@ pub async fn get_machines(
         machines.push(api_machine);
     }
     Ok(CorsResponseOk(machines))
+}
+
+/// List available machines and their statuses
+#[endpoint {
+    method = GET,
+    path = "/metrics",
+    tags = ["hidden"],
+}]
+pub async fn get_metrics(_rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
+    Ok(RawResponseOk(
+        "foo
+            bar
+            baz"
+        .to_owned(),
+    ))
 }
 
 /// The path parameters for performing operations on an machine.

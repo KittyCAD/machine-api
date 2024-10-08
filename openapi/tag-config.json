@@ -13,6 +13,12 @@
       "external_docs": {
         "url": "https://docs.zoo.dev/api/machines"
       }
+    },
+    "hidden": {
+      "description": "Hidden API endpoints that should not show up in the docs.",
+      "external_docs": {
+        "url": "https://docs.zoo.dev/api/machines"
+      }
     }
   }
 }

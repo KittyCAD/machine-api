@@ -3,6 +3,7 @@
 mod context;
 mod cors;
 mod endpoints;
+mod raw;
 
 use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
 
@@ -10,6 +11,7 @@ use anyhow::{anyhow, Result};
 pub use context::Context;
 pub use cors::CorsResponseOk;
 use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
+pub use raw::RawResponseOk;
 use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
@@ -26,6 +28,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
         api.register(endpoints::print_file).unwrap();
         api.register(endpoints::get_machines).unwrap();
         api.register(endpoints::get_machine).unwrap();
+        api.register(endpoints::get_metrics).unwrap();
 
         // YOUR ENDPOINTS HERE!
 
