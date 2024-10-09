@@ -106,10 +106,6 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
         }
     }
 
-    autometrics::settings::AutometricsSettingsBuilder::default()
-        .prometheus_client_registry(registry)
-        .init();
-
     let bind_addr: SocketAddr = bind.parse()?;
     tokio::spawn(async move {
         let bind_addr = bind_addr;
@@ -127,6 +123,6 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
         );
     });
 
-    server::serve(bind, machines).await?;
+    server::serve(bind, machines, registry).await?;
     Ok(())
 }

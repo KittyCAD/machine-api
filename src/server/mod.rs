@@ -5,17 +5,18 @@ mod cors;
 mod endpoints;
 mod raw;
 
-use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
-
-use anyhow::{anyhow, Result};
 pub use context::Context;
 pub use cors::CorsResponseOk;
-use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
 pub use raw::RawResponseOk;
+
+use anyhow::{anyhow, Result};
+use dropshot::{ApiDescription, ConfigDropshot, HttpServerStarter};
+use prometheus_client::registry::Registry;
 use signal_hook::{
     consts::{SIGINT, SIGTERM},
     iterator::Signals,
 };
+use std::{collections::HashMap, env, net::SocketAddr, sync::Arc};
 use tokio::sync::RwLock;
 
 use crate::Machine;
@@ -50,6 +51,7 @@ pub fn create_api_description() -> Result<ApiDescription<Arc<Context>>> {
 pub async fn create_server(
     bind: &str,
     machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    registry: Registry,
 ) -> Result<(dropshot::HttpServer<Arc<Context>>, Arc<Context>)> {
     let mut api = create_api_description()?;
     let schema = get_openapi(&mut api)?;
@@ -61,7 +63,11 @@ pub async fn create_server(
         log_headers: Default::default(),
     };
 
-    let api_context = Arc::new(Context { schema, machines });
+    let api_context = Arc::new(Context {
+        schema,
+        machines,
+        registry,
+    });
 
     let server = HttpServerStarter::new(
         &config_dropshot,
@@ -88,8 +94,12 @@ pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json:
 }
 
 /// Create a new Server, and serve.
-pub async fn serve(bind: &str, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
-    let (server, _api_context) = create_server(bind, machines).await?;
+pub async fn serve(
+    bind: &str,
+    machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    registry: Registry,
+) -> Result<()> {
+    let (server, _api_context) = create_server(bind, machines, registry).await?;
     let addr: SocketAddr = bind.parse()?;
 
     let responder = libmdns::Responder::new().unwrap();

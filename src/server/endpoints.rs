@@ -137,11 +137,14 @@ pub async fn get_machines(
     path = "/metrics",
     tags = ["hidden"],
 }]
-pub async fn get_metrics(_rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
-    Ok(RawResponseOk(
-        autometrics::prometheus_exporter::encode_to_string()
-            .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?,
-    ))
+pub async fn get_metrics(rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
+    let ctx = rqctx.context();
+    let mut response = String::new();
+
+    prometheus_client::encoding::text::encode(&mut response, &ctx.registry)
+        .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
+
+    Ok(RawResponseOk(response))
 }
 
 /// The path parameters for performing operations on an machine.
