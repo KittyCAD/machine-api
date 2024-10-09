@@ -4,7 +4,7 @@ use dropshot::{endpoint, HttpError, Path, RequestContext};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::{Context, CorsResponseOk};
+use super::{Context, CorsResponseOk, RawResponseOk};
 use crate::{
     AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, TemporaryFile, Volume,
 };
@@ -129,6 +129,22 @@ pub async fn get_machines(
         machines.push(api_machine);
     }
     Ok(CorsResponseOk(machines))
+}
+
+/// List available machines and their statuses
+#[endpoint {
+    method = GET,
+    path = "/metrics",
+    tags = ["hidden"],
+}]
+pub async fn get_metrics(rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
+    let ctx = rqctx.context();
+    let mut response = String::new();
+
+    prometheus_client::encoding::text::encode(&mut response, &ctx.registry)
+        .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
+
+    Ok(RawResponseOk(response))
 }
 
 /// The path parameters for performing operations on an machine.

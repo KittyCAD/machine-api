@@ -1,10 +1,89 @@
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
-
+use super::{Cli, Config};
 use anyhow::Result;
-use machine_api::server;
+use machine_api::{moonraker, server, AnyMachine};
+use prometheus_client::{
+    metrics::gauge::Gauge,
+    registry::{Registry, Unit},
+};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    sync::{atomic::AtomicU64, Arc},
+};
 use tokio::sync::RwLock;
 
-use super::{Cli, Config};
+/// Long-term this should get a new trait, and a MachineT: Metrics / generic
+/// param on this function.
+///
+/// For now we can just do this for moonraker (and maybe one or two others)
+/// before we refine the API.
+async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &moonraker::Client) {
+    let registry = registry.sub_registry_with_label(("id".into(), key.to_owned().into()));
+
+    let machine = machine.clone();
+
+    let extruder_temperature = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "extruder_temperature",
+        "Last temp of the extruder",
+        Unit::Celsius,
+        extruder_temperature.clone(),
+    );
+
+    let extruder_temperature_target = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "extruder_temperature_target",
+        "Target temp of the extruder",
+        Unit::Celsius,
+        extruder_temperature_target.clone(),
+    );
+
+    let bed_temperature = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "bed_temperature",
+        "Last temp of the bed",
+        Unit::Celsius,
+        bed_temperature.clone(),
+    );
+
+    let bed_temperature_target = Gauge::<f64, AtomicU64>::default();
+    registry.register_with_unit(
+        "bed_temperature_target",
+        "Target temp of the bed",
+        Unit::Celsius,
+        bed_temperature_target.clone(),
+    );
+
+    let key = key.to_owned();
+    tokio::spawn(async move {
+        let key = key;
+        let machine = machine;
+        let extruder_temperature = extruder_temperature;
+        let extruder_temperature_target = extruder_temperature_target;
+        let bed_temperature = bed_temperature;
+        let bed_temperature_target = bed_temperature_target;
+
+        loop {
+            let Ok(readings) = machine.get_client().temperatures().await else {
+                tracing::warn!("failed to collect temperatures from {}", key);
+                continue;
+            };
+            tracing::trace!("metrics collected from {}", key);
+
+            // TODO: collect last N values and avg?
+
+            extruder_temperature.set(*readings.extruder.temperatures.last().unwrap_or(&0.0));
+            extruder_temperature_target.set(*readings.extruder.targets.last().unwrap_or(&0.0));
+
+            if let Some(heater_bed) = readings.heater_bed {
+                bed_temperature.set(*heater_bed.temperatures.last().unwrap_or(&0.0));
+                bed_temperature_target.set(*heater_bed.targets.last().unwrap_or(&0.0));
+            }
+
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+        }
+    });
+}
 
 pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     let machines = Arc::new(RwLock::new(HashMap::new()));
@@ -13,6 +92,19 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     cfg.spawn_discover_bambu(machines.clone()).await?;
     cfg.create_noop(machines.clone()).await?;
     cfg.create_moonraker(machines.clone()).await?;
+
+    let mut registry = Registry::default();
+    for (key, machine) in machines.read().await.iter() {
+        let machine = machine.read().await;
+        let any_machine = machine.get_machine();
+
+        match &any_machine {
+            AnyMachine::Moonraker(moonraker) => {
+                spawn_metrics_moonraker(&mut registry, key, moonraker).await;
+            }
+            _ => { /* Nothing to do here! */ }
+        }
+    }
 
     let bind_addr: SocketAddr = bind.parse()?;
     tokio::spawn(async move {
@@ -31,6 +123,6 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
         );
     });
 
-    server::serve(bind, machines).await?;
+    server::serve(bind, machines, registry).await?;
     Ok(())
 }

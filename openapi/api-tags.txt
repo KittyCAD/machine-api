@@ -1,3 +1,7 @@
+API operations found with tag "hidden"
+OPERATION ID                             URL PATH
+get_metrics                              /metrics
+
 API operations found with tag "machines"
 OPERATION ID                             URL PATH
 get_machine                              /machines/{id}
