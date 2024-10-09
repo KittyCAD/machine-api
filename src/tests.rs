@@ -1,11 +1,11 @@
+use anyhow::{Context, Result};
+use expectorate::assert_contents;
+use pretty_assertions::assert_eq;
+use prometheus_client::registry::Registry;
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
 };
-
-use anyhow::{Context, Result};
-use expectorate::assert_contents;
-use pretty_assertions::assert_eq;
 use test_context::{test_context, AsyncTestContext};
 use testresult::TestResult;
 use tokio::sync::RwLock;
@@ -21,9 +21,11 @@ impl ServerContext {
         // Find an unused port.
         let port = portpicker::pick_unused_port().ok_or_else(|| anyhow::anyhow!("no port available"))?;
         let bind = format!("127.0.0.1:{}", port);
+        let registry = Registry::default();
 
         // Create the server in debug mode.
-        let (server, _context) = crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new()))).await?;
+        let (server, _context) =
+            crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new())), registry).await?;
 
         // Sleep for 5 seconds while the server is comes up.
         std::thread::sleep(std::time::Duration::from_secs(5));
