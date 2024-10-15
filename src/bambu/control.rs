@@ -82,6 +82,7 @@ impl ControlTrait for X1Carbon {
 
         Ok(match status.gcode_state.unwrap_or("".to_owned()).as_str() {
             "RUNNING" => MachineState::Running,
+            "FINISH" => MachineState::Complete,
             "IDLE" => MachineState::Idle,
             "FAILED" => MachineState::Failed(None),
             v => {
