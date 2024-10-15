@@ -66,6 +66,26 @@ async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &m
         loop {
             let Ok(readings) = machine.get_client().temperatures().await else {
                 tracing::warn!("failed to collect temperatures from {}", key);
+
+                /* This mega-sucks. I really really *REALLY* hate this. I
+                 * can't possibly explain just how much this pisses me off.
+                 *
+                 * We can't dynamically remove the key from the prob export(s)
+                 * (which would be my preference here tbh, missing values is
+                 * handled fine), and keeping the last value is a lie (yes
+                 * its absolutely still pumping out 500c, doesn't matter the
+                 * box is offline) -- but 0 is a REALLY bad value since it's
+                 * a valid number we can (and should!) return, so translating 0
+                 * into NULL isn't going to work either.
+                 *
+                 * I have no idea what the real fix is, but this ain't it. This
+                 * just stops graphs from lying when the box goes offline. */
+
+                extruder_temperature.set(0.0);
+                extruder_temperature_target.set(0.0);
+                bed_temperature.set(0.0);
+                bed_temperature_target.set(0.0);
+
                 continue;
             };
             tracing::trace!("metrics collected from {}", key);
