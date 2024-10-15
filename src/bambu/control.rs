@@ -76,7 +76,20 @@ impl ControlTrait for X1Carbon {
     }
 
     async fn state(&self) -> Result<MachineState> {
-        Ok(MachineState::Unknown)
+        let Some(status) = self.client.get_status()? else {
+            return Ok(MachineState::Unknown);
+        };
+
+        Ok(match status.gcode_state.unwrap_or("".to_owned()).as_str() {
+            "RUNNING" => MachineState::Running,
+            "FINISH" => MachineState::Complete,
+            "IDLE" => MachineState::Idle,
+            "FAILED" => MachineState::Failed(None),
+            v => {
+                tracing::warn!("unknown state: {}", v);
+                MachineState::Unknown
+            }
+        })
     }
 }
 
