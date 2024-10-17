@@ -71,8 +71,11 @@ impl ControlTrait for X1Carbon {
     }
 
     async fn healthy(&self) -> bool {
-        // TODO: fix this
-        true
+        let Ok(Some(status)) = self.client.get_status() else {
+            return false;
+        };
+
+        status.online.is_some()
     }
 
     async fn state(&self) -> Result<MachineState> {
@@ -80,16 +83,18 @@ impl ControlTrait for X1Carbon {
             return Ok(MachineState::Unknown);
         };
 
-        Ok(match status.gcode_state.unwrap_or("".to_owned()).as_str() {
-            "RUNNING" => MachineState::Running,
-            "FINISH" => MachineState::Complete,
-            "IDLE" => MachineState::Idle,
-            "FAILED" => MachineState::Failed(None),
-            v => {
-                tracing::warn!("unknown state: {}", v);
-                MachineState::Unknown
-            }
-        })
+        let Some(state) = status.gcode_state else {
+            return Ok(MachineState::Unknown);
+        };
+
+        let more_string = status.stg_cur.map(|s| s.to_string());
+
+        match state {
+            bambulabs::message::GcodeState::Idle | bambulabs::message::GcodeState::Finish => Ok(MachineState::Idle),
+            bambulabs::message::GcodeState::Running => Ok(MachineState::Running),
+            bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
+            bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed(more_string)),
+        }
     }
 }
 
