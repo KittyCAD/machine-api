@@ -346,6 +346,9 @@ pub struct MachineModel {
 pub struct Filament {
     /// The name of the filament.
     pub name: String,
+    /// The description of the filament.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     /// The inheritance information of the filament.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inherits: Option<String>,
@@ -374,6 +377,163 @@ pub struct Filament {
     /// List of printers compatible with this filament.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub compatible_printers: Vec<String>,
+    /// The G-code to be executed at the start of filament use.
+    /// This is an array of strings, typically containing a single multi-line G-code script.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_start_gcode: Vec<String>,
+    /// The flow ratio for the filament. Typically a decimal value slightly below 1.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_flow_ratio: Vec<String>,
+    /// The vendor or manufacturer of the filament.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_vendor: Vec<String>,
+    /// The time (in seconds) each layer should be cooled by the fan.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fan_cooling_layer_time: Vec<String>,
+    /// The minimum speed of the cooling fan.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub fan_min_speed: Vec<String>,
+    /// The temperature of the hot plate during printing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hot_plate_temp: Vec<String>,
+    /// The temperature of the hot plate for the initial layer.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub hot_plate_temp_initial_layer: Vec<String>,
+    /// The nozzle temperature for the initial layer.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nozzle_temperature_initial_layer: Vec<String>,
+    /// The temperature of the textured plate during printing.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub textured_plate_temp: Vec<String>,
+    /// The temperature of the textured plate for the initial layer.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub textured_plate_temp_initial_layer: Vec<String>,
+    /// The high end of the nozzle temperature range in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nozzle_temperature_range_high: Vec<String>,
+    /// Whether to reduce the frequency of fan stops and starts. 0 for disabled, 1 for enabled.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub reduce_fan_stop_start_freq: Vec<String>,
+    /// The cost of the filament, typically in currency units per weight or length.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_cost: Vec<String>,
+    /// The unique identifier for the filament.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filament_id: Option<String>,
+    /// The density of the filament in g/cm³.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_density: Vec<String>,
+    /// The low end of the nozzle temperature range in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub nozzle_temperature_range_low: Vec<String>,
+    /// The vitrification (glass transition) temperature of the filament in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub temperature_vitrification: Vec<String>,
+    /// Chamber temperatures.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub chamber_temperatures: Vec<String>,
+    /// Overhang fan speed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub overhang_fan_speed: Vec<String>,
+    /// Full fan speed layer.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub full_fan_speed_layer: Vec<String>,
+    /// The additional speed for the cooling fan, as a percentage.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub additional_cooling_fan_speed: Vec<String>,
+    /// The number of initial layers to print without the cooling fan.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub close_fan_the_first_x_layers: Vec<String>,
+    /// The temperature of the cool plate during printing, in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cool_plate_temp: Vec<String>,
+    /// The temperature of the cool plate for the initial layer, in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cool_plate_temp_initial_layer: Vec<String>,
+    /// The temperature of the engineering plate during printing, in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub eng_plate_temp: Vec<String>,
+    /// The temperature of the engineering plate for the initial layer, in degrees Celsius.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub eng_plate_temp_initial_layer: Vec<String>,
+    /// Whether the filament is intended for support structures (1 for yes, 0 for no).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_is_support: Vec<String>,
+    /// Whether the filament is soluble (1 for yes, 0 for no).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_soluble: Vec<String>,
+    /// The type of filament (e.g., PVA, PLA, ABS).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_type: Vec<String>,
+    /// The overhang angle threshold for increasing fan speed, as a percentage.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub overhang_fan_threshold: Vec<String>,
+    /// Filament retraction length.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retraction_length: Vec<String>,
+    /// Whether to perform long retractions when the filament is cut (1 for yes, 0 for no).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_long_retractions_when_cut: Vec<String>,
+    /// The distance to retract the filament when it's cut, in millimeters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retraction_distances_when_cut: Vec<String>,
+    /// Activate air filtration.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub activate_air_filtration: Vec<String>,
+    /// Required nozzle HRC.
+    #[serde(default, skip_serializing_if = "Vec::is_empty", alias = "required_nozzle_HRC")]
+    pub required_nozzle_hrc: Vec<String>,
+    /// Whether to retract the filament before wiping. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retract_before_wipe: Vec<String>,
+    /// The distance to wipe the nozzle after retraction, in millimeters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_wipe_distance: Vec<String>,
+    /// The type of Z-hop movement to perform during retraction.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_z_hop_types: Vec<String>,
+    /// The speed of the exhaust fan after print completion, as a percentage.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub complete_print_exhaust_fan_speed: Vec<String>,
+    /// The speed of the exhaust fan during printing, as a percentage.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub during_print_exhaust_fan_speed: Vec<String>,
+    /// The speed of filament de-retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_deretraction_speed: Vec<String>,
+    /// The diameter of the filament in millimeters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_diameter: Vec<String>,
+    /// G-code to be executed at the end of using this filament.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_end_gcode: Vec<String>,
+    /// Minimal amount of filament to purge on the wipe tower, in millimeters.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_minimal_purge_on_wipe_tower: Vec<String>,
+    /// Extra length of filament to push after retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retract_restart_extra: Vec<String>,
+    /// Whether to retract when changing layers. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retract_when_changing_layer: Vec<String>,
+    /// Minimum travel distance that triggers a retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retraction_minimum_travel: Vec<String>,
+    /// Speed of filament retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_retraction_speed: Vec<String>,
+    /// Identifier for these filament settings.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_settings_id: Vec<String>,
+    /// Whether to perform a wipe movement after retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_wipe: Vec<String>,
+    /// Z-hop height for filament retraction. 'nil' might indicate a default or unset value.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub filament_z_hop: Vec<String>,
+    /// Whether to slow down printing for layer cooling (1 for yes, 0 for no).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub slow_down_for_layer_cooling: Vec<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
 }
