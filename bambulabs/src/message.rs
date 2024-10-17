@@ -962,6 +962,17 @@ pub enum NozzleDiameter {
     Diameter08,
 }
 
+impl From<NozzleDiameter> for f64 {
+    fn from(nd: NozzleDiameter) -> f64 {
+        match nd {
+            NozzleDiameter::Diameter02 => 0.2,
+            NozzleDiameter::Diameter04 => 0.4,
+            NozzleDiameter::Diameter06 => 0.6,
+            NozzleDiameter::Diameter08 => 0.8,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

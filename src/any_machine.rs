@@ -1,8 +1,7 @@
 use anyhow::Result;
 
 use crate::{
-    traits::MachineSlicerInfo, Control as ControlTrait, MachineInfo, MachineMakeModel, MachineState, MachineType,
-    Volume,
+    Control as ControlTrait, HardwareConfiguration, MachineInfo, MachineMakeModel, MachineState, MachineType, Volume,
 };
 
 /// AnyMachine is any supported machine.
@@ -136,7 +135,7 @@ impl ControlTrait for AnyMachine {
         for_all!(|self, machine| { machine.state().await })
     }
 
-    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
-        for_all!(|self, machine| { machine.slicer_info().await })
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        for_all!(|self, machine| { machine.hardware_configuration().await })
     }
 }

@@ -5,9 +5,9 @@ use moonraker::InfoResponse;
 
 use super::Client;
 use crate::{
-    traits::MachineSlicerInfo, Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
-    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
-    SuspendControl as SuspendControlTrait, Volume,
+    Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, GcodeControl as GcodeControlTrait,
+    GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState,
+    MachineType, SuspendControl as SuspendControlTrait, Volume,
 };
 
 /// Information about the connected Moonraker-based printer.
@@ -82,10 +82,11 @@ impl ControlTrait for Client {
         })
     }
 
-    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
-        Ok(MachineSlicerInfo {
-            nozzle_diameter: bambulabs::message::NozzleDiameter::Diameter04,
-        })
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
+            filament_material: FilamentMaterial::Pla,
+            nozzle_diameter: 0.4,
+        }))
     }
 }
 

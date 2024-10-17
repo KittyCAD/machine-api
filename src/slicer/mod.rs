@@ -11,8 +11,8 @@ use anyhow::Result;
 pub use config::Config;
 
 use crate::{
-    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
-    ThreeMfTemporaryFile,
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration,
+    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
 /// All Slicers that are supported by the machine-api.
@@ -50,10 +50,14 @@ impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
+    async fn generate(
+        &self,
+        design_file: &DesignFile,
+        hardware_configuration: &HardwareConfiguration,
+    ) -> Result<GcodeTemporaryFile> {
         match self {
-            Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
-            Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
+            Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file, hardware_configuration).await,
+            Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file, hardware_configuration).await,
             _ => Err(anyhow::anyhow!("slicer doesn't support gcode")),
         }
     }
@@ -66,13 +70,12 @@ impl ThreeMfSlicerTrait for AnySlicer {
     async fn generate(
         &self,
         design_file: &DesignFile,
-
-        machine_info: &crate::traits::MachineSlicerInfo,
+        hardware_configuration: &HardwareConfiguration,
     ) -> Result<ThreeMfTemporaryFile> {
         match self {
-            Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
-            Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
-            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
+            Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration).await,
+            Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration).await,
+            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration).await,
         }
     }
 }

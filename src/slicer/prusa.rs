@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    traits::MachineSlicerInfo, DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, TemporaryFile,
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration, TemporaryFile,
     ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
@@ -109,7 +109,7 @@ impl Slicer {
 impl GcodeSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, _: &HardwareConfiguration) -> Result<GcodeTemporaryFile> {
         Ok(GcodeTemporaryFile(
             self.generate_from_cli("--export-gcode", "gcode", design_file).await?,
         ))
@@ -119,11 +119,7 @@ impl GcodeSlicerTrait for Slicer {
 impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(
-        &self,
-        design_file: &DesignFile,
-        _machine_info: &MachineSlicerInfo,
-    ) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, _: &HardwareConfiguration) -> Result<ThreeMfTemporaryFile> {
         Ok(ThreeMfTemporaryFile(
             self.generate_from_cli("--export-3mf", "3mf", design_file).await?,
         ))

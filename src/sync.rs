@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tokio::sync::Mutex;
 
-use crate::{traits::MachineSlicerInfo, Control, MachineState};
+use crate::{Control, HardwareConfiguration, MachineState};
 
 /// Wrapper around an `Arc<Mutex<Control>>`, which helpfully will handle
 /// the locking to expose a [Control] without the caller having to care
@@ -45,7 +45,7 @@ where
     async fn state(&self) -> Result<MachineState, Self::Error> {
         self.0.lock().await.state().await
     }
-    async fn slicer_info(&self) -> Result<MachineSlicerInfo, Self::Error> {
-        self.0.lock().await.slicer_info().await
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration, Self::Error> {
+        self.0.lock().await.hardware_configuration().await
     }
 }

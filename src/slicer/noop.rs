@@ -4,7 +4,7 @@
 use anyhow::Result;
 
 use crate::{
-    traits::MachineSlicerInfo, DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, TemporaryFile,
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration, TemporaryFile,
     ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
@@ -28,7 +28,7 @@ impl Default for Slicer {
 impl GcodeSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(&self, _design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
+    async fn generate(&self, _design_file: &DesignFile, _: &HardwareConfiguration) -> Result<GcodeTemporaryFile> {
         let filepath = std::env::temp_dir().join(format!("{}", uuid::Uuid::new_v4().simple()));
         {
             let _ = std::fs::File::create(&filepath);
@@ -40,11 +40,7 @@ impl GcodeSlicerTrait for Slicer {
 impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(
-        &self,
-        _design_file: &DesignFile,
-        _machine_info: &MachineSlicerInfo,
-    ) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(&self, _design_file: &DesignFile, _: &HardwareConfiguration) -> Result<ThreeMfTemporaryFile> {
         let filepath = std::env::temp_dir().join(format!("{}", uuid::Uuid::new_v4().simple()));
         {
             let _ = std::fs::File::create(&filepath);

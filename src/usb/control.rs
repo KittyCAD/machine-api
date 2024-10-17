@@ -8,8 +8,9 @@ use tokio::{
 use tokio_serial::SerialStream;
 
 use crate::{
-    gcode::Client, traits::MachineSlicerInfo, Control as ControlTrait, GcodeControl as GcodeControlTrait,
-    GcodeTemporaryFile, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType, Volume,
+    gcode::Client, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
+    GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait,
+    MachineMakeModel, MachineState, MachineType, Volume,
 };
 
 /// Handle to a USB based gcode 3D printer.
@@ -141,10 +142,11 @@ impl ControlTrait for Usb {
         true
     }
 
-    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
-        Ok(MachineSlicerInfo {
-            nozzle_diameter: bambulabs::message::NozzleDiameter::Diameter04,
-        })
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
+            filament_material: FilamentMaterial::Pla,
+            nozzle_diameter: 0.4,
+        }))
     }
 }
 
