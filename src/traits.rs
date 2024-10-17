@@ -127,7 +127,7 @@ pub struct FdmHardwareConfiguration {
 }
 
 /// The hardware configuration of a machine.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub enum HardwareConfiguration {
     /// No configuration is possible. This isn't the same conceptually as
     /// an `Option<HardwareConfiguration>`, because this indicates we positively
