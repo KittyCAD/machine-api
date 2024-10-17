@@ -22,3 +22,4 @@ url = "2.5"
 
 [dev-dependencies]
 pretty_assertions = "1.4.1"
+walkdir = "2.5.0"

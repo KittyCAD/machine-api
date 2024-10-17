@@ -173,24 +173,32 @@ pub struct Filament {
     /// The name of the filament.
     pub name: String,
     /// The inheritance information of the filament.
-    pub inherits: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inherits: Option<String>,
     /// The origin or source of the filament.
     pub from: String,
     /// The unique identifier for the filament's settings.
-    pub setting_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub setting_id: Option<String>,
     /// The instantiation details of the filament.
     pub instantiation: String,
     /// Maximum speed settings for the cooling fan.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fan_max_speed: Vec<String>,
     /// Maximum volumetric speed for the filament.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub filament_max_volumetric_speed: Vec<String>,
     /// Temperature settings for the nozzle when using this filament.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub nozzle_temperature: Vec<String>,
     /// Minimum layer time for slowing down print speed.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub slow_down_layer_time: Vec<String>,
     /// Minimum speed when slowing down for cooling.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub slow_down_min_speed: Vec<String>,
     /// List of printers compatible with this filament.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub compatible_printers: Vec<String>,
 }
 
@@ -200,19 +208,84 @@ pub struct Process {
     /// The name of the process.
     pub name: String,
     /// The inheritance information of the process.
-    pub inherits: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inherits: Option<String>,
     /// The origin or source of the process.
     pub from: String,
     /// The unique identifier for the process settings.
-    pub setting_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub setting_id: Option<String>,
     /// The instantiation details of the process.
     pub instantiation: String,
     /// A description of the process.
-    pub description: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     /// The coefficient for smoothing operations in the process.
-    pub smooth_coefficient: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub smooth_coefficient: Option<String>,
     /// The speed setting for printing totally overhanging parts.
-    pub overhang_totally_speed: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overhang_totally_speed: Option<String>,
     /// List of printers compatible with this process.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub compatible_printers: Vec<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Ensure we can deserialize all the filament settings.
+    #[test]
+    fn test_deserialize_all_filament_settings() {
+        // Deserialize each file.
+        for file in walkdir::WalkDir::new("../profiles/BBL/filament").into_iter() {
+            let file = match file {
+                Ok(file) => file,
+                Err(err) => panic!("Error reading file: {:?}", err),
+            };
+            let path = file.path();
+            if path.is_dir() {
+                continue;
+            }
+            println!("Deserializing file: {}", path.display());
+            let contents = match std::fs::read_to_string(path) {
+                Ok(contents) => contents,
+                Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
+            };
+            if let Err(err) = serde_json::from_str::<Filament>(&contents) {
+                panic!("Error deserializing file `{}` to Filament: {:?}", path.display(), err);
+            }
+            if let Err(err) = serde_json::from_str::<Template>(&contents) {
+                panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
+            }
+        }
+    }
+
+    // Ensure we can deserialize all the process settings.
+    #[test]
+    fn test_deserialize_all_process_settings() {
+        // Deserialize each file.
+        for file in walkdir::WalkDir::new("../profiles/BBL/process").into_iter() {
+            let file = match file {
+                Ok(file) => file,
+                Err(err) => panic!("Error reading file: {:?}", err),
+            };
+            let path = file.path();
+            if path.is_dir() {
+                continue;
+            }
+            println!("Deserializing file: {}", path.display());
+            let contents = match std::fs::read_to_string(path) {
+                Ok(contents) => contents,
+                Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
+            };
+            if let Err(err) = serde_json::from_str::<Process>(&contents) {
+                panic!("Error deserializing file `{}` to Process: {:?}", path.display(), err);
+            }
+            if let Err(err) = serde_json::from_str::<Template>(&contents) {
+                panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
+            }
+        }
+    }
 }
