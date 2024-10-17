@@ -1,7 +1,9 @@
+use std::collections::HashMap;
+
+use anyhow::Result;
+
 use super::Client;
 use crate::{TemperatureSensor, TemperatureSensorReading, TemperatureSensors as TemperatureSensorsTrait};
-use anyhow::Result;
-use std::collections::HashMap;
 
 impl Client {
     /// Return a handle to read the temperature information from the

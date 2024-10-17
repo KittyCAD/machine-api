@@ -1,8 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::Machine;
 use prometheus_client::registry::Registry;
 use tokio::sync::RwLock;
+
+use crate::Machine;
 
 /// Context for a given server -- this contains all the informatio required
 /// to serve a Machine-API request.

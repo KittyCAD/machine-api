@@ -3,7 +3,8 @@ use bambulabs::{client::Client, command::Command};
 
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
+    Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, HardwareConfiguration,
+    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
@@ -95,6 +96,19 @@ impl ControlTrait for X1Carbon {
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
             bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
+    }
+
+    /// Return the information for the machine for the slicer.
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        let Some(status) = self.client.get_status()? else {
+            anyhow::bail!("Failed to get status");
+        };
+
+        // TODO: fix PLA hardcode here
+        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
+            nozzle_diameter: status.nozzle_diameter.into(),
+            filament_material: FilamentMaterial::Pla,
+        }))
     }
 }
 

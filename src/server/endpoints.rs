@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{Context, CorsResponseOk, RawResponseOk};
 use crate::{
-    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, TemporaryFile, Volume,
+    AnyMachine, Control, DesignFile, HardwareConfiguration, MachineInfo, MachineMakeModel, MachineState, MachineType,
+    SlicerConfiguration, TemporaryFile, Volume,
 };
 
 /// Return the OpenAPI schema in JSON format.
@@ -48,6 +49,8 @@ pub enum ExtraMachineInfoResponse {
     Bambu {
         /// The current stage of the machine as defined by Bambu which can include errors, etc.
         current_stage: Option<bambulabs::message::Stage>,
+        /// The nozzle diameter of the machine.
+        nozzle_diameter: bambulabs::message::NozzleDiameter,
         // Only run in debug mode. This is just to help us know what information we have.
         #[cfg(debug_assertions)]
         #[cfg(not(test))]
@@ -78,6 +81,9 @@ pub struct MachineInfoResponse {
     /// What "close" means is up to you!
     pub max_part_volume: Option<Volume>,
 
+    /// Information about how the Machine is currently configured.
+    pub hardware_configuration: HardwareConfiguration,
+
     /// Status of the printer -- be it printing, idle, or unreachable. This
     /// may dictate if a machine is capable of taking a new job.
     pub state: MachineState,
@@ -92,11 +98,14 @@ impl MachineInfoResponse {
     /// handle(s) to actually construct a part.
     pub(crate) async fn from_machine(id: &str, machine: &AnyMachine) -> anyhow::Result<Self> {
         let machine_info = machine.machine_info().await?;
+        let hardware_configuration = machine.hardware_configuration().await?;
+
         Ok(MachineInfoResponse {
             id: id.to_owned(),
             make_model: machine_info.make_model(),
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
+            hardware_configuration,
             state: machine.state().await?,
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
@@ -107,6 +116,7 @@ impl MachineInfoResponse {
                         .ok_or_else(|| anyhow::anyhow!("no status for bambu"))?;
                     Some(ExtraMachineInfoResponse::Bambu {
                         current_stage: status.stg_cur,
+                        nozzle_diameter: status.nozzle_diameter,
                         #[cfg(debug_assertions)]
                         #[cfg(not(test))]
                         raw_status: status,
@@ -223,6 +233,7 @@ pub(crate) async fn print_file(
     let machine_id = params.machine_id.clone();
     let job_id = uuid::Uuid::new_v4();
     let job_name = &params.job_name;
+    let slicer_configuration = &params.slicer_configuration;
 
     let machines = ctx.machines.read().await;
     let machine = match machines.get(&machine_id) {
@@ -258,7 +269,11 @@ pub(crate) async fn print_file(
     machine
         .write()
         .await
-        .build(job_name, &DesignFile::Stl(tmpfile.path().to_path_buf()))
+        .build(
+            job_name,
+            &DesignFile::Stl(tmpfile.path().to_path_buf()),
+            &slicer_configuration.unwrap_or_default(),
+        )
         .await
         .map_err(|e| {
             tracing::warn!(error = format!("{:?}", e), "failed to build file");
@@ -302,6 +317,10 @@ pub(crate) struct PrintParameters {
 
     /// The name for the job.
     pub job_name: String,
+
+    /// Requested design-specific slicer configurations.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slicer_configuration: Option<SlicerConfiguration>,
 }
 
 /// Possible errors returned by print endpoints.

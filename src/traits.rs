@@ -84,6 +84,61 @@ pub enum MachineState {
     },
 }
 
+/// The material that the filament is made of.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+pub enum FilamentMaterial {
+    /// polylactic acid based plastics
+    Pla,
+
+    /// acrylonitrile butadiene styrene based plastics
+    Abs,
+
+    /// polyethylene terephthalate glycol based plastics
+    Petg,
+
+    /// unsuprisingly, nylon based
+    Nylon,
+
+    /// thermoplastic polyurethane based urethane material
+    Tpu,
+
+    /// polyvinyl alcohol based material
+    Pva,
+
+    /// high impact polystyrene based material
+    Hips,
+
+    /// composite material with stuff in other stuff, something like
+    /// PLA mixed with carbon fiber, kevlar, or fiberglass
+    Composite,
+
+    /// none of the above, buyer beware
+    Other,
+}
+
+/// Configuration for a FDM-based printer.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+pub struct FdmHardwareConfiguration {
+    /// Diameter of the extrusion nozzle, in mm.
+    pub nozzle_diameter: f64,
+
+    /// type of material being extruded
+    pub filament_material: FilamentMaterial,
+}
+
+/// The hardware configuration of a machine.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+pub enum HardwareConfiguration {
+    /// No configuration is possible. This isn't the same conceptually as
+    /// an `Option<HardwareConfiguration>`, because this indicates we positively
+    /// know there is no possible configuration changes that are possible
+    /// with this method of manufcture.
+    None,
+
+    /// Hardware configuration specific to FDM based printers
+    Fdm(FdmHardwareConfiguration),
+}
+
 /// A `Machine` is something that can take a 3D model (in one of the
 /// supported formats), and create a physical, real-world copy of
 /// that model.
@@ -124,6 +179,13 @@ pub trait Control {
 
     /// Return the state of the printer.
     fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
+
+    // TODO: look at merging MachineType and HardwareConfiguration; they
+    // communicate VERY similar things conceptually.
+
+    /// Return information about the user-controllable hardware configuration
+    /// of the machine.
+    fn hardware_configuration(&self) -> impl Future<Output = Result<HardwareConfiguration, Self::Error>>;
 }
 
 /// [TemperatureSensor] indicates the specific part of the machine that the
@@ -208,6 +270,11 @@ where
     fn resume(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
+/// The slicer configuration is a set of parameters that are passed to the
+/// slicer to control how the gcode is generated.
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+pub struct SlicerConfiguration {}
+
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
 pub trait GcodeSlicer {
@@ -219,6 +286,8 @@ pub trait GcodeSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
+        hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> impl Future<Output = Result<GcodeTemporaryFile, <Self as GcodeSlicer>::Error>>;
 }
 
@@ -236,6 +305,8 @@ pub trait ThreeMfSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
+        hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
 

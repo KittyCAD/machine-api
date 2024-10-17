@@ -8,8 +8,9 @@ use tokio::{
 use tokio_serial::SerialStream;
 
 use crate::{
-    gcode::Client, Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
-    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType, Volume,
+    gcode::Client, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
+    GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait,
+    MachineMakeModel, MachineState, MachineType, Volume,
 };
 
 /// Handle to a USB based gcode 3D printer.
@@ -139,6 +140,13 @@ impl ControlTrait for Usb {
     async fn healthy(&self) -> bool {
         // TODO: fix this, do a gcode ping or something?
         true
+    }
+
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
+            filament_material: FilamentMaterial::Pla,
+            nozzle_diameter: 0.4,
+        }))
     }
 }
 
