@@ -108,15 +108,22 @@ impl Template {
         if let Value::Object(highest_weight) = &mut highest_weight {
             if let Value::Object(inherited) = &inherited {
                 for (key, value) in inherited {
-                    if !highest_weight.contains_key(key) {
+                    if !highest_weight.contains_key(key) || key == "inherits" {
                         highest_weight.insert(key.clone(), value.clone());
                     }
                 }
             }
         }
 
+        let new: Template = serde_json::from_value(highest_weight)?;
+
+        if new.inherits() == self.inherits() {
+            // prevent infinite loop.
+            return Ok(new);
+        }
+
         // Get the inherited settings.
-        Ok(serde_json::from_value(highest_weight)?)
+        Ok(new.load_inherited()?)
     }
 }
 
