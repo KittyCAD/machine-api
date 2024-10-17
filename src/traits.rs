@@ -1,4 +1,4 @@
-use std::future::Future;
+use std::{collections::HashMap, future::Future};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -120,6 +120,37 @@ pub trait Control {
 
     /// Return the state of the printer.
     fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
+}
+
+/// [TemperatureSensor] indicates the specific part of the machine that the
+/// sensor is attached to.
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum TemperatureSensor {
+    /// This sensor measures the temperature of the extruder of a
+    /// FDM printer.
+    Extruder,
+
+    /// This sensor measures the temperature of the print bed.
+    Bed,
+
+    /// This sensor measures the temperature of a 3d print chamber.
+    Chamber,
+}
+
+/// Temperature read from a sensor *ALWAYS IN CELSIUS*!
+pub type TemperatureSensorReading = f64;
+
+/// The [TemperatureSensors] trait is implemented on Machines that are capable
+/// of reporting thermal state to the caller.
+pub trait TemperatureSensors {
+    /// Error type returned by this trait.
+    type Error;
+
+    /// List all attached Sensors. This must not change during runtime.
+    fn sensors(&self) -> impl Future<Output = Result<HashMap<String, TemperatureSensor>, Self::Error>>;
+
+    /// Poll all sensors returned by [TemperatureSensors::sensors].
+    fn poll_sensors(&mut self) -> impl Future<Output = Result<HashMap<String, TemperatureSensorReading>, Self::Error>>;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands
