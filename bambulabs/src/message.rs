@@ -6,6 +6,7 @@ use parse_display::{Display, FromStr};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_repr::Deserialize_repr;
 
 use crate::{
     command::{AccessoryType, LedMode, LedNode},
@@ -550,7 +551,10 @@ pub enum GcodeState {
 
 /// The print stage.
 /// These come from: https://github.com/SoftFever/OrcaSlicer/blob/431978baf17961df90f0d01871b0ad1d839d7f5d/src/slic3r/GUI/DeviceManager.cpp#L78
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy, FromStr, Display)]
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize_repr, JsonSchema, Copy, FromStr, Display)]
+#[display(style = "snake_case")]
+#[serde(rename_all = "snake_case")]
+#[repr(u8)]
 pub enum Stage {
     /// Empty.
     Empty = 0,
@@ -624,6 +628,18 @@ pub enum Stage {
     FirstLayerErrorPause = 34,
     /// Nozzle clog pause.
     NozzleClogPause = 35,
+}
+
+/// Serialize the stage as a string.
+/// We only care about deserializing the stage as a number.
+/// Since that is what the printer will send us.
+impl serde::ser::Serialize for Stage {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_str())
+    }
 }
 
 /// The print upload.
@@ -1031,5 +1047,27 @@ mod tests {
 
         assert!(result.is_ok());
         assert!(matches!(result.unwrap(), Message::System(_)));
+    }
+
+    #[test]
+    fn test_deserialize_stage() {
+        let stage = r#"0"#;
+
+        let result = serde_json::from_str::<Stage>(stage);
+
+        println!("{:?}", result);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), Stage::Empty);
+    }
+
+    #[test]
+    fn test_serialize_stage() {
+        let stage = Stage::Empty;
+
+        let result = serde_json::to_string(&stage);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), r#""empty""#);
     }
 }

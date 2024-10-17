@@ -45,7 +45,12 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<CorsResponseOk
 pub enum ExtraMachineInfoResponse {
     Moonraker {},
     Usb {},
-    Bambu {},
+    Bambu {
+        /// The current stage of the machine as defined by Bambu which can include errors, etc.
+        current_stage: Option<bambulabs::message::Stage>,
+        /// The raw status message from the machine.
+        raw_status: bambulabs::message::PushStatus,
+    },
 }
 
 /// Information regarding a connected machine.
@@ -93,7 +98,15 @@ impl MachineInfoResponse {
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
                 AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
-                AnyMachine::BambuX1Carbon(_) => Some(ExtraMachineInfoResponse::Bambu {}),
+                AnyMachine::BambuX1Carbon(bambu) => {
+                    let status = bambu
+                        .get_status()?
+                        .ok_or_else(|| anyhow::anyhow!("no status for bambu"))?;
+                    Some(ExtraMachineInfoResponse::Bambu {
+                        current_stage: status.stg_cur,
+                        raw_status: status,
+                    })
+                }
                 _ => None,
             },
         })
