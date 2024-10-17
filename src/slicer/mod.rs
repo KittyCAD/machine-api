@@ -11,8 +11,8 @@ use anyhow::Result;
 pub use config::Config;
 
 use crate::{
-    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
-    ThreeMfTemporaryFile,
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration, SlicerConfiguration,
+    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
 /// All Slicers that are supported by the machine-api.
@@ -50,11 +50,20 @@ impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<GcodeTemporaryFile> {
+    async fn generate(
+        &self,
+        design_file: &DesignFile,
+        hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
+    ) -> Result<GcodeTemporaryFile> {
         match self {
-            Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
-            Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
-            _ => Err(anyhow::anyhow!("slicer doesn't support 3mf")),
+            Self::Prusa(slicer) => {
+                GcodeSlicerTrait::generate(slicer, design_file, hardware_configuration, slicer_configuration).await
+            }
+            Self::Noop(slicer) => {
+                GcodeSlicerTrait::generate(slicer, design_file, hardware_configuration, slicer_configuration).await
+            }
+            _ => Err(anyhow::anyhow!("slicer doesn't support gcode")),
         }
     }
 }
@@ -63,11 +72,22 @@ impl ThreeMfSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(
+        &self,
+        design_file: &DesignFile,
+        hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
+    ) -> Result<ThreeMfTemporaryFile> {
         match self {
-            Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
-            Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
-            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
+            Self::Prusa(slicer) => {
+                ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration, slicer_configuration).await
+            }
+            Self::Orca(slicer) => {
+                ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration, slicer_configuration).await
+            }
+            Self::Noop(slicer) => {
+                ThreeMfSlicerTrait::generate(slicer, design_file, hardware_configuration, slicer_configuration).await
+            }
         }
     }
 }

@@ -1,8 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::Machine;
 use prometheus_client::registry::Registry;
 use tokio::sync::RwLock;
+
+use crate::Machine;
 
 /// Context for a given server -- this contains all the informatio required
 /// to serve a Machine-API request.
@@ -15,5 +16,5 @@ pub struct Context {
     pub machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
 
     /// Prom registry for metrics
-    pub registry: Registry,
+    pub registry: Arc<RwLock<Registry>>,
 }

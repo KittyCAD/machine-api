@@ -11,3 +11,4 @@ mod no_auth;
 pub mod parser;
 pub mod sequence_id;
 pub mod speedprofile;
+pub mod templates;

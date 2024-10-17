@@ -1,6 +1,9 @@
 use anyhow::Result;
 
-use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
+use crate::{
+    traits::Control, AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, SlicerConfiguration, ThreeMfControl,
+    ThreeMfSlicer,
+};
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
 /// object in the real world from a specific [crate::DesignFile].
@@ -45,20 +48,32 @@ impl Machine {
 
     /// Take a specific [DesignFile], and produce a real-world 3D object
     /// from it.
-    pub async fn build(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
+    pub async fn build(
+        &mut self,
+        job_name: &str,
+        design_file: &DesignFile,
+        slicer_configuration: &SlicerConfiguration,
+    ) -> Result<()> {
         tracing::debug!(name = job_name, "building");
+        let hardware_configuration = self.machine.hardware_configuration().await?;
 
         match &mut self.machine {
             AnyMachine::BambuX1Carbon(machine) => {
-                let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
+                let three_mf =
+                    ThreeMfSlicer::generate(&self.slicer, design_file, &hardware_configuration, slicer_configuration)
+                        .await?;
                 ThreeMfControl::build(machine, job_name, three_mf).await
             }
             AnyMachine::Moonraker(machine) => {
-                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                let gcode =
+                    GcodeSlicer::generate(&self.slicer, design_file, &hardware_configuration, slicer_configuration)
+                        .await?;
                 GcodeControl::build(machine, job_name, gcode).await
             }
             AnyMachine::Usb(machine) => {
-                let gcode = GcodeSlicer::generate(&self.slicer, design_file).await?;
+                let gcode =
+                    GcodeSlicer::generate(&self.slicer, design_file, &hardware_configuration, slicer_configuration)
+                        .await?;
                 GcodeControl::build(machine, job_name, gcode).await
             }
             AnyMachine::Noop(_) => {

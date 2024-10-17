@@ -3,7 +3,8 @@ use bambulabs::{client::Client, command::Command};
 
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
+    Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, HardwareConfiguration,
+    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
@@ -95,6 +96,45 @@ impl ControlTrait for X1Carbon {
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
             bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
+    }
+
+    /// Return the information for the machine for the slicer.
+    async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        let Some(status) = self.client.get_status()? else {
+            anyhow::bail!("Failed to get status");
+        };
+
+        let default = HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                nozzle_diameter: status.nozzle_diameter.into(),
+                filament_material: FilamentMaterial::Pla,
+            },
+        };
+
+        let Some(ams) = status.ams else {
+            return Ok(default);
+        };
+
+        let Some(ams) = ams.ams.first() else {
+            return Ok(default);
+        };
+
+        let Some(first_filament) = ams.tray.first() else {
+            return Ok(default);
+        };
+
+        let Some(tray_sub_brands) = &first_filament.tray_sub_brands else {
+            return Ok(default);
+        };
+
+        Ok(HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                nozzle_diameter: status.nozzle_diameter.into(),
+                filament_material: FilamentMaterial::Other {
+                    name: tray_sub_brands.clone(),
+                },
+            },
+        })
     }
 }
 

@@ -7,7 +7,11 @@ use tokio::sync::RwLock;
 use super::{Config, MachineConfig};
 
 impl Config {
-    pub async fn spawn_discover_bambu(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+    pub async fn spawn_discover_bambu(
+        &self,
+        channel: tokio::sync::mpsc::Sender<String>,
+        machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    ) -> Result<()> {
         let discovery = bambu::X1CarbonDiscover::new(
             self.machines
                 .iter()
@@ -22,7 +26,7 @@ impl Config {
         );
 
         tokio::spawn(async move {
-            let _ = discovery.discover(machines).await;
+            let _ = discovery.discover(channel, machines).await;
         });
 
         Ok(())

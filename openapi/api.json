@@ -36,49 +36,274 @@
         "description": "Extra machine-specific information regarding a connected machine.",
         "oneOf": [
           {
-            "additionalProperties": false,
             "properties": {
-              "Moonraker": {
-                "type": "object"
+              "type": {
+                "enum": [
+                  "moonraker"
+                ],
+                "type": "string"
               }
             },
             "required": [
-              "Moonraker"
+              "type"
             ],
             "type": "object"
           },
           {
-            "additionalProperties": false,
             "properties": {
-              "Usb": {
-                "type": "object"
+              "type": {
+                "enum": [
+                  "usb"
+                ],
+                "type": "string"
               }
             },
             "required": [
-              "Usb"
+              "type"
             ],
             "type": "object"
           },
           {
-            "additionalProperties": false,
             "properties": {
-              "Bambu": {
-                "properties": {
-                  "current_stage": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/Stage"
-                      }
-                    ],
-                    "description": "The current stage of the machine as defined by Bambu which can include errors, etc.",
-                    "nullable": true
+              "current_stage": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Stage"
                   }
-                },
-                "type": "object"
+                ],
+                "description": "The current stage of the machine as defined by Bambu which can include errors, etc.",
+                "nullable": true
+              },
+              "nozzle_diameter": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/NozzleDiameter"
+                  }
+                ],
+                "description": "The nozzle diameter of the machine."
+              },
+              "type": {
+                "enum": [
+                  "bambu"
+                ],
+                "type": "string"
               }
             },
             "required": [
-              "Bambu"
+              "nozzle_diameter",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "FdmHardwareConfiguration": {
+        "description": "Configuration for a FDM-based printer.",
+        "properties": {
+          "filament_material": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FilamentMaterial"
+              }
+            ],
+            "description": "type of material being extruded"
+          },
+          "nozzle_diameter": {
+            "description": "Diameter of the extrusion nozzle, in mm.",
+            "format": "double",
+            "type": "number"
+          }
+        },
+        "required": [
+          "filament_material",
+          "nozzle_diameter"
+        ],
+        "type": "object"
+      },
+      "FilamentMaterial": {
+        "description": "The material that the filament is made of.",
+        "oneOf": [
+          {
+            "description": "polylactic acid based plastics",
+            "properties": {
+              "type": {
+                "enum": [
+                  "pla"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "acrylonitrile butadiene styrene based plastics",
+            "properties": {
+              "type": {
+                "enum": [
+                  "abs"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "polyethylene terephthalate glycol based plastics",
+            "properties": {
+              "type": {
+                "enum": [
+                  "petg"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "unsuprisingly, nylon based",
+            "properties": {
+              "type": {
+                "enum": [
+                  "nylon"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "thermoplastic polyurethane based urethane material",
+            "properties": {
+              "type": {
+                "enum": [
+                  "tpu"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "polyvinyl alcohol based material",
+            "properties": {
+              "type": {
+                "enum": [
+                  "pva"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "high impact polystyrene based material",
+            "properties": {
+              "type": {
+                "enum": [
+                  "hips"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "composite material with stuff in other stuff, something like PLA mixed with carbon fiber, kevlar, or fiberglass",
+            "properties": {
+              "type": {
+                "enum": [
+                  "composite"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "None of the above, likely a custom material that we get directly from the printer.",
+            "properties": {
+              "name": {
+                "description": "The name of the material.",
+                "type": "string"
+              },
+              "type": {
+                "enum": [
+                  "other"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "type"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "HardwareConfiguration": {
+        "description": "The hardware configuration of a machine.",
+        "oneOf": [
+          {
+            "description": "No configuration is possible. This isn't the same conceptually as an `Option<HardwareConfiguration>`, because this indicates we positively know there is no possible configuration changes that are possible with this method of manufcture.",
+            "properties": {
+              "type": {
+                "enum": [
+                  "none"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Hardware configuration specific to FDM based printers",
+            "properties": {
+              "config": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/FdmHardwareConfiguration"
+                  }
+                ],
+                "description": "The configuration for the FDM printer."
+              },
+              "type": {
+                "enum": [
+                  "fdm"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "config",
+              "type"
             ],
             "type": "object"
           }
@@ -95,6 +320,14 @@
             ],
             "description": "Additional, per-machine information which is specific to the underlying machine type.",
             "nullable": true
+          },
+          "hardware_configuration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HardwareConfiguration"
+              }
+            ],
+            "description": "Information about how the Machine is currently configured."
           },
           "id": {
             "description": "Machine Identifier (ID) for the specific Machine.",
@@ -135,6 +368,7 @@
           }
         },
         "required": [
+          "hardware_configuration",
           "id",
           "machine_type",
           "make_model",
@@ -284,21 +518,54 @@
           {
             "description": "Use light to cure a resin to build up layers.",
             "enum": [
-              "Stereolithography"
+              "stereolithography"
             ],
             "type": "string"
           },
           {
             "description": "Fused Deposition Modeling, layers of melted plastic.",
             "enum": [
-              "FusedDeposition"
+              "fused_deposition"
             ],
             "type": "string"
           },
           {
             "description": "\"Computer numerical control\" - machine that grinds away material from a hunk of material to construct a part.",
             "enum": [
-              "Cnc"
+              "cnc"
+            ],
+            "type": "string"
+          }
+        ]
+      },
+      "NozzleDiameter": {
+        "description": "A nozzle diameter.",
+        "oneOf": [
+          {
+            "description": "0.2mm.",
+            "enum": [
+              "0.2"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "0.4mm.",
+            "enum": [
+              "0.4"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "0.6mm.",
+            "enum": [
+              "0.6"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "0.8mm.",
+            "enum": [
+              "0.8"
             ],
             "type": "string"
           }
@@ -349,12 +616,25 @@
           "machine_id": {
             "description": "The machine id to print to.",
             "type": "string"
+          },
+          "slicer_configuration": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SlicerConfiguration"
+              }
+            ],
+            "description": "Requested design-specific slicer configurations.",
+            "nullable": true
           }
         },
         "required": [
           "job_name",
           "machine_id"
         ],
+        "type": "object"
+      },
+      "SlicerConfiguration": {
+        "description": "The slicer configuration is a set of parameters that are passed to the slicer to control how the gcode is generated.",
         "type": "object"
       },
       "Stage": {
