@@ -946,19 +946,23 @@ pub enum NozzleType {
 }
 
 /// A nozzle diameter.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy, FromStr, Display)]
 pub enum NozzleDiameter {
     /// 0.2mm.
     #[serde(rename = "0.2")]
+    #[display("0.2")]
     Diameter02,
     /// 0.4mm.
     #[serde(rename = "0.4")]
+    #[display("0.4")]
     Diameter04,
     /// 0.6mm.
     #[serde(rename = "0.6")]
+    #[display("0.6")]
     Diameter06,
     /// 0.8mm.
     #[serde(rename = "0.8")]
+    #[display("0.8")]
     Diameter08,
 }
 
