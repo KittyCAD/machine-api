@@ -48,6 +48,9 @@ pub enum ExtraMachineInfoResponse {
     Bambu {
         /// The current stage of the machine as defined by Bambu which can include errors, etc.
         current_stage: Option<bambulabs::message::Stage>,
+        // Only run in debug mode. This is just to help us know what information we have.
+        #[cfg(debug_assertions)]
+        #[cfg(not(test))]
         /// The raw status message from the machine.
         raw_status: bambulabs::message::PushStatus,
     },
@@ -104,6 +107,8 @@ impl MachineInfoResponse {
                         .ok_or_else(|| anyhow::anyhow!("no status for bambu"))?;
                     Some(ExtraMachineInfoResponse::Bambu {
                         current_stage: status.stg_cur,
+                        #[cfg(debug_assertions)]
+                        #[cfg(not(test))]
                         raw_status: status,
                     })
                 }

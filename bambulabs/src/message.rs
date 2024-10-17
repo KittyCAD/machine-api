@@ -554,8 +554,10 @@ pub enum GcodeState {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize_repr, JsonSchema, Copy, FromStr, Display)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
-#[repr(u8)]
+#[repr(i8)]
 pub enum Stage {
+    /// Nothing.
+    Nothing = -1,
     /// Empty.
     Empty = 0,
     /// Auto bed leveling.
@@ -1055,10 +1057,15 @@ mod tests {
 
         let result = serde_json::from_str::<Stage>(stage);
 
-        println!("{:?}", result);
-
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), Stage::Empty);
+
+        let stage = r#"-1"#;
+
+        let result = serde_json::from_str::<Stage>(stage);
+
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), Stage::Nothing);
     }
 
     #[test]
