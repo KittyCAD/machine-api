@@ -54,6 +54,7 @@ pub trait MachineInfo {
 /// be used to determine if a printer is in the correct state to take a new
 /// job.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "state")]
 pub enum MachineState {
     /// If a print state can not be resolved at this time, an Unknown may
     /// be returned.
@@ -77,7 +78,10 @@ pub enum MachineState {
     /// The printer has failed and is in an unknown state that may require
     /// manual attention to resolve. The inner value is a human
     /// readable description of what specifically has failed.
-    Failed(Option<String>),
+    Failed {
+        /// A human-readable message describing the failure.
+        message: Option<String>,
+    },
 }
 
 /// A `Machine` is something that can take a 3D model (in one of the

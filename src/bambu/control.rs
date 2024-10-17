@@ -93,7 +93,7 @@ impl ControlTrait for X1Carbon {
             bambulabs::message::GcodeState::Idle | bambulabs::message::GcodeState::Finish => Ok(MachineState::Idle),
             bambulabs::message::GcodeState::Running => Ok(MachineState::Running),
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
-            bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed(more_string)),
+            bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
     }
 }

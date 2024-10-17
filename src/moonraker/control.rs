@@ -74,7 +74,9 @@ impl ControlTrait for Client {
             "paused" => MachineState::Paused,
             "complete" => MachineState::Complete,
             "cancelled" => MachineState::Complete,
-            "error" => MachineState::Failed(Some(status.print_stats.message.to_owned())),
+            "error" => MachineState::Failed {
+                message: Some(status.print_stats.message.to_owned()),
+            },
             _ => MachineState::Unknown,
         })
     }
