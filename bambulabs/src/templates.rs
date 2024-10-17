@@ -61,10 +61,19 @@ impl Template {
     /// Set inheritance information for the template.
     pub fn set_inherits(&mut self, inherits: &str) {
         match self {
-            Template::Machine(machine) => machine.inherits = Some(inherits.to_string()),
+            Template::Machine(machine) => {
+                machine.inherits = Some(inherits.to_string());
+                machine.name = inherits.to_string();
+            }
             Template::MachineModel(_) => {}
-            Template::Filament(filament) => filament.inherits = Some(inherits.to_string()),
-            Template::Process(process) => process.inherits = Some(inherits.to_string()),
+            Template::Filament(filament) => {
+                filament.inherits = Some(inherits.to_string());
+                filament.name = inherits.to_string();
+            }
+            Template::Process(process) => {
+                process.inherits = Some(inherits.to_string());
+                process.name = inherits.to_string();
+            }
         }
     }
 
@@ -123,7 +132,7 @@ impl Template {
         }
 
         // Get the inherited settings.
-        Ok(new.load_inherited()?)
+        new.load_inherited()
     }
 }
 

@@ -78,7 +78,7 @@ impl Slicer {
             match fdm.nozzle_diameter {
                 0.2 => {
                     // Merge the bambu templates.
-                    process_overrides.set_inherits("0.10mm Standard @BBL X1C");
+                    process_overrides.set_inherits("0.10mm Standard @BBL X1C 0.2 nozzle");
                     machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.2 nozzle");
                     filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C 0.2 nozzle");
                 }
@@ -131,17 +131,14 @@ impl Slicer {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid machine config path: {}", machine_config.display()))?
             .to_string();
-        println!("process_config: {:?}", process_config);
-        println!("machine_config: {:?}", machine_config);
-        println!("filament_config: {:?}", filament_config);
 
-        let settings = [process_config, machine_config].join(";");
+        let settings = [process_config.clone(), machine_config.clone()].join(";");
 
         let args: Vec<String> = vec![
             "--load-settings".to_string(),
             settings,
             "--load-filaments".to_string(),
-            filament_config,
+            filament_config.clone(),
             "--slice".to_string(),
             "0".to_string(),
             "--orient".to_string(),
@@ -160,9 +157,6 @@ impl Slicer {
         // Find the orcaslicer executable path.
         let orca_slicer_path = find_orca_slicer()?;
 
-        println!("orca_slicer_path: {:?}", orca_slicer_path);
-        println!("args: {:?}", args);
-
         let output = Command::new(orca_slicer_path)
             .args(&args)
             .output()
@@ -180,6 +174,11 @@ impl Slicer {
         if !output_path.exists() {
             anyhow::bail!("Failed to create output file");
         }
+
+        // Delete all the configs.
+        tokio::fs::remove_file(&process_config).await?;
+        tokio::fs::remove_file(&machine_config).await?;
+        tokio::fs::remove_file(&filament_config).await?;
 
         TemporaryFile::new(&output_path).await
     }
