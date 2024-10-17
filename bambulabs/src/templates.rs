@@ -13,6 +13,8 @@ use crate::message::NozzleDiameter;
 pub enum Template {
     /// The template for the machine settings.
     Machine(Box<Machine>),
+    /// The template for a machine model.
+    MachineModel(MachineModel),
     /// The template for the filament settings.
     Filament(Filament),
     /// The template for the process settings.
@@ -54,12 +56,14 @@ pub struct Machine {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inherits: Option<String>,
     /// The origin or source of the machine.
-    pub from: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from: Option<String>,
     /// The unique identifier for the machine's settings.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub setting_id: Option<String>,
     /// The instantiation details of the machine.
-    pub instantiation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instantiation: Option<String>,
     /// A list of nozzle diameters supported by the machine.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nozzle_diameter: Option<NozzleDiameterGroup>,
@@ -67,9 +71,11 @@ pub struct Machine {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub curr_bed_type: Option<String>,
     /// The model of the printer.
-    pub printer_model: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub printer_model: Option<String>,
     /// The variant of the printer.
-    pub printer_variant: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub printer_variant: Option<String>,
     /// Areas of the bed to exclude from printing.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub bed_exclude_area: Vec<String>,
@@ -77,7 +83,8 @@ pub struct Machine {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub default_filament_profile: Vec<String>,
     /// Default print profile for the machine.
-    pub default_print_profile: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_print_profile: Option<String>,
     /// Offset values for the extruder.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub extruder_offset: Vec<String>,
@@ -263,6 +270,31 @@ pub struct Machine {
     pub wipe: Vec<String>,
 }
 
+/// The machine model template.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MachineModel {
+    /// The name of the machine model.
+    pub name: String,
+    /// The diameter of the nozzle used in this machine model.
+    pub nozzle_diameter: NozzleDiameterGroup,
+    /// The URL associated with this machine model, possibly for more information or resources.
+    pub url: url::Url,
+    /// The 3D model file for the print bed of this machine.
+    pub bed_model: String,
+    /// The texture file for the print bed of this machine.
+    pub bed_texture: String,
+    /// The default type of bed used in this machine model.
+    pub default_bed_type: String,
+    /// The family or series of printers this model belongs to.
+    pub family: String,
+    /// The technology used by this machine (e.g., FDM, SLA).
+    pub machine_tech: String,
+    /// A unique identifier for this machine model.
+    pub model_id: String,
+    /// The default materials compatible with this machine model.
+    pub default_materials: String,
+}
+
 /// The filament settings template.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Filament {
@@ -421,9 +453,6 @@ mod tests {
                 Ok(contents) => contents,
                 Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
             };
-            if let Err(err) = serde_json::from_str::<Machine>(&contents) {
-                panic!("Error deserializing file `{}` to Machine: {:?}", path.display(), err);
-            }
             if let Err(err) = serde_json::from_str::<Template>(&contents) {
                 panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
             }
