@@ -8,6 +8,7 @@
     "nozzle_diameter": [
         "0.2"
     ],
+    "curr_bed_type": "Textured PEI Plate",
     "printer_model": "Bambu Lab X1 Carbon",
     "printer_variant": "0.2",
     "default_filament_profile": [
