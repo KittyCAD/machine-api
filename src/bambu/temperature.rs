@@ -1,7 +1,9 @@
+use std::{collections::HashMap, sync::Arc};
+
+use anyhow::Result;
+
 use super::X1Carbon;
 use crate::{TemperatureSensor, TemperatureSensorReading, TemperatureSensors as TemperatureSensorsTrait};
-use anyhow::Result;
-use std::{collections::HashMap, sync::Arc};
 
 impl X1Carbon {
     /// Return a handle to read the temperature information from the

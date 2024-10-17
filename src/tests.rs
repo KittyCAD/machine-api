@@ -25,8 +25,12 @@ impl ServerContext {
         let registry = Registry::default();
 
         // Create the server in debug mode.
-        let (server, _context) =
-            crate::server::create_server(&bind, Arc::new(RwLock::new(HashMap::new())), registry).await?;
+        let (server, _context) = crate::server::create_server(
+            &bind,
+            Arc::new(RwLock::new(HashMap::new())),
+            Arc::new(RwLock::new(registry)),
+        )
+        .await?;
 
         // Sleep for 5 seconds while the server is comes up.
         std::thread::sleep(std::time::Duration::from_secs(5));
