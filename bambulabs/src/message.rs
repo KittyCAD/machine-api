@@ -550,7 +550,7 @@ pub enum GcodeState {
 
 /// The print stage.
 /// These come from: https://github.com/SoftFever/OrcaSlicer/blob/431978baf17961df90f0d01871b0ad1d839d7f5d/src/slic3r/GUI/DeviceManager.cpp#L78
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy, FromStr, Display)]
 pub enum Stage {
     /// Empty.
     Empty = 0,
