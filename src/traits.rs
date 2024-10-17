@@ -155,10 +155,12 @@ pub trait TemperatureSensors {
     type Error;
 
     /// List all attached Sensors. This must not change during runtime.
-    fn sensors(&self) -> impl Future<Output = Result<HashMap<String, TemperatureSensor>, Self::Error>>;
+    fn sensors(&self) -> impl Future<Output = Result<HashMap<String, TemperatureSensor>, Self::Error>> + Send;
 
     /// Poll all sensors returned by [TemperatureSensors::sensors].
-    fn poll_sensors(&mut self) -> impl Future<Output = Result<HashMap<String, TemperatureSensorReading>, Self::Error>>;
+    fn poll_sensors(
+        &mut self,
+    ) -> impl Future<Output = Result<HashMap<String, TemperatureSensorReading>, Self::Error>> + Send;
 }
 
 /// [ControlGcode] is used by Machines that accept gcode, control commands

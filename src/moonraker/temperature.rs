@@ -3,7 +3,23 @@ use crate::{TemperatureSensor, TemperatureSensorReading, TemperatureSensors as T
 use anyhow::Result;
 use std::collections::HashMap;
 
-impl TemperatureSensorsTrait for Client {
+impl Client {
+    /// Return a handle to read the temperature information from the
+    /// Moonraker printer.
+    pub fn get_temperature_sensors(&self) -> TemperatureSensors {
+        TemperatureSensors {
+            client: self.client.clone(),
+        }
+    }
+}
+
+/// Struct to read Temperature values from the 3d printer.
+#[derive(Clone)]
+pub struct TemperatureSensors {
+    client: moonraker::Client,
+}
+
+impl TemperatureSensorsTrait for TemperatureSensors {
     type Error = anyhow::Error;
 
     async fn sensors(&self) -> Result<HashMap<String, TemperatureSensor>> {
@@ -14,7 +30,7 @@ impl TemperatureSensorsTrait for Client {
     }
 
     async fn poll_sensors(&mut self) -> Result<HashMap<String, TemperatureSensorReading>> {
-        let readings = self.get_client().temperatures().await?;
+        let readings = self.client.temperatures().await?;
 
         let mut sensor_readings = HashMap::from([(
             "extruder".to_owned(),

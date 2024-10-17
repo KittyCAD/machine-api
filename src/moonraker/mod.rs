@@ -8,6 +8,7 @@ use anyhow::Result;
 pub use control::MachineInfo;
 use moonraker::Client as MoonrakerClient;
 use serde::{Deserialize, Serialize};
+pub use temperature::TemperatureSensors;
 pub use variants::MoonrakerVariant;
 
 use crate::{slicer, MachineMakeModel, Volume};
