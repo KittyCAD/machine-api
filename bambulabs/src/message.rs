@@ -463,7 +463,7 @@ pub struct PushStatus {
     /// The wifi signal.
     pub wifi_signal: Option<String>,
     /// The gcode state.
-    pub gcode_state: Option<String>,
+    pub gcode_state: Option<GcodeState>,
     /// The gcode file prepare percent.
     pub gcode_file_prepare_percent: Option<String>,
     /// The queue number.
@@ -489,7 +489,7 @@ pub struct PushStatus {
     /// The stg.
     pub stg: Option<Vec<Value>>,
     /// The stg cur.
-    pub stg_cur: Option<i64>,
+    pub stg_cur: Option<Stage>,
     /// The print type.
     pub print_type: Option<String>,
     /// The home flag.
@@ -530,6 +530,100 @@ pub struct PushStatus {
     pub msg: Option<i64>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
+}
+
+/// The gcode state.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum GcodeState {
+    /// The gcode is idle.
+    Idle,
+    /// The gcode is running.
+    Running,
+    /// The gcode is paused.
+    Pause,
+    /// The gcode is finished.
+    Finish,
+    /// The gcode is failed.
+    Failed,
+}
+
+/// The print stage.
+/// These come from: https://github.com/SoftFever/OrcaSlicer/blob/431978baf17961df90f0d01871b0ad1d839d7f5d/src/slic3r/GUI/DeviceManager.cpp#L78
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy, FromStr, Display)]
+pub enum Stage {
+    /// Empty.
+    Empty = 0,
+    /// Auto bed leveling.
+    AutoBedLeveling = 1,
+    /// Heatbed preheating.
+    HeatbedPreheating = 2,
+    /// Sweeping XY mech mode.
+    SweepingXyMechMode = 3,
+    /// Changing filament.
+    ChangingFilament = 4,
+    /// M400 pause.
+    M400Pause = 5,
+    /// Paused due to filament runout.
+    PausedDueToFilamentRunout = 6,
+    /// Heating hotend.
+    HeatingHotend = 7,
+    /// Calibrating extrusion.
+    CalibratingExtrusion = 8,
+    /// Scanning bed surface.
+    ScanningBedSurface = 9,
+    /// Inspecting first layer.
+    InspectingFirstLayer = 10,
+    /// Identifying build plate type.
+    IdentifyingBuildPlateType = 11,
+    /// Calibrating micro lidar.
+    CalibratingMicroLidar = 12,
+    /// Homing toolhead.
+    HomingToolhead = 13,
+    /// Cleaning nozzle tip.
+    CleaningNozzleTip = 14,
+    /// Checking extruder temperature.
+    CheckingExtruderTemperature = 15,
+    /// Printing was paused by the user.
+    PrintingWasPausedByTheUser = 16,
+    /// Pause of front cover falling.
+    PauseOfFrontCoverFalling = 17,
+    /// Calibrating micro lidar.
+    CalibratingMicroLidar2 = 18,
+    /// Calibrating extrusion flow.
+    CalibratingExtrusionFlow = 19,
+    /// Paused due to nozzle temperature malfunction.
+    PausedDueToNozzleTemperatureMalfunction = 20,
+    /// Paused due to heat bed temperature malfunction.
+    PausedDueToHeatBedTemperatureMalfunction = 21,
+    /// Filament unloading.
+    FilamentUnloading = 22,
+    /// Skip step pause.
+    SkipStepPause = 23,
+    /// Filament loading.
+    FilamentLoading = 24,
+    /// Motor noise calibration.
+    MotorNoiseCalibration = 25,
+    /// Paused due to AMS lost.
+    PausedDueToAmsLost = 26,
+    /// Paused due to low speed of the heat break fan.
+    PausedDueToLowSpeedOfTheHeatBreakFan = 27,
+    /// Paused due to chamber temperature control error.
+    PausedDueToChamberTemperatureControlError = 28,
+    /// Cooling chamber.
+    CoolingChamber = 29,
+    /// Paused by the Gcode inserted by the user.
+    PausedByTheGcodeInsertedByTheUser = 30,
+    /// Motor noise showoff.
+    MotorNoiseShowoff = 31,
+    /// Nozzle filament covered detected pause.
+    NozzleFilamentCoveredDetectedPause = 32,
+    /// Cutter error pause.
+    CutterErrorPause = 33,
+    /// First layer error pause.
+    FirstLayerErrorPause = 34,
+    /// Nozzle clog pause.
+    NozzleClogPause = 35,
 }
 
 /// The print upload.
