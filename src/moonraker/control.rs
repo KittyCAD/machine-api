@@ -83,10 +83,12 @@ impl ControlTrait for Client {
     }
 
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
-        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
-            filament_material: FilamentMaterial::Pla,
-            nozzle_diameter: 0.4,
-        }))
+        Ok(HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                filament_material: FilamentMaterial::Pla,
+                nozzle_diameter: 0.4,
+            },
+        })
     }
 }
 

@@ -674,7 +674,8 @@ pub struct PrintOnline {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct PrintAms {
     /// The ams.
-    pub ams: Option<Vec<PrintAmsData>>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ams: Vec<PrintAmsData>,
     /// The ams exist bits.
     pub ams_exist_bits: Option<String>,
     /// The tray exist bits.

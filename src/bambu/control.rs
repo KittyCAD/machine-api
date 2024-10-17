@@ -104,11 +104,37 @@ impl ControlTrait for X1Carbon {
             anyhow::bail!("Failed to get status");
         };
 
-        // TODO: fix PLA hardcode here
-        Ok(HardwareConfiguration::Fdm(FdmHardwareConfiguration {
-            nozzle_diameter: status.nozzle_diameter.into(),
-            filament_material: FilamentMaterial::Pla,
-        }))
+        let default = HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                nozzle_diameter: status.nozzle_diameter.into(),
+                filament_material: FilamentMaterial::Pla,
+            },
+        };
+
+        let Some(ams) = status.ams else {
+            return Ok(default);
+        };
+
+        let Some(ams) = ams.ams.first() else {
+            return Ok(default);
+        };
+
+        let Some(first_filament) = ams.tray.first() else {
+            return Ok(default);
+        };
+
+        let Some(tray_sub_brands) = &first_filament.tray_sub_brands else {
+            return Ok(default);
+        };
+
+        Ok(HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                nozzle_diameter: status.nozzle_diameter.into(),
+                filament_material: FilamentMaterial::Other {
+                    name: tray_sub_brands.clone(),
+                },
+            },
+        })
     }
 }
 

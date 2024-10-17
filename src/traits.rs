@@ -8,6 +8,7 @@ use crate::{DesignFile, TemporaryFile, Volume};
 /// Specific technique by which this Machine takes a design, and produces
 /// a real-world 3D object.
 #[derive(Debug, Copy, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum MachineType {
     /// Use light to cure a resin to build up layers.
     Stereolithography,
@@ -85,7 +86,8 @@ pub enum MachineState {
 }
 
 /// The material that the filament is made of.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum FilamentMaterial {
     /// polylactic acid based plastics
     Pla,
@@ -112,12 +114,16 @@ pub enum FilamentMaterial {
     /// PLA mixed with carbon fiber, kevlar, or fiberglass
     Composite,
 
-    /// none of the above, buyer beware
-    Other,
+    /// None of the above, likely a custom material that we get directly
+    /// from the printer.
+    Other {
+        /// The name of the material.
+        name: String,
+    },
 }
 
 /// Configuration for a FDM-based printer.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub struct FdmHardwareConfiguration {
     /// Diameter of the extrusion nozzle, in mm.
     pub nozzle_diameter: f64,
@@ -127,7 +133,8 @@ pub struct FdmHardwareConfiguration {
 }
 
 /// The hardware configuration of a machine.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum HardwareConfiguration {
     /// No configuration is possible. This isn't the same conceptually as
     /// an `Option<HardwareConfiguration>`, because this indicates we positively
@@ -136,7 +143,10 @@ pub enum HardwareConfiguration {
     None,
 
     /// Hardware configuration specific to FDM based printers
-    Fdm(FdmHardwareConfiguration),
+    Fdm {
+        /// The configuration for the FDM printer.
+        config: FdmHardwareConfiguration,
+    },
 }
 
 /// A `Machine` is something that can take a 3D model (in one of the
