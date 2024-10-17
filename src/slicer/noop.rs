@@ -4,8 +4,8 @@
 use anyhow::Result;
 
 use crate::{
-    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration, TemporaryFile,
-    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, HardwareConfiguration, SlicerConfiguration,
+    TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
 /// Noop-slicer won't slice anything at all!
@@ -28,7 +28,12 @@ impl Default for Slicer {
 impl GcodeSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(&self, _design_file: &DesignFile, _: &HardwareConfiguration) -> Result<GcodeTemporaryFile> {
+    async fn generate(
+        &self,
+        _design_file: &DesignFile,
+        _: &HardwareConfiguration,
+        _: &SlicerConfiguration,
+    ) -> Result<GcodeTemporaryFile> {
         let filepath = std::env::temp_dir().join(format!("{}", uuid::Uuid::new_v4().simple()));
         {
             let _ = std::fs::File::create(&filepath);
@@ -40,7 +45,12 @@ impl GcodeSlicerTrait for Slicer {
 impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
-    async fn generate(&self, _design_file: &DesignFile, _: &HardwareConfiguration) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(
+        &self,
+        _design_file: &DesignFile,
+        _: &HardwareConfiguration,
+        _: &SlicerConfiguration,
+    ) -> Result<ThreeMfTemporaryFile> {
         let filepath = std::env::temp_dir().join(format!("{}", uuid::Uuid::new_v4().simple()));
         {
             let _ = std::fs::File::create(&filepath);

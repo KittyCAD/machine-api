@@ -6,7 +6,8 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    DesignFile, HardwareConfiguration, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+    DesignFile, HardwareConfiguration, SlicerConfiguration, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
+    ThreeMfTemporaryFile,
 };
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
@@ -30,6 +31,7 @@ impl Slicer {
         output_extension: &str,
         design_file: &DesignFile,
         hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
@@ -136,10 +138,17 @@ impl ThreeMfSlicerTrait for Slicer {
         &self,
         design_file: &DesignFile,
         hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> Result<ThreeMfTemporaryFile> {
         Ok(ThreeMfTemporaryFile(
-            self.generate_via_cli("--export-3mf", "3mf", design_file, hardware_configuration)
-                .await?,
+            self.generate_via_cli(
+                "--export-3mf",
+                "3mf",
+                design_file,
+                hardware_configuration,
+                slicer_configuration,
+            )
+            .await?,
         ))
     }
 }

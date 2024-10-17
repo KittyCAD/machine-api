@@ -268,6 +268,9 @@ where
     fn resume(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct SlicerConfiguration {}
+
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
 pub trait GcodeSlicer {
@@ -280,6 +283,7 @@ pub trait GcodeSlicer {
         &self,
         design_file: &DesignFile,
         hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> impl Future<Output = Result<GcodeTemporaryFile, <Self as GcodeSlicer>::Error>>;
 }
 
@@ -298,6 +302,7 @@ pub trait ThreeMfSlicer {
         &self,
         design_file: &DesignFile,
         hardware_configuration: &HardwareConfiguration,
+        slicer_configuration: &SlicerConfiguration,
     ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
 
