@@ -71,8 +71,11 @@ impl ControlTrait for X1Carbon {
     }
 
     async fn healthy(&self) -> bool {
-        // TODO: fix this
-        true
+        let Ok(Some(status)) = self.client.get_status() else {
+            return false;
+        };
+
+        status.online.is_some()
     }
 
     async fn state(&self) -> Result<MachineState> {
