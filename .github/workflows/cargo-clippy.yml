@@ -35,5 +35,3 @@ jobs:
         shell: bash
       - name: Run clippy
         run: cargo clippy --workspace --tests -- -D warnings
-      - name: Cargo check --release
-        run: cargo check --release
