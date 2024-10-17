@@ -7,9 +7,9 @@ use crate::{
 /// AnyMachine is any supported machine.
 #[non_exhaustive]
 pub enum AnyMachine {
-    /// Bambu Labs X1 Carbon
+    /// Bambu Labs printer
     #[cfg(feature = "bambu")]
-    BambuX1Carbon(crate::bambu::X1Carbon),
+    Bambu(crate::bambu::Bambu),
 
     /// Generic Moonraker type printer
     #[cfg(feature = "moonraker")]
@@ -27,9 +27,9 @@ pub enum AnyMachine {
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AnyMachineInfo {
-    /// Bambu Labs X1 Carbon
+    /// Bambu Labs printer
     #[cfg(feature = "bambu")]
-    BambuX1Carbon(crate::bambu::PrinterInfo),
+    Bambu(crate::bambu::PrinterInfo),
 
     /// Generic Moonraker type printer
     #[cfg(feature = "moonraker")]
@@ -74,7 +74,7 @@ macro_rules! def_machine_stubs {
     };
 }
 
-def_machine_stubs!(if "bambu",     BambuX1Carbon(crate::bambu::X1Carbon, crate::bambu::PrinterInfo));
+def_machine_stubs!(if "bambu",     Bambu(crate::bambu::Bambu, crate::bambu::PrinterInfo));
 def_machine_stubs!(if "moonraker", Moonraker(crate::moonraker::Client, crate::moonraker::MachineInfo));
 def_machine_stubs!(if "serial",    Usb(crate::usb::Usb, crate::usb::UsbMachineInfo));
 
@@ -84,7 +84,7 @@ macro_rules! for_all {
     (|$slf:ident, $machine:ident| $body:block) => {
         match $slf {
             #[cfg(feature = "bambu")]
-            Self::BambuX1Carbon($machine) => $body,
+            Self::Bambu($machine) => $body,
 
             #[cfg(feature = "moonraker")]
             Self::Moonraker($machine) => $body,

@@ -2,10 +2,10 @@ use std::{collections::HashMap, sync::Arc};
 
 use anyhow::Result;
 
-use super::X1Carbon;
+use super::Bambu;
 use crate::{TemperatureSensor, TemperatureSensorReading, TemperatureSensors as TemperatureSensorsTrait};
 
-impl X1Carbon {
+impl Bambu {
     /// Return a handle to read the temperature information from the
     /// Moonraker printer.
     pub fn get_temperature_sensors(&self) -> TemperatureSensors {

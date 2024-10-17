@@ -111,7 +111,7 @@ impl MachineInfoResponse {
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
                 AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
-                AnyMachine::BambuX1Carbon(bambu) => {
+                AnyMachine::Bambu(bambu) => {
                     let status = bambu
                         .get_status()?
                         .ok_or_else(|| anyhow::anyhow!("no status for bambu"))?;
