@@ -124,6 +124,9 @@ pub trait Control {
 
     /// Return the state of the printer.
     fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
+
+    /// Return the information for the machine for the slicer.
+    fn slicer_info(&self) -> impl Future<Output = Result<MachineSlicerInfo, Self::Error>>;
 }
 
 /// [TemperatureSensor] indicates the specific part of the machine that the
@@ -225,6 +228,13 @@ pub trait GcodeSlicer {
 /// GcodeTemporaryFile is a TemporaryFile full of .gcode.
 pub struct GcodeTemporaryFile(pub TemporaryFile);
 
+/// Information about the machine that applies to the slicer.
+#[derive(Debug, Clone, Copy)]
+pub struct MachineSlicerInfo {
+    /// The diameter of the nozzle in millimeters.
+    pub nozzle_diameter: bambulabs::message::NozzleDiameter,
+}
+
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
 pub trait ThreeMfSlicer {
@@ -236,6 +246,7 @@ pub trait ThreeMfSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
+        machine_info: &MachineSlicerInfo,
     ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
 

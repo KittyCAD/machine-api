@@ -420,7 +420,7 @@ pub struct PushStatus {
     /// The upload.
     pub upload: Option<PrintUpload>,
     /// The nozzle diameter.
-    pub nozzle_diameter: Option<String>,
+    pub nozzle_diameter: NozzleDiameter,
     /// The nozzle temperature.
     pub nozzle_temper: Option<f64>,
     /// The nozzle type.
@@ -945,6 +945,23 @@ pub enum NozzleType {
     StainlessSteel,
 }
 
+/// A nozzle diameter.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy)]
+pub enum NozzleDiameter {
+    /// 0.2mm.
+    #[serde(rename = "0.2")]
+    Diameter02,
+    /// 0.4mm.
+    #[serde(rename = "0.4")]
+    Diameter04,
+    /// 0.6mm.
+    #[serde(rename = "0.6")]
+    Diameter06,
+    /// 0.8mm.
+    #[serde(rename = "0.8")]
+    Diameter08,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -961,7 +978,7 @@ mod tests {
     #[test]
     fn test_deserialize_message_print() {
         let message = format!(
-            r#"{{ "print": {{ "bed_temper": 17.40625, "wifi_signal": "-59dBm", "command": "push_status", "msg": 1, "sequence_id": {} }}}}"#,
+            r#"{{ "print": {{"nozzle_diameter": "0.2", "bed_temper": 17.40625, "wifi_signal": "-59dBm", "command": "push_status", "msg": 1, "sequence_id": {} }}}}"#,
             2
         );
 

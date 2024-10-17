@@ -1,6 +1,8 @@
 use anyhow::Result;
 
-use crate::{AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer};
+use crate::{
+    traits::Control, AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, ThreeMfControl, ThreeMfSlicer,
+};
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
 /// object in the real world from a specific [crate::DesignFile].
@@ -47,10 +49,11 @@ impl Machine {
     /// from it.
     pub async fn build(&mut self, job_name: &str, design_file: &DesignFile) -> Result<()> {
         tracing::debug!(name = job_name, "building");
+        let slicer_info = self.machine.slicer_info().await?;
 
         match &mut self.machine {
             AnyMachine::BambuX1Carbon(machine) => {
-                let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file).await?;
+                let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file, &slicer_info).await?;
                 ThreeMfControl::build(machine, job_name, three_mf).await
             }
             AnyMachine::Moonraker(machine) => {

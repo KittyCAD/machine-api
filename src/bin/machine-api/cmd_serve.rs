@@ -1,16 +1,18 @@
-use super::{Cli, Config};
+use std::{
+    collections::HashMap,
+    net::SocketAddr,
+    sync::{atomic::AtomicU64, Arc},
+};
+
 use anyhow::Result;
 use machine_api::{server, AnyMachine, TemperatureSensors};
 use prometheus_client::{
     metrics::gauge::Gauge,
     registry::{Registry, Unit},
 };
-use std::{
-    collections::HashMap,
-    net::SocketAddr,
-    sync::{atomic::AtomicU64, Arc},
-};
 use tokio::sync::RwLock;
+
+use super::{Cli, Config};
 
 /// Long-term this should get a new trait, and a MachineT: Metrics / generic
 /// param on this function.

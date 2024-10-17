@@ -3,8 +3,9 @@ use bambulabs::{client::Client, command::Command};
 
 use super::{PrinterInfo, X1Carbon};
 use crate::{
-    Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
-    SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
+    traits::MachineSlicerInfo, Control as ControlTrait, MachineInfo as MachineInfoTrait, MachineMakeModel,
+    MachineState, MachineType, SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait,
+    ThreeMfTemporaryFile, Volume,
 };
 
 impl X1Carbon {
@@ -95,6 +96,17 @@ impl ControlTrait for X1Carbon {
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
             bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
+    }
+
+    /// Return the information for the machine for the slicer.
+    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
+        let Some(status) = self.client.get_status()? else {
+            anyhow::bail!("Failed to get status");
+        };
+
+        Ok(MachineSlicerInfo {
+            nozzle_diameter: status.nozzle_diameter,
+        })
     }
 }
 

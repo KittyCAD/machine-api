@@ -1,6 +1,9 @@
 use anyhow::Result;
 
-use crate::{Control as ControlTrait, MachineInfo, MachineMakeModel, MachineState, MachineType, Volume};
+use crate::{
+    traits::MachineSlicerInfo, Control as ControlTrait, MachineInfo, MachineMakeModel, MachineState, MachineType,
+    Volume,
+};
 
 /// AnyMachine is any supported machine.
 #[non_exhaustive]
@@ -131,5 +134,9 @@ impl ControlTrait for AnyMachine {
 
     async fn state(&self) -> Result<MachineState> {
         for_all!(|self, machine| { machine.state().await })
+    }
+
+    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
+        for_all!(|self, machine| { machine.slicer_info().await })
     }
 }

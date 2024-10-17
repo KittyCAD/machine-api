@@ -54,7 +54,7 @@ impl GcodeSlicerTrait for AnySlicer {
         match self {
             Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
             Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file).await,
-            _ => Err(anyhow::anyhow!("slicer doesn't support 3mf")),
+            _ => Err(anyhow::anyhow!("slicer doesn't support gcode")),
         }
     }
 }
@@ -63,11 +63,16 @@ impl ThreeMfSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(
+        &self,
+        design_file: &DesignFile,
+
+        machine_info: &crate::traits::MachineSlicerInfo,
+    ) -> Result<ThreeMfTemporaryFile> {
         match self {
-            Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
-            Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
-            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file).await,
+            Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
+            Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
+            Self::Noop(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, machine_info).await,
         }
     }
 }

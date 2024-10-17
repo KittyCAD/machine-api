@@ -5,7 +5,9 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use tokio::process::Command;
 
-use crate::{DesignFile, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile};
+use crate::{
+    traits::MachineSlicerInfo, DesignFile, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+};
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
 pub struct Slicer {
@@ -27,6 +29,7 @@ impl Slicer {
         output_flag: &str,
         output_extension: &str,
         design_file: &DesignFile,
+        machine_info: &MachineSlicerInfo,
     ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
@@ -40,23 +43,37 @@ impl Slicer {
             DesignFile::Stl(path) => (path, "stl"),
         };
 
+        let (process_file, machine_file, filament_file) = match machine_info.nozzle_diameter {
+            bambulabs::message::NozzleDiameter::Diameter02 => (
+                "process-0.10mm.json",
+                "machine-0.2-nozzle.json",
+                "filament-0.2-nozzle.json",
+            ),
+            bambulabs::message::NozzleDiameter::Diameter04 => {
+                ("process-0.20mm.json", "machine-0.2-nozzle.json", "filament.json")
+            }
+            // TODO: Add support for these nozzles and better template them.
+            bambulabs::message::NozzleDiameter::Diameter06 => anyhow::bail!("No configuration for 0.6mm nozzle"),
+            bambulabs::message::NozzleDiameter::Diameter08 => anyhow::bail!("No configuration for 0.8mm nozzle"),
+        };
+
         let uid = uuid::Uuid::new_v4();
         let output_path = std::env::temp_dir().join(format!("{}.{}", uid, output_extension));
         let process_config = self
             .config
-            .join("process.json")
+            .join(process_file)
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
             .to_string();
         let machine_config = self
             .config
-            .join("machine.json")
+            .join(machine_file)
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
             .to_string();
         let filament_config = self
             .config
-            .join("filament.json")
+            .join(filament_file)
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
             .to_string();
@@ -115,9 +132,14 @@ impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(
+        &self,
+        design_file: &DesignFile,
+        machine_info: &MachineSlicerInfo,
+    ) -> Result<ThreeMfTemporaryFile> {
         Ok(ThreeMfTemporaryFile(
-            self.generate_via_cli("--export-3mf", "3mf", design_file).await?,
+            self.generate_via_cli("--export-3mf", "3mf", design_file, machine_info)
+                .await?,
         ))
     }
 }

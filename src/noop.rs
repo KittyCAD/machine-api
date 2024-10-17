@@ -4,9 +4,9 @@
 use anyhow::Result;
 
 use crate::{
-    Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, MachineInfo as MachineInfoTrait,
-    MachineMakeModel, MachineState, MachineType, SuspendControl as SuspendControlTrait,
-    ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
+    traits::MachineSlicerInfo, Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
+    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
+    SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
 /// Noop-machine will no-op, well, everything.
@@ -73,6 +73,12 @@ impl ControlTrait for Noop {
 
     async fn state(&self) -> Result<MachineState> {
         Ok(MachineState::Unknown)
+    }
+
+    async fn slicer_info(&self) -> Result<MachineSlicerInfo> {
+        Ok(MachineSlicerInfo {
+            nozzle_diameter: bambulabs::message::NozzleDiameter::Diameter04,
+        })
     }
 }
 
