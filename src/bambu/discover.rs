@@ -60,7 +60,11 @@ impl X1CarbonDiscover {
 impl DiscoverTrait for X1CarbonDiscover {
     type Error = anyhow::Error;
 
-    async fn discover(&self, printers: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+    async fn discover(
+        &self,
+        channel: tokio::sync::mpsc::Sender<String>,
+        printers: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    ) -> Result<()> {
         if self.config.is_empty() {
             tracing::debug!("no bambu devices configured, shutting down bambu scans");
             return Ok(());
@@ -208,7 +212,7 @@ impl DiscoverTrait for X1CarbonDiscover {
             };
 
             printers.write().await.insert(
-                machine_api_id,
+                machine_api_id.clone(),
                 RwLock::new(Machine::new(
                     X1Carbon {
                         info,
@@ -217,6 +221,7 @@ impl DiscoverTrait for X1CarbonDiscover {
                     slicer,
                 )),
             );
+            let _ = channel.send(machine_api_id).await;
         }
 
         Ok(())

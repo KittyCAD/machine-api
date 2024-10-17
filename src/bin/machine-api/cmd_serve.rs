@@ -20,7 +20,7 @@ use super::{Cli, Config};
 /// For now we can just do this for moonraker (and maybe one or two others)
 /// before we refine the API.
 async fn spawn_metrics<TemperatureSensorT>(
-    registry: &mut Registry,
+    registry: Arc<RwLock<Registry>>,
     key: &str,
     machine: TemperatureSensorT,
 ) -> Result<(), TemperatureSensorT::Error>
@@ -31,6 +31,8 @@ where
     TemperatureSensorT::Error: Send,
     TemperatureSensorT::Error: 'static,
 {
+    let mut registry = registry.write().await;
+
     let registry = registry.sub_registry_with_label(("id".into(), key.to_owned().into()));
 
     let mut sensors = HashMap::new();
@@ -113,23 +115,40 @@ where
 pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     let machines = Arc::new(RwLock::new(HashMap::new()));
 
-    cfg.spawn_discover_usb(machines.clone()).await?;
-    cfg.spawn_discover_bambu(machines.clone()).await?;
-    cfg.create_noop(machines.clone()).await?;
-    cfg.create_moonraker(machines.clone()).await?;
+    let (found_send, found_recv) = tokio::sync::mpsc::channel::<String>(1);
 
-    let mut registry = Registry::default();
-    for (key, machine) in machines.read().await.iter() {
-        let machine = machine.read().await;
-        let any_machine = machine.get_machine();
+    cfg.spawn_discover_usb(found_send.clone(), machines.clone()).await?;
+    cfg.spawn_discover_bambu(found_send.clone(), machines.clone()).await?;
+    cfg.create_noop(found_send.clone(), machines.clone()).await?;
+    cfg.create_moonraker(found_send.clone(), machines.clone()).await?;
 
-        match &any_machine {
-            AnyMachine::Moonraker(moonraker) => {
-                spawn_metrics(&mut registry, key, moonraker.get_temperature_sensors()).await?;
+    let registry = Arc::new(RwLock::new(Registry::default()));
+
+    let registry1 = registry.clone();
+    let machines1 = machines.clone();
+    tokio::spawn(async move {
+        let machines = machines1;
+        let mut found_recv = found_recv;
+        let registry = registry1;
+
+        while let Some(machine_id) = found_recv.recv().await {
+            let machines_read = machines.read().await;
+            let Some(machine) = machines_read.get(&machine_id) else {
+                tracing::warn!("someone lied about {}", machine_id);
+                continue;
+            };
+
+            let machine = machine.read().await;
+            let any_machine = machine.get_machine();
+
+            match &any_machine {
+                AnyMachine::Moonraker(moonraker) => {
+                    let _ = spawn_metrics(registry.clone(), &machine_id, moonraker.get_temperature_sensors()).await;
+                }
+                _ => { /* Nothing to do here! */ }
             }
-            _ => { /* Nothing to do here! */ }
         }
-    }
+    });
 
     let bind_addr: SocketAddr = bind.parse()?;
     tokio::spawn(async move {

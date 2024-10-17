@@ -16,5 +16,5 @@ pub struct Context {
     pub machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
 
     /// Prom registry for metrics
-    pub registry: Registry,
+    pub registry: Arc<RwLock<Registry>>,
 }

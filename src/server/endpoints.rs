@@ -169,8 +169,9 @@ pub async fn get_machines(
 pub async fn get_metrics(rqctx: RequestContext<Arc<Context>>) -> Result<RawResponseOk, HttpError> {
     let ctx = rqctx.context();
     let mut response = String::new();
+    let registry = ctx.registry.read().await;
 
-    prometheus_client::encoding::text::encode(&mut response, &ctx.registry)
+    prometheus_client::encoding::text::encode(&mut response, &registry)
         .map_err(|e| HttpError::for_internal_error(format!("{:?}", e)))?;
 
     Ok(RawResponseOk(response))
