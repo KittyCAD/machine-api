@@ -50,7 +50,7 @@ impl Slicer {
                 "filament-0.2-nozzle.json",
             ),
             bambulabs::message::NozzleDiameter::Diameter04 => {
-                ("process-0.20mm.json", "machine-0.2-nozzle.json", "filament.json")
+                ("process-0.20mm.json", "machine-0.4-nozzle.json", "filament.json")
             }
             // TODO: Add support for these nozzles and better template them.
             bambulabs::message::NozzleDiameter::Diameter06 => anyhow::bail!("No configuration for 0.6mm nozzle"),
