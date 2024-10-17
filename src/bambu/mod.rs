@@ -2,6 +2,7 @@
 
 mod control;
 mod discover;
+mod temperature;
 
 use std::{net::IpAddr, sync::Arc};
 
