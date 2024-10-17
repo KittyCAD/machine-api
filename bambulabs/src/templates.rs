@@ -437,12 +437,14 @@ pub struct Filament {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inherits: Option<String>,
     /// The origin or source of the filament.
-    pub from: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from: Option<String>,
     /// The unique identifier for the filament's settings.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub setting_id: Option<String>,
     /// The instantiation details of the filament.
-    pub instantiation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instantiation: Option<String>,
     /// Maximum speed settings for the cooling fan.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub fan_max_speed: Vec<String>,
@@ -631,12 +633,14 @@ pub struct Process {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub inherits: Option<String>,
     /// The origin or source of the process.
-    pub from: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from: Option<String>,
     /// The unique identifier for the process settings.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub setting_id: Option<String>,
     /// The instantiation details of the process.
-    pub instantiation: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub instantiation: Option<String>,
     /// A description of the process.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,

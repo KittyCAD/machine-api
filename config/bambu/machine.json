@@ -1,3 +1,5 @@
 {
-    "curr_bed_type": "Textured PEI Plate"
+  "type": "machine",
+  "name": "machine-api overrides",
+  "curr_bed_type": "Textured PEI Plate"
 }

@@ -272,7 +272,7 @@ where
 
 /// The slicer configuration is a set of parameters that are passed to the
 /// slicer to control how the gcode is generated.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub struct SlicerConfiguration {}
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces

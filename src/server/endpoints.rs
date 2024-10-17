@@ -272,7 +272,7 @@ pub(crate) async fn print_file(
         .build(
             job_name,
             &DesignFile::Stl(tmpfile.path().to_path_buf()),
-            slicer_configuration,
+            &slicer_configuration.unwrap_or_default(),
         )
         .await
         .map_err(|e| {
@@ -319,7 +319,8 @@ pub(crate) struct PrintParameters {
     pub job_name: String,
 
     /// Requested design-specific slicer configurations.
-    pub slicer_configuration: SlicerConfiguration,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub slicer_configuration: Option<SlicerConfiguration>,
 }
 
 /// Possible errors returned by print endpoints.

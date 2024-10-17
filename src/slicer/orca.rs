@@ -131,6 +131,9 @@ impl Slicer {
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid machine config path: {}", machine_config.display()))?
             .to_string();
+        println!("process_config: {:?}", process_config);
+        println!("machine_config: {:?}", machine_config);
+        println!("filament_config: {:?}", filament_config);
 
         let settings = [process_config, machine_config].join(";");
 
@@ -235,5 +238,26 @@ fn find_orca_slicer() -> Result<PathBuf> {
         Ok(app_path)
     } else {
         anyhow::bail!("Slicer not found")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_deserialize_process_json() {
+        let contents = include_str!("../../config/bambu/process.json");
+        let _template: bambulabs::templates::Template = serde_json::from_str(contents).unwrap();
+    }
+
+    #[test]
+    fn test_deserialize_machine_json() {
+        let contents = include_str!("../../config/bambu/machine.json");
+        let _template: bambulabs::templates::Template = serde_json::from_str(contents).unwrap();
+    }
+
+    #[test]
+    fn test_deserialize_filament_json() {
+        let contents = include_str!("../../config/bambu/filament.json");
+        let _template: bambulabs::templates::Template = serde_json::from_str(contents).unwrap();
     }
 }
