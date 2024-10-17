@@ -125,6 +125,9 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
             AnyMachine::Moonraker(moonraker) => {
                 spawn_metrics(&mut registry, key, moonraker.get_temperature_sensors()).await?;
             }
+            AnyMachine::BambuX1Carbon(bambu) => {
+                spawn_metrics(&mut registry, key, bambu.get_temperature_sensors()).await?;
+            }
             _ => { /* Nothing to do here! */ }
         }
     }

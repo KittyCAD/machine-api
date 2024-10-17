@@ -1,9 +1,25 @@
 use super::X1Carbon;
 use crate::{TemperatureSensor, TemperatureSensorReading, TemperatureSensors as TemperatureSensorsTrait};
 use anyhow::Result;
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-impl TemperatureSensorsTrait for X1Carbon {
+impl X1Carbon {
+    /// Return a handle to read the temperature information from the
+    /// Moonraker printer.
+    pub fn get_temperature_sensors(&self) -> TemperatureSensors {
+        TemperatureSensors {
+            client: self.client.clone(),
+        }
+    }
+}
+
+/// Struct to read Temperature values from the 3d printer.
+#[derive(Clone)]
+pub struct TemperatureSensors {
+    client: Arc<bambulabs::client::Client>,
+}
+
+impl TemperatureSensorsTrait for TemperatureSensors {
     type Error = anyhow::Error;
 
     async fn sensors(&self) -> Result<HashMap<String, TemperatureSensor>> {
@@ -15,7 +31,7 @@ impl TemperatureSensorsTrait for X1Carbon {
     }
 
     async fn poll_sensors(&mut self) -> Result<HashMap<String, TemperatureSensorReading>> {
-        let Some(status) = self.get_status()? else {
+        let Some(status) = self.client.get_status()? else {
             return Ok(HashMap::new());
         };
 
