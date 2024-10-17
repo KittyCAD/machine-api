@@ -168,57 +168,111 @@
         "oneOf": [
           {
             "description": "If a print state can not be resolved at this time, an Unknown may be returned.",
-            "enum": [
-              "Unknown"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "Idle, and ready for another job.",
-            "enum": [
-              "Idle"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "Running a job -- 3D printing or CNC-ing a part.",
-            "enum": [
-              "Running"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "Machine is currently offline or unreachable.",
-            "enum": [
-              "Offline"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "Job is underway but halted, waiting for some action to take place.",
-            "enum": [
-              "Paused"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "Job is finished, but waiting manual action to move back to Idle.",
-            "enum": [
-              "Complete"
-            ],
-            "type": "string"
-          },
-          {
-            "additionalProperties": false,
-            "description": "The printer has failed and is in an unknown state that may require manual attention to resolve. The inner value is a human readable description of what specifically has failed.",
             "properties": {
-              "Failed": {
-                "nullable": true,
+              "state": {
+                "enum": [
+                  "unknown"
+                ],
                 "type": "string"
               }
             },
             "required": [
-              "Failed"
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Idle, and ready for another job.",
+            "properties": {
+              "state": {
+                "enum": [
+                  "idle"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Running a job -- 3D printing or CNC-ing a part.",
+            "properties": {
+              "state": {
+                "enum": [
+                  "running"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Machine is currently offline or unreachable.",
+            "properties": {
+              "state": {
+                "enum": [
+                  "offline"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Job is underway but halted, waiting for some action to take place.",
+            "properties": {
+              "state": {
+                "enum": [
+                  "paused"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "Job is finished, but waiting manual action to move back to Idle.",
+            "properties": {
+              "state": {
+                "enum": [
+                  "complete"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
+            ],
+            "type": "object"
+          },
+          {
+            "description": "The printer has failed and is in an unknown state that may require manual attention to resolve. The inner value is a human readable description of what specifically has failed.",
+            "properties": {
+              "message": {
+                "description": "A human-readable message describing the failure.",
+                "nullable": true,
+                "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "failed"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "state"
             ],
             "type": "object"
           }
