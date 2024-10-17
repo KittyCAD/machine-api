@@ -36,60 +36,62 @@
         "description": "Extra machine-specific information regarding a connected machine.",
         "oneOf": [
           {
-            "additionalProperties": false,
             "properties": {
-              "Moonraker": {
-                "type": "object"
-              }
-            },
-            "required": [
-              "Moonraker"
-            ],
-            "type": "object"
-          },
-          {
-            "additionalProperties": false,
-            "properties": {
-              "Usb": {
-                "type": "object"
-              }
-            },
-            "required": [
-              "Usb"
-            ],
-            "type": "object"
-          },
-          {
-            "additionalProperties": false,
-            "properties": {
-              "Bambu": {
-                "properties": {
-                  "current_stage": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/Stage"
-                      }
-                    ],
-                    "description": "The current stage of the machine as defined by Bambu which can include errors, etc.",
-                    "nullable": true
-                  },
-                  "nozzle_diameter": {
-                    "allOf": [
-                      {
-                        "$ref": "#/components/schemas/NozzleDiameter"
-                      }
-                    ],
-                    "description": "The nozzle diameter of the machine."
-                  }
-                },
-                "required": [
-                  "nozzle_diameter"
+              "type": {
+                "enum": [
+                  "moonraker"
                 ],
-                "type": "object"
+                "type": "string"
               }
             },
             "required": [
-              "Bambu"
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "usb"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "current_stage": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/Stage"
+                  }
+                ],
+                "description": "The current stage of the machine as defined by Bambu which can include errors, etc.",
+                "nullable": true
+              },
+              "nozzle_diameter": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/NozzleDiameter"
+                  }
+                ],
+                "description": "The nozzle diameter of the machine."
+              },
+              "type": {
+                "enum": [
+                  "bambu"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "nozzle_diameter",
+              "type"
             ],
             "type": "object"
           }

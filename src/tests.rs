@@ -77,6 +77,10 @@ fn test_openapi() -> TestResult {
     assert!(!spec.paths.paths.is_empty());
     assert!(spec.paths.paths.get("/ping").is_some());
 
+    // Check for lint errors.
+    let errors = openapi_lint::validate(&spec);
+    assert!(errors.is_empty(), "{}", errors.join("\n\n"));
+
     // Construct a string that helps us identify the organization of tags and
     // operations.
     let mut ops_by_tag = BTreeMap::<String, Vec<(String, String)>>::new();

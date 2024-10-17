@@ -43,6 +43,7 @@ pub async fn ping(_rqctx: RequestContext<Arc<Context>>) -> Result<CorsResponseOk
 
 /// Extra machine-specific information regarding a connected machine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case", tag = "type")]
 pub enum ExtraMachineInfoResponse {
     Moonraker {},
     Usb {},
