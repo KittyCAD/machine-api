@@ -7,6 +7,7 @@ edition = "2021"
 anyhow = "1.0.89"
 dashmap = "6.1.0"
 format_serde_error = { version = "0.3.0", default-features = false, features = ["serde_json"] }
+include_dir = { version = "0.7.4", features = ["glob"] }
 lazy_static = "1.5.0"
 nanoid = "0.4.0"
 parse-display = "0.10.0"

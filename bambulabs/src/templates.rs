@@ -9,6 +9,9 @@ use serde_json::Value;
 
 use crate::message::NozzleDiameter;
 
+/// Template directory.
+static TEMPLATE_DIR: include_dir::Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/profiles");
+
 /// The template for the machine, filament, and process settings.
 /// For the slicer.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -58,11 +61,30 @@ impl Template {
     /// Load inherited settings from the given templates.
     /// We use serde_json::Value to merge the settings because it's easier to work with.
     /// And more generic.
-    pub fn load_inherited(&self, templates: &BTreeMap<String, Template>) -> Result<Template> {
+    pub fn load_inherited(&self) -> Result<Template> {
         let Some(inherits) = self.inherits() else {
             // We have no inherited settings.
             return Ok(self.clone());
         };
+
+        let glob = match self {
+            Template::Machine(_) => "**/machine/*.json",
+            Template::MachineModel(_) => "**/machine/*.json",
+            Template::Filament(_) => "**/filament/*.json",
+            Template::Process(_) => "**/process/*.json",
+        };
+
+        let mut templates = BTreeMap::new();
+        for entry in TEMPLATE_DIR.find(glob)? {
+            let Some(entry) = entry.as_file() else {
+                continue;
+            };
+            let template = entry
+                .contents_utf8()
+                .ok_or_else(|| anyhow::anyhow!("Failed to read template file '{}'", entry.path().display()))?;
+            let template: Template = serde_json::from_str(template)?;
+            templates.insert(template.name(), template);
+        }
 
         // Get the inherited template.
         let inherited = templates
@@ -955,9 +977,8 @@ mod tests {
     // Ensure we can deserialize all the filament settings.
     #[test]
     fn test_deserialize_all_filament_settings() {
-        let mut templates = BTreeMap::<String, Template>::new();
         // Deserialize each file.
-        for file in walkdir::WalkDir::new("../profiles/BBL/filament").into_iter() {
+        for file in walkdir::WalkDir::new("profiles/BBL/filament").into_iter() {
             let file = match file {
                 Ok(file) => file,
                 Err(err) => panic!("Error reading file: {:?}", err),
@@ -976,23 +997,17 @@ mod tests {
             }
             match serde_json::from_str::<Template>(&contents) {
                 Ok(t) => {
-                    templates.insert(t.name().clone(), t.clone());
                     if !t.other().is_empty() {
                         panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
                     }
+                    let new = t.load_inherited().unwrap();
+                    if t.inherits().is_some() {
+                        //assert!(new != *t, "Inherited settings are the same as the original: {:#?}", t);
+                    } else {
+                        assert_eq!(new, t, "Inherited settings are different from the original: {:#?}", t);
+                    }
                 }
                 Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
-            }
-        }
-
-        // Get the inherited settings.
-        for t in templates.values() {
-            let new = t.load_inherited(&templates).unwrap();
-
-            if t.inherits().is_some() {
-                //assert!(new != *t, "Inherited settings are the same as the original: {:#?}", t);
-            } else {
-                assert_eq!(new, *t, "Inherited settings are different from the original: {:#?}", t);
             }
         }
     }
@@ -1000,9 +1015,8 @@ mod tests {
     // Ensure we can deserialize all the process settings.
     #[test]
     fn test_deserialize_all_process_settings() {
-        let mut templates = BTreeMap::<String, Template>::new();
         // Deserialize each file.
-        for file in walkdir::WalkDir::new("../profiles/BBL/process").into_iter() {
+        for file in walkdir::WalkDir::new("profiles/BBL/process").into_iter() {
             let file = match file {
                 Ok(file) => file,
                 Err(err) => panic!("Error reading file: {:?}", err),
@@ -1021,23 +1035,17 @@ mod tests {
             }
             match serde_json::from_str::<Template>(&contents) {
                 Ok(t) => {
-                    templates.insert(t.name().clone(), t.clone());
                     if !t.other().is_empty() {
                         panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
                     }
+                    let new = t.load_inherited().unwrap();
+                    if t.inherits().is_some() {
+                        //assert!(new != *t, "Inherited settings are the same as the original: {:#?}", t);
+                    } else {
+                        assert_eq!(new, t, "Inherited settings are different from the original: {:#?}", t);
+                    }
                 }
                 Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
-            }
-        }
-
-        // Get the inherited settings.
-        for t in templates.values() {
-            let new = t.load_inherited(&templates).unwrap();
-
-            if t.inherits().is_some() {
-                //assert!(new != *t, "Inherited settings are the same as the original: {:#?}", t);
-            } else {
-                assert_eq!(new, *t, "Inherited settings are different from the original: {:#?}", t);
             }
         }
     }
@@ -1045,10 +1053,8 @@ mod tests {
     // Ensure we can deserialize all the machine settings.
     #[test]
     fn test_deserialize_all_machine_settings() {
-        let all = walkdir::WalkDir::new("../profiles/BBL/machine");
-        let mut templates = BTreeMap::<String, Template>::new();
         // Deserialize each file.
-        for file in all.into_iter() {
+        for file in walkdir::WalkDir::new("profiles/BBL/machine").into_iter() {
             let file = match file {
                 Ok(file) => file,
                 Err(err) => panic!("Error reading file: {:?}", err),
@@ -1064,23 +1070,18 @@ mod tests {
             };
             match serde_json::from_str::<Template>(&contents) {
                 Ok(t) => {
-                    templates.insert(t.name().clone(), t.clone());
                     if !t.other().is_empty() {
                         panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
                     }
+                    let new = t.load_inherited().unwrap();
+
+                    if t.inherits().is_some() {
+                        assert!(new != t, "Inherited settings are the same as the original: {:#?}", t);
+                    } else {
+                        assert_eq!(new, t, "Inherited settings are different from the original: {:#?}", t);
+                    }
                 }
                 Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
-            }
-        }
-
-        // Get the inherited settings.
-        for t in templates.values() {
-            let new = t.load_inherited(&templates).unwrap();
-
-            if t.inherits().is_some() {
-                assert!(new != *t, "Inherited settings are the same as the original: {:#?}", t);
-            } else {
-                assert_eq!(new, *t, "Inherited settings are different from the original: {:#?}", t);
             }
         }
     }
