@@ -84,7 +84,8 @@ pub enum MachineState {
     },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+/// The material that the filament is made of.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub enum FilamentMaterial {
     /// polylactic acid based plastics
     Pla,
@@ -116,15 +117,16 @@ pub enum FilamentMaterial {
 }
 
 /// Configuration for a FDM-based printer.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub struct FdmHardwareConfiguration {
     /// Diameter of the extrusion nozzle, in mm.
-    nozzle_diameter: f64,
+    pub nozzle_diameter: f64,
 
     /// type of material being extruded
-    filament_material: FilamentMaterial,
+    pub filament_material: FilamentMaterial,
 }
 
+/// The hardware configuration of a machine.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
 pub enum HardwareConfiguration {
     /// No configuration is possible. This isn't the same conceptually as
@@ -268,7 +270,9 @@ where
     fn resume(&mut self) -> impl Future<Output = Result<(), Self::Error>>;
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+/// The slicer configuration is a set of parameters that are passed to the
+/// slicer to control how the gcode is generated.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub struct SlicerConfiguration {}
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces

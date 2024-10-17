@@ -58,6 +58,16 @@ impl Template {
         }
     }
 
+    /// Set inheritance information for the template.
+    pub fn set_inherits(&mut self, inherits: &str) {
+        match self {
+            Template::Machine(machine) => machine.inherits = Some(inherits.to_string()),
+            Template::MachineModel(_) => {}
+            Template::Filament(filament) => filament.inherits = Some(inherits.to_string()),
+            Template::Process(process) => process.inherits = Some(inherits.to_string()),
+        }
+    }
+
     /// Load inherited settings from the given templates.
     /// We use serde_json::Value to merge the settings because it's easier to work with.
     /// And more generic.

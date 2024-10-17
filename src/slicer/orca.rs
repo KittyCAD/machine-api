@@ -31,7 +31,7 @@ impl Slicer {
         output_extension: &str,
         design_file: &DesignFile,
         hardware_configuration: &HardwareConfiguration,
-        slicer_configuration: &SlicerConfiguration,
+        _slicer_configuration: &SlicerConfiguration,
     ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
@@ -45,39 +45,91 @@ impl Slicer {
             DesignFile::Stl(path) => (path, "stl"),
         };
 
-        let (process_file, machine_file, filament_file) = match machine_info.nozzle_diameter {
-            bambulabs::message::NozzleDiameter::Diameter02 => (
-                "process-0.10mm.json",
-                "machine-0.2-nozzle.json",
-                "filament-0.2-nozzle.json",
-            ),
-            bambulabs::message::NozzleDiameter::Diameter04 => {
-                ("process-0.20mm.json", "machine-0.4-nozzle.json", "filament.json")
-            }
-            // TODO: Add support for these nozzles and better template them.
-            bambulabs::message::NozzleDiameter::Diameter06 => anyhow::bail!("No configuration for 0.6mm nozzle"),
-            bambulabs::message::NozzleDiameter::Diameter08 => anyhow::bail!("No configuration for 0.8mm nozzle"),
-        };
-
         let uid = uuid::Uuid::new_v4();
         let output_path = std::env::temp_dir().join(format!("{}.{}", uid, output_extension));
-        let process_config = self
+        let process_p = self
             .config
-            .join(process_file)
+            .join("process.json")
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
             .to_string();
-        let machine_config = self
+        let process_str = tokio::fs::read_to_string(&process_p).await?;
+        let mut process_overrides: bambulabs::templates::Template = serde_json::from_str(&process_str)?;
+        let machine_p = self
             .config
-            .join(machine_file)
+            .join("machine.json")
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
             .to_string();
-        let filament_config = self
+        let machine_str = tokio::fs::read_to_string(&machine_p).await?;
+        let mut machine_overrides: bambulabs::templates::Template = serde_json::from_str(&machine_str)?;
+        let filament_p = self
             .config
-            .join(filament_file)
+            .join("filament.json")
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
+            .to_string();
+        let filament_str = tokio::fs::read_to_string(&filament_p).await?;
+        let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
+
+        if let HardwareConfiguration::Fdm(fdm) = hardware_configuration {
+            // TODO: we should populate for other bambu printers.
+            // TODO: set the right filament.
+            match fdm.nozzle_diameter {
+                0.2 => {
+                    // Merge the bambu templates.
+                    process_overrides.set_inherits("0.10mm Standard @BBL X1C");
+                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.2 nozzle");
+                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C 0.2 nozzle");
+                }
+                0.4 => {
+                    // Merge the bambu templates.
+                    process_overrides.set_inherits("0.20mm Standard @BBL X1C");
+                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.4 nozzle");
+                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C");
+                }
+                0.6 => {
+                    // Merge the bambu templates.
+                    process_overrides.set_inherits("0.30mm Standard @BBL X1C 0.6 nozzle");
+                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.6 nozzle");
+                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C");
+                }
+                0.8 => {
+                    // Merge the bambu templates.
+                    process_overrides.set_inherits("0.40mm Standard @BBL X1C 0.8 nozzle");
+                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.8 nozzle");
+                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C 0.8 nozzle");
+                }
+                other => anyhow::bail!("Unsupported nozzle diameter for orca: {}", other),
+            }
+        } else {
+            anyhow::bail!("Unsupported hardware configuration for orca");
+        }
+
+        // Traverse the templates and merge them.
+        let new_process = process_overrides.load_inherited()?;
+        let new_machine = machine_overrides.load_inherited()?;
+        let new_filament = filament_overrides.load_inherited()?;
+
+        // Write each to a temporary file.
+        let temp_dir = std::env::temp_dir();
+        let process_config = temp_dir.join(format!("process-{}.json", uid));
+        tokio::fs::write(&process_config, serde_json::to_string_pretty(&new_process)?).await?;
+        let machine_config = temp_dir.join(format!("machine-{}.json", uid));
+        tokio::fs::write(&machine_config, serde_json::to_string_pretty(&new_machine)?).await?;
+        let filament_config = temp_dir.join(format!("filament-{}.json", uid));
+        tokio::fs::write(&filament_config, serde_json::to_string_pretty(&new_filament)?).await?;
+        let filament_config = filament_config
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid filament config path: {}", filament_config.display()))?
+            .to_string();
+        let process_config = process_config
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid process config path: {}", process_config.display()))?
+            .to_string();
+        let machine_config = machine_config
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid machine config path: {}", machine_config.display()))?
             .to_string();
 
         let settings = [process_config, machine_config].join(";");
