@@ -138,7 +138,15 @@ pub enum TemperatureSensor {
 }
 
 /// Temperature read from a sensor *ALWAYS IN CELSIUS*!
-pub type TemperatureSensorReading = f64;
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct TemperatureSensorReading {
+    /// The specific temperature value observed on or near the machine.
+    pub temperature_celsius: f64,
+
+    /// If set, the desired temperature that the machine will attempt to
+    /// stabalize to.
+    pub target_temperature_celsius: Option<f64>,
+}
 
 /// The [TemperatureSensors] trait is implemented on Machines that are capable
 /// of reporting thermal state to the caller.

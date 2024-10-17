@@ -1,6 +1,7 @@
 //! This module contains support for printing to moonraker 3D printers.
 
 mod control;
+mod temperature;
 mod variants;
 
 use anyhow::Result;
