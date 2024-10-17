@@ -1,12 +1,14 @@
 //! This module contains support for printing to moonraker 3D printers.
 
 mod control;
+mod temperature;
 mod variants;
 
 use anyhow::Result;
 pub use control::MachineInfo;
 use moonraker::Client as MoonrakerClient;
 use serde::{Deserialize, Serialize};
+pub use temperature::TemperatureSensors;
 pub use variants::MoonrakerVariant;
 
 use crate::{slicer, MachineMakeModel, Volume};

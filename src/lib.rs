@@ -44,7 +44,8 @@ pub use slicer::AnySlicer;
 pub use sync::SharedMachine;
 pub use traits::{
     Control, GcodeControl, GcodeSlicer, GcodeTemporaryFile, MachineInfo, MachineMakeModel, MachineState, MachineType,
-    SuspendControl, ThreeMfControl, ThreeMfSlicer, ThreeMfTemporaryFile,
+    SuspendControl, TemperatureSensor, TemperatureSensorReading, TemperatureSensors, ThreeMfControl, ThreeMfSlicer,
+    ThreeMfTemporaryFile,
 };
 
 /// A specific file containing a design to be manufactured.

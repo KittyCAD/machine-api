@@ -1,6 +1,6 @@
 use super::{Cli, Config};
 use anyhow::Result;
-use machine_api::{moonraker, server, AnyMachine};
+use machine_api::{server, AnyMachine, TemperatureSensors};
 use prometheus_client::{
     metrics::gauge::Gauge,
     registry::{Registry, Unit},
@@ -17,54 +17,54 @@ use tokio::sync::RwLock;
 ///
 /// For now we can just do this for moonraker (and maybe one or two others)
 /// before we refine the API.
-async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &moonraker::Client) {
+async fn spawn_metrics<TemperatureSensorT>(
+    registry: &mut Registry,
+    key: &str,
+    machine: TemperatureSensorT,
+) -> Result<(), TemperatureSensorT::Error>
+where
+    TemperatureSensorT: TemperatureSensors,
+    TemperatureSensorT: Send,
+    TemperatureSensorT: 'static,
+    TemperatureSensorT::Error: Send,
+    TemperatureSensorT::Error: 'static,
+{
     let registry = registry.sub_registry_with_label(("id".into(), key.to_owned().into()));
 
-    let machine = machine.clone();
+    let mut sensors = HashMap::new();
 
-    let extruder_temperature = Gauge::<f64, AtomicU64>::default();
-    registry.register_with_unit(
-        "extruder_temperature",
-        "Last temp of the extruder",
-        Unit::Celsius,
-        extruder_temperature.clone(),
-    );
+    for (sensor_id, sensor_type) in machine.sensors().await? {
+        let sensor_id_target = format!("{}_target", sensor_id);
 
-    let extruder_temperature_target = Gauge::<f64, AtomicU64>::default();
-    registry.register_with_unit(
-        "extruder_temperature_target",
-        "Target temp of the extruder",
-        Unit::Celsius,
-        extruder_temperature_target.clone(),
-    );
+        sensors.insert(sensor_id.to_owned(), Gauge::<f64, AtomicU64>::default());
+        sensors.insert(sensor_id_target.clone(), Gauge::<f64, AtomicU64>::default());
 
-    let bed_temperature = Gauge::<f64, AtomicU64>::default();
-    registry.register_with_unit(
-        "bed_temperature",
-        "Last temp of the bed",
-        Unit::Celsius,
-        bed_temperature.clone(),
-    );
+        registry.register_with_unit(
+            &sensor_id,
+            format!("machine-api sensor {} for {}'s {:?}", sensor_id, key, sensor_type),
+            Unit::Celsius,
+            sensors.get(&sensor_id).unwrap().clone(),
+        );
 
-    let bed_temperature_target = Gauge::<f64, AtomicU64>::default();
-    registry.register_with_unit(
-        "bed_temperature_target",
-        "Target temp of the bed",
-        Unit::Celsius,
-        bed_temperature_target.clone(),
-    );
+        registry.register_with_unit(
+            &sensor_id_target,
+            format!(
+                "machine-api sensor target {} for {}'s {:?}",
+                sensor_id, key, sensor_type
+            ),
+            Unit::Celsius,
+            sensors.get(&sensor_id_target).unwrap().clone(),
+        );
+    }
 
     let key = key.to_owned();
     tokio::spawn(async move {
         let key = key;
-        let machine = machine;
-        let extruder_temperature = extruder_temperature;
-        let extruder_temperature_target = extruder_temperature_target;
-        let bed_temperature = bed_temperature;
-        let bed_temperature_target = bed_temperature_target;
+        let mut machine = machine;
+        let mut sensors = sensors;
 
         loop {
-            let Ok(readings) = machine.get_client().temperatures().await else {
+            let Ok(readings) = machine.poll_sensors().await else {
                 tracing::warn!("failed to collect temperatures from {}", key);
 
                 /* This mega-sucks. I really really *REALLY* hate this. I
@@ -81,28 +81,31 @@ async fn spawn_metrics_moonraker(registry: &mut Registry, key: &str, machine: &m
                  * I have no idea what the real fix is, but this ain't it. This
                  * just stops graphs from lying when the box goes offline. */
 
-                extruder_temperature.set(0.0);
-                extruder_temperature_target.set(0.0);
-                bed_temperature.set(0.0);
-                bed_temperature_target.set(0.0);
+                for (_, gauge) in sensors.iter_mut() {
+                    gauge.set(0.0);
+                }
 
                 continue;
             };
             tracing::trace!("metrics collected from {}", key);
 
-            // TODO: collect last N values and avg?
-
-            extruder_temperature.set(*readings.extruder.temperatures.last().unwrap_or(&0.0));
-            extruder_temperature_target.set(*readings.extruder.targets.last().unwrap_or(&0.0));
-
-            if let Some(heater_bed) = readings.heater_bed {
-                bed_temperature.set(*heater_bed.temperatures.last().unwrap_or(&0.0));
-                bed_temperature_target.set(*heater_bed.targets.last().unwrap_or(&0.0));
+            for (sensor_id, sensor_reading) in readings.iter() {
+                let sensor_id_target = format!("{}_target", sensor_id);
+                if let Some(gauge) = sensors.get(sensor_id) {
+                    gauge.set(sensor_reading.temperature_celsius);
+                }
+                if let Some(gauge) = sensors.get(&sensor_id_target) {
+                    if let Some(target_temperature_celsius) = sensor_reading.target_temperature_celsius {
+                        gauge.set(target_temperature_celsius);
+                    }
+                }
             }
 
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;
         }
     });
+
+    Ok(())
 }
 
 pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
@@ -120,7 +123,7 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
 
         match &any_machine {
             AnyMachine::Moonraker(moonraker) => {
-                spawn_metrics_moonraker(&mut registry, key, moonraker).await;
+                spawn_metrics(&mut registry, key, moonraker.get_temperature_sensors()).await?;
             }
             _ => { /* Nothing to do here! */ }
         }
