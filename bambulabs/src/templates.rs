@@ -1017,7 +1017,6 @@ mod tests {
             if path.is_dir() {
                 continue;
             }
-            println!("Deserializing file: {}", path.display());
             let contents = match std::fs::read_to_string(path) {
                 Ok(contents) => contents,
                 Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
@@ -1055,7 +1054,6 @@ mod tests {
             if path.is_dir() {
                 continue;
             }
-            println!("Deserializing file: {}", path.display());
             let contents = match std::fs::read_to_string(path) {
                 Ok(contents) => contents,
                 Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
@@ -1093,7 +1091,6 @@ mod tests {
             if path.is_dir() {
                 continue;
             }
-            println!("Deserializing file: {}", path.display());
             let contents = match std::fs::read_to_string(path) {
                 Ok(contents) => contents,
                 Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
