@@ -16,6 +16,7 @@ pub trait Discover {
     /// cleaning up and reconnecting any handles that have gone stale.
     fn discover(
         &self,
+        channel: tokio::sync::mpsc::Sender<String>,
         found: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
     ) -> impl Future<Output = Result<(), Self::Error>>;
 }

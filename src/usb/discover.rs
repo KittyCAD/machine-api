@@ -112,7 +112,11 @@ type SerialPort = (u16, u16, Option<String>);
 impl Discover for UsbDiscovery {
     type Error = anyhow::Error;
 
-    async fn discover(&self, found: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+    async fn discover(
+        &self,
+        channel: tokio::sync::mpsc::Sender<String>,
+        found: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    ) -> Result<()> {
         if self.configs.is_empty() {
             tracing::debug!("no usb devices configured, shutting down usb scans");
             return Ok(());
@@ -214,6 +218,7 @@ impl Discover for UsbDiscovery {
                         slicer,
                     )),
                 );
+                let _ = channel.send(machine_id).await;
             }
 
             tokio::time::sleep(std::time::Duration::from_secs(5)).await;

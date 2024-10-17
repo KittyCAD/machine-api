@@ -7,7 +7,11 @@ use tokio::sync::RwLock;
 use super::{Config, MachineConfig};
 
 impl Config {
-    pub async fn create_moonraker(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+    pub async fn create_moonraker(
+        &self,
+        channel: tokio::sync::mpsc::Sender<String>,
+        machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    ) -> Result<()> {
         for (key, config) in self
             .machines
             .iter()
@@ -38,6 +42,7 @@ impl Config {
                     slicer,
                 )),
             );
+            channel.send(key.clone()).await?;
         }
 
         Ok(())

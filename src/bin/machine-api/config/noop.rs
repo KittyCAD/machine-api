@@ -7,7 +7,11 @@ use tokio::sync::RwLock;
 use super::{Config, MachineConfig};
 
 impl Config {
-    pub async fn create_noop(&self, machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>) -> Result<()> {
+    pub async fn create_noop(
+        &self,
+        channel: tokio::sync::mpsc::Sender<String>,
+        machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
+    ) -> Result<()> {
         for (key, _config) in self
             .machines
             .iter()
@@ -39,6 +43,7 @@ impl Config {
                     slicer::noop::Slicer::new(),
                 )),
             );
+            channel.send(key.clone()).await?;
         }
         Ok(())
     }
