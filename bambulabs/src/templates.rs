@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use crate::message::NozzleDiameter;
+use crate::message::{NozzleDiameter, NozzleType};
 
 /// Template directory.
 static TEMPLATE_DIR: include_dir::Dir<'_> = include_dir::include_dir!("$CARGO_MANIFEST_DIR/profiles");
@@ -355,7 +355,7 @@ pub struct Machine {
     pub z_hop_types: Vec<String>,
     /// Type of nozzle used in the printer.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub nozzle_type: Option<String>,
+    pub nozzle_type: Option<NozzleType>,
     /// Whether the printer supports single extruder multi-material printing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub single_extruder_multi_material: Option<String>,
