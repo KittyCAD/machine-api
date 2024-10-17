@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use super::{Context, CorsResponseOk, RawResponseOk};
 use crate::{
-    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, TemporaryFile, Volume,
+    AnyMachine, Control, DesignFile, MachineInfo, MachineMakeModel, MachineState, MachineType, SlicerConfiguration,
+    TemporaryFile, Volume,
 };
 
 /// Return the OpenAPI schema in JSON format.
@@ -226,6 +227,7 @@ pub(crate) async fn print_file(
     let machine_id = params.machine_id.clone();
     let job_id = uuid::Uuid::new_v4();
     let job_name = &params.job_name;
+    let slicer_configuration = &params.slicer_configuration;
 
     let machines = ctx.machines.read().await;
     let machine = match machines.get(&machine_id) {
@@ -261,7 +263,11 @@ pub(crate) async fn print_file(
     machine
         .write()
         .await
-        .build(job_name, &DesignFile::Stl(tmpfile.path().to_path_buf()))
+        .build(
+            job_name,
+            &DesignFile::Stl(tmpfile.path().to_path_buf()),
+            slicer_configuration,
+        )
         .await
         .map_err(|e| {
             tracing::warn!(error = format!("{:?}", e), "failed to build file");
@@ -305,6 +311,9 @@ pub(crate) struct PrintParameters {
 
     /// The name for the job.
     pub job_name: String,
+
+    /// Requested design-specific slicer configurations.
+    pub slicer_configuration: SlicerConfiguration,
 }
 
 /// Possible errors returned by print endpoints.
