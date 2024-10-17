@@ -6,8 +6,8 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    DesignFile, HardwareConfiguration, SlicerConfiguration, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
-    ThreeMfTemporaryFile,
+    DesignFile, FilamentMaterial, HardwareConfiguration, SlicerConfiguration, TemporaryFile,
+    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
@@ -72,33 +72,38 @@ impl Slicer {
         let filament_str = tokio::fs::read_to_string(&filament_p).await?;
         let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
 
-        if let HardwareConfiguration::Fdm(fdm) = hardware_configuration {
+        if let HardwareConfiguration::Fdm { config: fdm } = hardware_configuration {
             // TODO: we should populate for other bambu printers.
-            // TODO: set the right filament.
+            let filament_name = if let FilamentMaterial::Other { name } = &fdm.filament_material {
+                name
+            } else {
+                "PLA Basic"
+            };
+            let start_filament_str = format!("Bambu {} @BBL", filament_name);
             match fdm.nozzle_diameter {
                 0.2 => {
                     // Merge the bambu templates.
                     process_overrides.set_inherits("0.10mm Standard @BBL X1C 0.2 nozzle");
                     machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.2 nozzle");
-                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C 0.2 nozzle");
+                    filament_overrides.set_inherits(&format!("{} X1C 0.2 nozzle", start_filament_str));
                 }
                 0.4 => {
                     // Merge the bambu templates.
                     process_overrides.set_inherits("0.20mm Standard @BBL X1C");
                     machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.4 nozzle");
-                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C");
+                    filament_overrides.set_inherits(&format!("{} X1C", start_filament_str));
                 }
                 0.6 => {
                     // Merge the bambu templates.
                     process_overrides.set_inherits("0.30mm Standard @BBL X1C 0.6 nozzle");
                     machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.6 nozzle");
-                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C");
+                    filament_overrides.set_inherits(&format!("{} X1C", start_filament_str));
                 }
                 0.8 => {
                     // Merge the bambu templates.
                     process_overrides.set_inherits("0.40mm Standard @BBL X1C 0.8 nozzle");
                     machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.8 nozzle");
-                    filament_overrides.set_inherits("Bambu PLA Basic @BBL X1C 0.8 nozzle");
+                    filament_overrides.set_inherits(&format!("{} X1C 0.8 nozzle", start_filament_str));
                 }
                 other => anyhow::bail!("Unsupported nozzle diameter for orca: {}", other),
             }
