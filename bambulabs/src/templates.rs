@@ -1,8 +1,11 @@
 //! Templates for the machine, filament, and process settings.
 
+use std::collections::BTreeMap;
+
 use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::message::NozzleDiameter;
 
@@ -19,6 +22,18 @@ pub enum Template {
     Filament(Filament),
     /// The template for the process settings.
     Process(Process),
+}
+
+impl Template {
+    /// Get the other settings for the template.
+    pub fn other(&self) -> BTreeMap<String, Value> {
+        match self {
+            Template::Machine(machine) => machine.other.clone(),
+            Template::MachineModel(model) => model.other.clone(),
+            Template::Filament(filament) => filament.other.clone(),
+            Template::Process(process) => process.other.clone(),
+        }
+    }
 }
 
 /// Nozzle diameter group.
@@ -67,6 +82,33 @@ pub struct Machine {
     /// A list of nozzle diameters supported by the machine.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub nozzle_diameter: Option<NozzleDiameterGroup>,
+    /// The nozzle height of the machine.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub nozzle_height: Option<String>,
+    /// Enable long retraction when cut.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enable_long_retraction_when_cut: Option<String>,
+    /// Enable long retractions when cut.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub enable_long_retractions_when_cut: Vec<String>,
+    /// Long retractions when cut.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub long_retractions_when_cut: Vec<String>,
+    /// Enable filament ramming.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enable_filament_ramming: Option<String>,
+    /// Purge in prime tower.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub purge_in_prime_tower: Option<String>,
+    /// Retraction distances when cut.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub retraction_distances_when_cut: Vec<String>,
+    /// Head wrap detect zone.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub head_wrap_detect_zone: Vec<String>,
+    /// Timelapse G-code.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub time_lapse_gcode: Option<String>,
     /// The current bed type of the machine.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub curr_bed_type: Option<String>,
@@ -268,6 +310,8 @@ pub struct Machine {
     /// Wipe settings for the nozzle.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub wipe: Vec<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The machine model template.
@@ -293,6 +337,8 @@ pub struct MachineModel {
     pub model_id: String,
     /// The default materials compatible with this machine model.
     pub default_materials: String,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The filament settings template.
@@ -328,6 +374,8 @@ pub struct Filament {
     /// List of printers compatible with this filament.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub compatible_printers: Vec<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 /// The process settings template.
@@ -357,6 +405,317 @@ pub struct Process {
     /// List of printers compatible with this process.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub compatible_printers: Vec<String>,
+    /// Default acceleration.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub default_acceleration: Option<String>,
+    /// Travel speed for the process.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub travel_speed: Option<String>,
+    /// Elefant foot compensation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub elefant_foot_compensation: Option<String>,
+    /// Outer wall acceleration.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outer_wall_acceleration: Option<String>,
+    /// Outer wall speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outer_wall_speed: Option<String>,
+    /// Sparse infill pattern.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_infill_pattern: Option<String>,
+    /// Initial layer infill speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_layer_infill_speed: Option<String>,
+    /// Initial layer speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_layer_speed: Option<String>,
+    /// Gap infill speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub gap_infill_speed: Option<String>,
+    /// Inner wall speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inner_wall_speed: Option<String>,
+    /// Internal solid infill speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub internal_solid_infill_speed: Option<String>,
+    /// Sparse infill speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_infill_speed: Option<String>,
+    /// Top surface speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_surface_speed: Option<String>,
+    /// Bottom shell layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bottom_shell_layers: Option<String>,
+    /// Bridge flow.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bridge_flow: Option<String>,
+    /// Initial layer line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_layer_line_width: Option<String>,
+    /// Initial layer print height.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_layer_print_height: Option<String>,
+    /// Inner wall line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub inner_wall_line_width: Option<String>,
+    /// Internal solid infill line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub internal_solid_infill_line_width: Option<String>,
+    /// Layer height.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub layer_height: Option<String>,
+    /// Line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub line_width: Option<String>,
+    /// Outer wall line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outer_wall_line_width: Option<String>,
+    /// Sparse infill line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_infill_line_width: Option<String>,
+    /// Support bottom z distance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_bottom_z_distance: Option<String>,
+    /// Top shell layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_shell_layers: Option<String>,
+    /// Top surface line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_surface_line_width: Option<String>,
+    /// Wall loops.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_loops: Option<String>,
+    /// Support line width.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_line_width: Option<String>,
+    /// Support top z distance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_top_z_distance: Option<String>,
+    /// Sparse infill density.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_infill_density: Option<String>,
+    /// Bridge speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bridge_speed: Option<String>,
+    /// Overhang 3 4 speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overhang_3_4_speed: Option<String>,
+    /// Overhang 4 4 speed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overhang_4_4_speed: Option<String>,
+    /// Top surface pattern.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_surface_pattern: Option<String>,
+    /// The thickness of the bottom shell layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bottom_shell_thickness: Option<String>,
+    /// The pattern used for the bottom surface layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bottom_surface_pattern: Option<String>,
+    /// The gap between the object and the brim.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brim_object_gap: Option<String>,
+    /// Condition for compatible printers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compatible_printers_condition: Option<String>,
+    /// Whether to detect overhang walls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detect_overhang_wall: Option<String>,
+    /// The type of draft shield to use.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub draft_shield: Option<String>,
+    /// Whether to enable arc fitting.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enable_arc_fitting: Option<String>,
+    /// Whether to enable the prime tower.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enable_prime_tower: Option<String>,
+    /// The format for the output filename.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filename_format: Option<String>,
+    /// The acceleration for the initial layer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub initial_layer_acceleration: Option<String>,
+    /// The thickness of internal bridge supports.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub internal_bridge_support_thickness: Option<String>,
+    /// The flow rate for ironing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ironing_flow: Option<String>,
+    /// The spacing between ironing lines.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ironing_spacing: Option<String>,
+    /// The speed for ironing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ironing_speed: Option<String>,
+    /// The type of ironing to perform.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ironing_type: Option<String>,
+    /// The maximum distance for travel detours.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_travel_detour_distance: Option<String>,
+    /// The minimum area for sparse infill.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub minimum_sparse_infill_area: Option<String>,
+    /// Whether to use only one wall for the top layer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub only_one_wall_top: Option<String>,
+    /// The speed for 1/4 overhang.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overhang_1_4_speed: Option<String>,
+    /// The speed for 2/4 overhang.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overhang_2_4_speed: Option<String>,
+    /// The width of the prime tower.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prime_tower_width: Option<String>,
+    /// Whether to reduce infill retraction.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reduce_infill_retraction: Option<String>,
+    /// The resolution of the print.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub resolution: Option<String>,
+    /// The position of the seam.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seam_position: Option<String>,
+    /// The height of the skirt.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub skirt_height: Option<String>,
+    /// The number of skirt loops.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub skirt_loops: Option<String>,
+    /// The spacing of the support base pattern.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_base_pattern_spacing: Option<String>,
+    /// The expansion of the support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_expansion: Option<String>,
+    /// The number of bottom layers for support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_bottom_layers: Option<String>,
+    /// The spacing for the support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_spacing: Option<String>,
+    /// The XY distance between the object and support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_object_xy_distance: Option<String>,
+    /// The speed for printing support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_speed: Option<String>,
+    /// The style of support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_style: Option<String>,
+    /// The threshold angle for support generation.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_threshold_angle: Option<String>,
+    /// The type of support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_type: Option<String>,
+    /// The thickness of the top shell layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_shell_thickness: Option<String>,
+    /// The acceleration for the top surface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub top_surface_acceleration: Option<String>,
+    /// The angle of tree support branches.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tree_support_branch_angle: Option<String>,
+    /// The diameter of tree support branches.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tree_support_branch_diameter: Option<String>,
+    /// The number of walls for tree support.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tree_support_wall_count: Option<String>,
+    /// The type of wall generator to use.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_generator: Option<String>,
+    /// The order of wall and infill printing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wall_infill_order: Option<String>,
+    /// Whether to use sparse layers in the wipe tower.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub wipe_tower_no_sparse_layers: Option<String>,
+    /// Whether to enable support structures.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enable_support: Option<String>,
+    /// The filament to use for support structures.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_filament: Option<String>,
+    /// The filament to use for support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_filament: Option<String>,
+    /// Whether to use a loop pattern for support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_loop_pattern: Option<String>,
+    /// The speed for printing support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_speed: Option<String>,
+    /// The number of top layers for support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_top_layers: Option<String>,
+    /// Whether to use adaptive layer height.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub adaptive_layer_height: Option<String>,
+    /// Whether to disable support for bridge areas.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bridge_no_support: Option<String>,
+    /// The width of the brim in mm.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub brim_width: Option<String>,
+    /// Whether to detect thin walls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detect_thin_wall: Option<String>,
+    /// Whether to combine infill every n layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub infill_combination: Option<String>,
+    /// The direction of infill lines in degrees.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub infill_direction: Option<String>,
+    /// The percentage of overlap between infill and walls.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub infill_wall_overlap: Option<String>,
+    /// Whether to print additional shells on interface layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub interface_shells: Option<String>,
+    /// The sequence in which parts are printed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub print_sequence: Option<String>,
+    /// The identifier for these print settings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub print_settings_id: Option<String>,
+    /// The number of raft layers.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub raft_layers: Option<String>,
+    /// Whether to reduce wall crossings.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reduce_crossing_wall: Option<String>,
+    /// The distance of the skirt from the print in mm.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub skirt_distance: Option<String>,
+    /// Whether to use spiral mode (vase mode).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub spiral_mode: Option<String>,
+    /// The temperature difference for the non-active extruder.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub standby_temperature_delta: Option<String>,
+    /// The pattern to use for support base.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_base_pattern: Option<String>,
+    /// The pattern to use for support interface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_interface_pattern: Option<String>,
+    /// Whether to generate support only on the build plate.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub support_on_build_plate_only: Option<String>,
+    /// XY contour compensation value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub xy_contour_compensation: Option<String>,
+    /// XY hole compensation value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub xy_hole_compensation: Option<String>,
+    #[serde(flatten)]
+    other: BTreeMap<String, Value>,
 }
 
 #[cfg(test)]
@@ -402,8 +761,13 @@ mod tests {
             if let Err(err) = serde_json::from_str::<Filament>(&contents) {
                 panic!("Error deserializing file `{}` to Filament: {:?}", path.display(), err);
             }
-            if let Err(err) = serde_json::from_str::<Template>(&contents) {
-                panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
+            match serde_json::from_str::<Template>(&contents) {
+                Ok(t) => {
+                    if !t.other().is_empty() {
+                        panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
+                    }
+                }
+                Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
             }
         }
     }
@@ -429,8 +793,13 @@ mod tests {
             if let Err(err) = serde_json::from_str::<Process>(&contents) {
                 panic!("Error deserializing file `{}` to Process: {:?}", path.display(), err);
             }
-            if let Err(err) = serde_json::from_str::<Template>(&contents) {
-                panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
+            match serde_json::from_str::<Template>(&contents) {
+                Ok(t) => {
+                    if !t.other().is_empty() {
+                        panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
+                    }
+                }
+                Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
             }
         }
     }
@@ -453,8 +822,13 @@ mod tests {
                 Ok(contents) => contents,
                 Err(err) => panic!("Error reading file `{}`: {:?}", path.display(), err),
             };
-            if let Err(err) = serde_json::from_str::<Template>(&contents) {
-                panic!("Error deserializing file `{}` to Template: {:?}", path.display(), err);
+            match serde_json::from_str::<Template>(&contents) {
+                Ok(t) => {
+                    if !t.other().is_empty() {
+                        panic!("other settings found in file `{}`: {:?}", path.display(), t.other());
+                    }
+                }
+                Err(err) => panic!("Error deserializing file `{}` to Template: {:#?}", path.display(), err),
             }
         }
     }
