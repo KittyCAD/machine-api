@@ -2335,6 +2335,7 @@ dependencies = [
  "schemars_derive",
  "serde",
  "serde_json",
+ "url",
  "uuid 0.8.2",
  "uuid 1.11.0",
 ]
@@ -3250,6 +3251,7 @@ dependencies = [
  "form_urlencoded",
  "idna",
  "percent-encoding",
+ "serde",
 ]
 
 [[package]]
