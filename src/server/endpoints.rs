@@ -249,6 +249,16 @@ pub(crate) async fn print_file(
         }
     };
 
+    // If the machine is not idle, we can't print to it.
+    let m = machine.read().await;
+    let state = m.get_machine().state().await.map_err(|e| {
+        tracing::error!(error = format!("{:?}", e), "failed to get machine state");
+        HttpError::for_internal_error(format!("{:?}", e))
+    })?;
+    if state != MachineState::Idle {
+        return Err(HttpError::for_bad_request(None, "machine is not idle".to_string()));
+    }
+
     let filepath = std::env::temp_dir().join(format!(
         "{}_{}",
         job_id.simple(),
