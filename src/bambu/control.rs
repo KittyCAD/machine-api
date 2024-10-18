@@ -1,14 +1,14 @@
 use anyhow::Result;
 use bambulabs::{client::Client, command::Command};
 
-use super::{PrinterInfo, X1Carbon};
+use super::{Bambu, PrinterInfo};
 use crate::{
     Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, HardwareConfiguration,
     MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
-impl X1Carbon {
+impl Bambu {
     /// Return a borrow of the underlying Client.
     pub fn inner(&self) -> &Client {
         self.client.as_ref()
@@ -54,7 +54,7 @@ impl MachineInfoTrait for PrinterInfo {
         })
     }
 }
-impl ControlTrait for X1Carbon {
+impl ControlTrait for Bambu {
     type Error = anyhow::Error;
     type MachineInfo = PrinterInfo;
 
@@ -138,7 +138,7 @@ impl ControlTrait for X1Carbon {
     }
 }
 
-impl SuspendControlTrait for X1Carbon {
+impl SuspendControlTrait for Bambu {
     async fn pause(&mut self) -> Result<()> {
         self.client.publish(Command::pause()).await?;
         Ok(())
@@ -150,7 +150,7 @@ impl SuspendControlTrait for X1Carbon {
     }
 }
 
-impl ThreeMfControlTrait for X1Carbon {
+impl ThreeMfControlTrait for Bambu {
     async fn build(&mut self, job_name: &str, gcode: ThreeMfTemporaryFile) -> Result<()> {
         let gcode = gcode.0;
 

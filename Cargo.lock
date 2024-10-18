@@ -1379,6 +1379,7 @@ dependencies = [
  "opentelemetry",
  "opentelemetry-otlp",
  "opentelemetry_sdk",
+ "parse-display",
  "portpicker",
  "pretty_assertions",
  "prometheus-client",

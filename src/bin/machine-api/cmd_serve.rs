@@ -145,7 +145,7 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
                 AnyMachine::Moonraker(moonraker) => {
                     let _ = spawn_metrics(registry.clone(), &machine_id, moonraker.get_temperature_sensors()).await;
                 }
-                AnyMachine::BambuX1Carbon(bambu) => {
+                AnyMachine::Bambu(bambu) => {
                     let _ = spawn_metrics(registry.clone(), &machine_id, bambu.get_temperature_sensors()).await;
                 }
                 _ => { /* Nothing to do here! */ }

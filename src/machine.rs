@@ -58,7 +58,7 @@ impl Machine {
         let hardware_configuration = self.machine.hardware_configuration().await?;
 
         match &mut self.machine {
-            AnyMachine::BambuX1Carbon(machine) => {
+            AnyMachine::Bambu(machine) => {
                 let three_mf =
                     ThreeMfSlicer::generate(&self.slicer, design_file, &hardware_configuration, slicer_configuration)
                         .await?;

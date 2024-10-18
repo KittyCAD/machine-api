@@ -5,18 +5,57 @@ use std::{
 };
 
 use anyhow::Result;
+use parse_display::{Display, FromStr};
 use serde::{Deserialize, Serialize};
 use tokio::{net::UdpSocket, sync::RwLock};
 
-use super::{PrinterInfo, X1Carbon};
+use super::{Bambu, PrinterInfo};
 use crate::{slicer, Discover as DiscoverTrait, Machine, MachineMakeModel};
 
 /// Specific make/model of Bambu device.
-#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
-#[non_exhaustive]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize, Display, FromStr, PartialEq, Eq)]
 pub enum BambuVariant {
-    /// Bambu Labs X1 Carbon printer
+    /// Bambu Labs A1 printer.
+    A1,
+    /// Bambu Labs A1 mini printer.
+    #[serde(rename = "A1 mini")]
+    #[display("A1 mini")]
+    A1Mini,
+    /// Bambu Labs P1P printer.
+    P1P,
+    /// Bambu Labs P1S printer.
+    P1S,
+    /// Bambu Labs X1 printer.
+    X1,
+    /// Bambu Labs X1E printer.
+    X1E,
+    /// Bambu Labs X1 Carbon printer.
+    #[serde(rename = "X1 Carbon")]
     X1Carbon,
+}
+
+impl BambuVariant {
+    /// Get the variant from the serial number.
+    /// This comes from: https://wiki.bambulab.com/en/general/find-sn
+    pub fn get_from_sn(sn: &str) -> Option<Self> {
+        if sn.starts_with("039") {
+            Some(Self::A1)
+        } else if sn.starts_with("030") {
+            Some(Self::A1Mini)
+        } else if sn.starts_with("01S") {
+            Some(Self::P1P)
+        } else if sn.starts_with("01P") {
+            Some(Self::P1S)
+        } else if sn.starts_with("03W") {
+            Some(Self::X1E)
+        } else if sn.starts_with("00W") {
+            Some(Self::X1)
+        } else if sn.starts_with("00M") {
+            Some(Self::X1Carbon)
+        } else {
+            None
+        }
+    }
 }
 
 /// Configuration block for a Bambu device.
@@ -25,9 +64,6 @@ pub struct Config {
     /// Slicer configuration for created Machine.
     pub slicer: slicer::Config,
 
-    /// Information regarding the specific make/model of device.
-    pub variant: BambuVariant,
-
     /// The printer's name
     pub name: String,
 
@@ -35,18 +71,18 @@ pub struct Config {
     pub access_code: String,
 }
 
-const BAMBU_X1_CARBON_URN: &str = "urn:bambulab-com:device:3dprinter:1";
+const BAMBU_URN: &str = "urn:bambulab-com:device:3dprinter:1";
 
 /// Handle to discover connected Bambu Labs printers.
-pub struct X1CarbonDiscover {
+pub struct BambuDiscover {
     config: HashMap<String, Config>,
 }
 
-impl X1CarbonDiscover {
+impl BambuDiscover {
     /// Return a new Discover handle using the provided Configuration
     /// struct [Config].
     pub fn new<ConfigsT: Into<HashMap<String, Config>>>(cfgs: ConfigsT) -> Self {
-        X1CarbonDiscover { config: cfgs.into() }
+        BambuDiscover { config: cfgs.into() }
     }
 
     fn config_for_name(&self, name: &str) -> Option<(String, Config)> {
@@ -57,7 +93,7 @@ impl X1CarbonDiscover {
     }
 }
 
-impl DiscoverTrait for X1CarbonDiscover {
+impl DiscoverTrait for BambuDiscover {
     type Error = anyhow::Error;
 
     async fn discover(
@@ -156,11 +192,11 @@ impl DiscoverTrait for X1CarbonDiscover {
 
             // A little extra validation: check the URN is a Bambu printer. This is currently only
             // tested against the Bambu Lab X1 Carbon with AMS.
-            if urn != Some(BAMBU_X1_CARBON_URN.to_string()) {
+            if urn != Some(BAMBU_URN.to_string()) {
                 tracing::warn!(
-                    "Printer doesn't appear to be an X1 Carbon: URN {:?} does not match {}",
+                    "Printer doesn't appear to be a Bambu labs: URN {:?} does not match {}",
                     urn,
-                    BAMBU_X1_CARBON_URN
+                    BAMBU_URN
                 );
 
                 continue;
@@ -191,17 +227,24 @@ impl DiscoverTrait for X1CarbonDiscover {
                 cloned_client.run().await.unwrap();
             });
 
+            // Get the status so we can get the model.
+            let model = if let Some(variant) = BambuVariant::get_from_sn(serial) {
+                variant.to_string()
+            } else {
+                tracing::error!("Failed to get status for printer `{}` at {}", serial, ip);
+                // Default to X1 Carbon
+                "X1C".to_string()
+            };
+
             // At this point, we have a valid (as long as the parsing above is strict enough lmao)
-            // collection of data that represents a Bambu X1 Carbon.
+            // collection of data that represents a Bambu printer.
             let info = PrinterInfo {
                 hostname: Some(name),
                 ip,
                 port,
                 make_model: MachineMakeModel {
                     manufacturer: Some("Bambu Lab".to_owned()),
-                    // We can hard code this for now as we check the URN above (and assume the URN is
-                    // unique to the X1 carbon)
-                    model: Some("X1 Carbon".to_owned()),
+                    model: Some(model),
                     serial: Some(serial.to_string()),
                 },
             };
@@ -214,7 +257,7 @@ impl DiscoverTrait for X1CarbonDiscover {
             printers.write().await.insert(
                 machine_api_id.clone(),
                 RwLock::new(Machine::new(
-                    X1Carbon {
+                    Bambu {
                         info,
                         client: Arc::new(client),
                     },
