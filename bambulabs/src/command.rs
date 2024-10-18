@@ -845,7 +845,7 @@ mod tests {
         let payload = serde_json::to_string(&command).unwrap();
         assert_eq!(
             payload,
-            r#"{"print":{"command":"project_file","sequence_id":1,"param":"Metadata/plate_1.gcode","subtask_name":"myjob","url":"ftp://thing.3mf","bed_type":"auto","timelapsed":true,"bed_leveling":true,"flow_calibration":true,"vibration_calibration":true,"layer_inspect":false,"use_ams":true,"profile_id":"0","project_id":"0","subtask_id":"0","task_id":"0"}}"#
+            r#"{"print":{"command":"project_file","sequence_id":1,"param":"Metadata/plate_1.gcode","subtask_name":"myjob","url":"ftp://thing.3mf","bed_type":"auto","timelapsed":false,"bed_leveling":true,"flow_calibration":true,"vibration_calibration":true,"layer_inspect":false,"use_ams":true,"profile_id":"0","project_id":"0","subtask_id":"0","task_id":"0"}}"#
         );
     }
 }
