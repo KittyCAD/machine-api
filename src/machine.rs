@@ -63,7 +63,7 @@ impl Machine {
         };
 
         match &mut self.machine {
-            AnyMachine::BambuX1Carbon(machine) => {
+            AnyMachine::Bambu(machine) => {
                 let three_mf = ThreeMfSlicer::generate(&self.slicer, design_file, &options).await?;
                 ThreeMfControl::build(machine, job_name, three_mf).await
             }

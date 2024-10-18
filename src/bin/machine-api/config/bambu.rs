@@ -12,7 +12,7 @@ impl Config {
         channel: tokio::sync::mpsc::Sender<String>,
         machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
     ) -> Result<()> {
-        let discovery = bambu::X1CarbonDiscover::new(
+        let discovery = bambu::BambuDiscover::new(
             self.machines
                 .iter()
                 .filter_map(|(key, config)| {

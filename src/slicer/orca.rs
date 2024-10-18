@@ -71,48 +71,64 @@ impl Slicer {
         let filament_str = tokio::fs::read_to_string(&filament_p).await?;
         let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
 
-        if let HardwareConfiguration::Fdm { config: fdm } = &options.hardware_configuration {
-            // TODO: we should populate for other bambu printers.
-            let filament_name = if let FilamentMaterial::Other { name } = &fdm.filament_material {
-                name
-            } else {
-                "PLA Basic"
-            };
-            let start_filament_str = format!("Bambu {} @BBL", filament_name);
-            match fdm.nozzle_diameter {
-                0.2 => {
-                    // Merge the bambu templates.
-                    process_overrides.set_inherits("0.10mm Standard @BBL X1C 0.2 nozzle");
-                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.2 nozzle");
-                    filament_overrides.set_inherits(&format!("{} X1C 0.2 nozzle", start_filament_str));
-                }
-                0.4 => {
-                    // Merge the bambu templates.
-                    process_overrides.set_inherits("0.20mm Standard @BBL X1C");
-                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.4 nozzle");
-                    filament_overrides.set_inherits(&format!("{} X1C", start_filament_str));
-                }
-                0.6 => {
-                    // Merge the bambu templates.
-                    process_overrides.set_inherits("0.30mm Standard @BBL X1C 0.6 nozzle");
-                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.6 nozzle");
-                    filament_overrides.set_inherits(&format!("{} X1C", start_filament_str));
-                }
-                0.8 => {
-                    // Merge the bambu templates.
-                    process_overrides.set_inherits("0.40mm Standard @BBL X1C 0.8 nozzle");
-                    machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.8 nozzle");
-                    filament_overrides.set_inherits(&format!("{} X1C 0.8 nozzle", start_filament_str));
-                }
-                other => anyhow::bail!("Unsupported nozzle diameter for orca: {}", other),
-            }
-        } else {
+        let HardwareConfiguration::Fdm { config: fdm } = &options.hardware_configuration else {
             anyhow::bail!("Unsupported hardware configuration for orca");
+        };
+
+        let filament_name = if let FilamentMaterial::Other { name } = &fdm.filament_material {
+            name
+        } else {
+            "PLA Basic"
+        };
+        let start_filament_str = format!("Bambu {} @BBL", filament_name);
+
+        match fdm.nozzle_diameter {
+            0.2 => {
+                machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.2 nozzle");
+            }
+            0.4 => {
+                machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.4 nozzle");
+            }
+            0.6 => {
+                machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.6 nozzle");
+            }
+            0.8 => {
+                machine_overrides.set_inherits("Bambu Lab X1 Carbon 0.8 nozzle");
+            }
+            other => anyhow::bail!("Unsupported nozzle diameter for orca: {}", other),
         }
+
+        let new_machine = machine_overrides.load_inherited()?;
+        // Get the default process for the machine.
+        let bambulabs::templates::Template::Machine(machine) = &new_machine else {
+            // This should never happen.
+            anyhow::bail!("Invalid machine template");
+        };
+
+        let Some(default_print_profile) = &machine.default_print_profile else {
+            anyhow::bail!("No default print profile found for machine");
+        };
+
+        process_overrides.set_inherits(default_print_profile);
 
         // Traverse the templates and merge them.
         let new_process = process_overrides.load_inherited()?;
-        let new_machine = machine_overrides.load_inherited()?;
+
+        if machine.default_filament_profile.is_empty() {
+            anyhow::bail!("Invalid number of default filament profiles found for machine");
+        }
+
+        let default_filament_profile = &machine.default_filament_profile[0];
+
+        // Trim everything before and including the "@BBL" in the filament name.
+        let end_filament_str = default_filament_profile
+            .split("@BBL")
+            .last()
+            .ok_or_else(|| anyhow::anyhow!("Invalid filament profile: {}", default_filament_profile))?
+            .trim();
+
+        // Do the filament overrides.
+        filament_overrides.set_inherits(&format!("{} {}", start_filament_str, end_filament_str));
         let new_filament = filament_overrides.load_inherited()?;
 
         // Write each to a temporary file.

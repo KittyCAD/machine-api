@@ -111,7 +111,7 @@ impl MachineInfoResponse {
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
                 AnyMachine::Usb(_) => Some(ExtraMachineInfoResponse::Usb {}),
-                AnyMachine::BambuX1Carbon(bambu) => {
+                AnyMachine::Bambu(bambu) => {
                     let status = bambu
                         .get_status()?
                         .ok_or_else(|| anyhow::anyhow!("no status for bambu"))?;
@@ -248,6 +248,19 @@ pub(crate) async fn print_file(
             ));
         }
     };
+
+    // If the machine is not idle, we can't print to it.
+    let m = machine.read().await;
+    let state = m.get_machine().state().await.map_err(|e| {
+        tracing::error!(error = format!("{:?}", e), "failed to get machine state");
+        HttpError::for_internal_error(format!("{:?}", e))
+    })?;
+    if state != MachineState::Idle {
+        return Err(HttpError::for_bad_request(
+            None,
+            format!("machine is not idle: {:?}", state),
+        ));
+    }
 
     let filepath = std::env::temp_dir().join(format!(
         "{}_{}",
