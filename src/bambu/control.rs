@@ -91,10 +91,11 @@ impl ControlTrait for Bambu {
         let more_string = status.stg_cur.map(|s| s.to_string());
 
         match state {
-            bambulabs::message::GcodeState::Idle | bambulabs::message::GcodeState::Finish => Ok(MachineState::Idle),
+            bambulabs::message::GcodeState::Idle
+            | bambulabs::message::GcodeState::Finish
+            | bambulabs::message::GcodeState::Failed => Ok(MachineState::Idle),
             bambulabs::message::GcodeState::Running => Ok(MachineState::Running),
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
-            bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
     }
 
