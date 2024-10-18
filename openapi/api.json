@@ -358,6 +358,12 @@
             "description": "Maximum part size that can be manufactured by this device. This may be some sort of theoretical upper bound, getting close to this limit seems like maybe a bad idea.\n\nThis may be `None` if the maximum size is not knowable by the Machine API.\n\nWhat \"close\" means is up to you!",
             "nullable": true
           },
+          "progress": {
+            "description": "Progress of the current print, if printing.",
+            "format": "double",
+            "nullable": true,
+            "type": "number"
+          },
           "state": {
             "allOf": [
               {
