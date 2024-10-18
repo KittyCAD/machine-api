@@ -71,6 +71,10 @@ impl ControlTrait for Bambu {
         Ok(())
     }
 
+    async fn progress(&self) -> Result<Option<f64>> {
+        Ok(None)
+    }
+
     async fn healthy(&self) -> bool {
         let Ok(Some(status)) = self.client.get_status() else {
             return false;

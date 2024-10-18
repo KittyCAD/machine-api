@@ -137,6 +137,10 @@ impl ControlTrait for Usb {
         Ok(MachineState::Unknown)
     }
 
+    async fn progress(&self) -> Result<Option<f64>> {
+        Ok(None)
+    }
+
     async fn healthy(&self) -> bool {
         // TODO: fix this, do a gcode ping or something?
         true

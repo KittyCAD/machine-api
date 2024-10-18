@@ -190,6 +190,11 @@ pub trait Control {
     /// Return the state of the printer.
     fn state(&self) -> impl Future<Output = Result<MachineState, Self::Error>>;
 
+    /// Return the percentage of completion of the job. This may return an
+    /// error when connecting to the machine, and it may return None if
+    /// there is no job running, or if there's no way to know the progress.
+    fn progress(&self) -> impl Future<Output = Result<Option<f64>, Self::Error>>;
+
     // TODO: look at merging MachineType and HardwareConfiguration; they
     // communicate VERY similar things conceptually.
 

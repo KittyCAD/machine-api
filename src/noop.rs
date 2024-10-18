@@ -71,6 +71,10 @@ impl ControlTrait for Noop {
         true
     }
 
+    async fn progress(&self) -> Result<Option<f64>> {
+        Ok(None)
+    }
+
     async fn state(&self) -> Result<MachineState> {
         Ok(MachineState::Unknown)
     }
@@ -84,6 +88,7 @@ impl SuspendControlTrait for Noop {
     async fn pause(&mut self) -> Result<()> {
         Ok(())
     }
+
     async fn resume(&mut self) -> Result<()> {
         Ok(())
     }

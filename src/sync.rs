@@ -45,6 +45,9 @@ where
     async fn state(&self) -> Result<MachineState, Self::Error> {
         self.0.lock().await.state().await
     }
+    async fn progress(&self) -> Result<Option<f64>, Self::Error> {
+        self.0.lock().await.progress().await
+    }
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration, Self::Error> {
         self.0.lock().await.hardware_configuration().await
     }
