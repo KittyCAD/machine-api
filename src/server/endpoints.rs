@@ -256,7 +256,10 @@ pub(crate) async fn print_file(
         HttpError::for_internal_error(format!("{:?}", e))
     })?;
     if state != MachineState::Idle {
-        return Err(HttpError::for_bad_request(None, "machine is not idle".to_string()));
+        return Err(HttpError::for_bad_request(
+            None,
+            format!("machine is not idle: {:?}", state),
+        ));
     }
 
     let filepath = std::env::temp_dir().join(format!(
