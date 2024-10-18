@@ -66,6 +66,10 @@ impl ControlTrait for Client {
         self.client.info().await.is_ok()
     }
 
+    async fn progress(&self) -> Result<Option<f64>> {
+        Ok(None)
+    }
+
     async fn state(&self) -> Result<MachineState> {
         let status = self.client.status().await?;
 

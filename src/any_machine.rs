@@ -131,6 +131,10 @@ impl ControlTrait for AnyMachine {
         for_all!(|self, machine| { machine.healthy().await })
     }
 
+    async fn progress(&self) -> Result<Option<f64>> {
+        for_all!(|self, machine| { machine.progress().await })
+    }
+
     async fn state(&self) -> Result<MachineState> {
         for_all!(|self, machine| { machine.state().await })
     }

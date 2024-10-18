@@ -85,6 +85,9 @@ pub struct MachineInfoResponse {
     /// Information about how the Machine is currently configured.
     pub hardware_configuration: HardwareConfiguration,
 
+    /// Progress of the current print, if printing.
+    pub progress: Option<f64>,
+
     /// Status of the printer -- be it printing, idle, or unreachable. This
     /// may dictate if a machine is capable of taking a new job.
     pub state: MachineState,
@@ -100,6 +103,7 @@ impl MachineInfoResponse {
     pub(crate) async fn from_machine(id: &str, machine: &AnyMachine) -> anyhow::Result<Self> {
         let machine_info = machine.machine_info().await?;
         let hardware_configuration = machine.hardware_configuration().await?;
+        let progress = machine.progress().await?;
 
         Ok(MachineInfoResponse {
             id: id.to_owned(),
@@ -107,6 +111,7 @@ impl MachineInfoResponse {
             machine_type: machine_info.machine_type(),
             max_part_volume: machine_info.max_part_volume(),
             hardware_configuration,
+            progress,
             state: machine.state().await?,
             extra: match machine {
                 AnyMachine::Moonraker(_) => Some(ExtraMachineInfoResponse::Moonraker {}),
