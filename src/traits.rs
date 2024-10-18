@@ -285,6 +285,19 @@ where
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 pub struct SlicerConfiguration {}
 
+/// Options passed to a slicer that are specific to a (Machine, DesignFile and
+/// Slicer).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct SlicerOptions {
+    /// Specific configuration of the hardware platform producing the file
+    /// in real life.
+    pub hardware_configuration: HardwareConfiguration,
+
+    /// Requested configuration of the slicer -- things like supports,
+    /// infill or other configuration to the designed file.
+    pub slicer_configuration: SlicerConfiguration,
+}
+
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
 /// GCode.
 pub trait GcodeSlicer {
@@ -296,8 +309,7 @@ pub trait GcodeSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-        hardware_configuration: &HardwareConfiguration,
-        slicer_configuration: &SlicerConfiguration,
+        options: &SlicerOptions,
     ) -> impl Future<Output = Result<GcodeTemporaryFile, <Self as GcodeSlicer>::Error>>;
 }
 
@@ -315,8 +327,7 @@ pub trait ThreeMfSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-        hardware_configuration: &HardwareConfiguration,
-        slicer_configuration: &SlicerConfiguration,
+        options: &SlicerOptions,
     ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
 

@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    DesignFile, FilamentMaterial, HardwareConfiguration, SlicerConfiguration, TemporaryFile,
+    DesignFile, FilamentMaterial, HardwareConfiguration, SlicerOptions, TemporaryFile,
     ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
 };
 
@@ -30,8 +30,7 @@ impl Slicer {
         output_flag: &str,
         output_extension: &str,
         design_file: &DesignFile,
-        hardware_configuration: &HardwareConfiguration,
-        _slicer_configuration: &SlicerConfiguration,
+        options: &SlicerOptions,
     ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
@@ -72,7 +71,7 @@ impl Slicer {
         let filament_str = tokio::fs::read_to_string(&filament_p).await?;
         let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
 
-        if let HardwareConfiguration::Fdm { config: fdm } = hardware_configuration {
+        if let HardwareConfiguration::Fdm { config: fdm } = &options.hardware_configuration {
             // TODO: we should populate for other bambu printers.
             let filament_name = if let FilamentMaterial::Other { name } = &fdm.filament_material {
                 name
@@ -193,21 +192,10 @@ impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(
-        &self,
-        design_file: &DesignFile,
-        hardware_configuration: &HardwareConfiguration,
-        slicer_configuration: &SlicerConfiguration,
-    ) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, options: &SlicerOptions) -> Result<ThreeMfTemporaryFile> {
         Ok(ThreeMfTemporaryFile(
-            self.generate_via_cli(
-                "--export-3mf",
-                "3mf",
-                design_file,
-                hardware_configuration,
-                slicer_configuration,
-            )
-            .await?,
+            self.generate_via_cli("--export-3mf", "3mf", design_file, options)
+                .await?,
         ))
     }
 }
