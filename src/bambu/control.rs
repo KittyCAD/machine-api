@@ -142,9 +142,13 @@ impl ControlTrait for Bambu {
                     Some("TPU") => FilamentMaterial::Tpu,
                     Some("PVA") => FilamentMaterial::Pva,
                     Some("HIPS") => FilamentMaterial::Hips,
-                    _ => {
-                        tracing::warn!("Unknown filament type: {:?}", tray.tray_type);
-                        FilamentMaterial::Pla
+                    None => {
+                        tracing::warn!("Unknown filament type: None, someone probably fucked up the load");
+                        FilamentMaterial::Unknown
+                    }
+                    Some(other) => {
+                        tracing::warn!("Unknown filament type: {:?}", other);
+                        FilamentMaterial::Unknown
                     }
                 },
                 name: tray.tray_sub_brands.clone(),
