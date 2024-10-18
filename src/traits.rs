@@ -127,9 +127,10 @@ pub struct Filament {
     pub name: Option<String>,
     /// The material that the filament is made of.
     pub material: FilamentMaterial,
-    /// The color of the filament, this is likely specific to the manufacturer.
+    /// The color (as hex without the `#`) of the filament, this is likely specific to the manufacturer.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub color: Option<u32>,
+    #[schemars(length(max = 6, min = 6))]
+    pub color: Option<String>,
 }
 
 /// Configuration for a FDM-based printer.

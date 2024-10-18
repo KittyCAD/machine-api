@@ -123,11 +123,11 @@
         "description": "Information about the filament being used in a FDM printer.",
         "properties": {
           "color": {
-            "description": "The color of the filament, this is likely specific to the manufacturer.",
-            "format": "uint32",
-            "minimum": 0,
+            "description": "The color (as hex without the `#`) of the filament, this is likely specific to the manufacturer.",
+            "maxLength": 6,
+            "minLength": 6,
             "nullable": true,
-            "type": "integer"
+            "type": "string"
           },
           "material": {
             "allOf": [

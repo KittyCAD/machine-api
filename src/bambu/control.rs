@@ -139,11 +139,7 @@ impl ControlTrait for Bambu {
                     }
                 },
                 name: tray.tray_sub_brands.clone(),
-                color: if let Some(color) = tray.tray_color.as_deref() {
-                    Some(color.parse()?)
-                } else {
-                    None
-                },
+                color: tray.tray_color.clone(),
             };
 
             filaments.push(f);
