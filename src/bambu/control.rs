@@ -88,8 +88,6 @@ impl ControlTrait for Bambu {
             return Ok(MachineState::Unknown);
         };
 
-        let more_string = status.stg_cur.map(|s| s.to_string());
-
         match state {
             bambulabs::message::GcodeState::Idle
             | bambulabs::message::GcodeState::Finish
