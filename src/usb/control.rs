@@ -154,6 +154,7 @@ impl ControlTrait for Usb {
                     ..Default::default()
                 }],
                 nozzle_diameter: 0.4,
+                loaded_filament_idx: None,
             },
         })
     }

@@ -99,7 +99,9 @@ impl ControlTrait for Bambu {
             bambulabs::message::GcodeState::Idle
             | bambulabs::message::GcodeState::Finish
             | bambulabs::message::GcodeState::Failed => Ok(MachineState::Idle),
-            bambulabs::message::GcodeState::Running => Ok(MachineState::Running),
+            bambulabs::message::GcodeState::Running | bambulabs::message::GcodeState::Prepare => {
+                Ok(MachineState::Running)
+            }
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
         }
     }
@@ -117,14 +119,15 @@ impl ControlTrait for Bambu {
                     material: FilamentMaterial::Pla,
                     ..Default::default()
                 }],
+                loaded_filament_idx: None,
             },
         };
 
-        let Some(ams) = status.ams else {
+        let Some(nams) = status.ams else {
             return Ok(default);
         };
 
-        let Some(ams) = ams.ams.first() else {
+        let Some(ams) = nams.ams.first() else {
             return Ok(default);
         };
 
@@ -155,6 +158,7 @@ impl ControlTrait for Bambu {
             config: FdmHardwareConfiguration {
                 nozzle_diameter: status.nozzle_diameter.into(),
                 filaments,
+                loaded_filament_idx: nams.tray_now.map(|v| v.parse().unwrap_or(0)),
             },
         })
     }

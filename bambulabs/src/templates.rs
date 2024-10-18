@@ -85,6 +85,7 @@ impl Template {
             // We have no inherited settings.
             return Ok(self.clone());
         };
+        let mut inherits = inherits.clone();
 
         let glob = match self {
             Template::Machine(_) => "**/machine/*.json",
@@ -105,10 +106,42 @@ impl Template {
             templates.insert(template.name(), template);
         }
 
+        let fix_name = |name: &str| -> String {
+            if name.contains("nozzle") {
+                name.replace("0.2 nozzle", "")
+                    .replace("0.4 nozzle", "")
+                    .replace("0.6 nozzle", "")
+                    .replace("0.8 nozzle", "")
+                    .trim()
+                    .to_string()
+            } else if name.contains("Support for") {
+                name.replace("Support for", "Support For")
+            } else {
+                name.to_string()
+            }
+        };
+
         // Get the inherited template.
-        let inherited = templates
-            .get(&inherits)
-            .ok_or_else(|| anyhow::anyhow!("Inherited template '{}' not found", inherits))?;
+        let mut inherited: Option<Template> = None;
+        loop {
+            match templates.get(&inherits) {
+                Some(result) => {
+                    inherited = Some(result.clone());
+                    break;
+                }
+                None => {
+                    let name = fix_name(&inherits);
+                    if name == inherits {
+                        break;
+                    }
+                    inherits = name;
+                }
+            };
+        }
+
+        let Some(inherited) = inherited else {
+            return Err(anyhow::anyhow!("Inherited template '{}' not found", inherits));
+        };
 
         let mut highest_weight = serde_json::to_value(self)?;
         let inherited = serde_json::to_value(inherited)?;

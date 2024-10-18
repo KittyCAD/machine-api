@@ -141,6 +141,9 @@ pub struct FdmHardwareConfiguration {
 
     /// The filaments the printer has access to.
     pub filaments: Vec<Filament>,
+
+    /// The currently loaded filament index.
+    pub loaded_filament_idx: Option<usize>,
 }
 
 /// The hardware configuration of a machine.

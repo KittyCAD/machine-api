@@ -539,6 +539,8 @@ pub struct PushStatus {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema, Copy)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum GcodeState {
+    /// The gcode is preparing.
+    Prepare,
     /// The gcode is idle.
     Idle,
     /// The gcode is running.
