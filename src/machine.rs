@@ -59,7 +59,7 @@ impl Machine {
 
         let options = SlicerOptions {
             hardware_configuration,
-            slicer_configuration: slicer_configuration.clone(),
+            slicer_configuration: *slicer_configuration,
         };
 
         match &mut self.machine {

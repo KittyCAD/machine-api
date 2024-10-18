@@ -8,7 +8,7 @@ use tokio::{
 use tokio_serial::SerialStream;
 
 use crate::{
-    gcode::Client, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
+    gcode::Client, traits::Filament, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
     GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait,
     MachineMakeModel, MachineState, MachineType, Volume,
 };
@@ -145,7 +145,10 @@ impl ControlTrait for Usb {
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
         Ok(HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                filament_material: FilamentMaterial::Pla,
+                filaments: vec![Filament {
+                    material: FilamentMaterial::Pla,
+                    ..Default::default()
+                }],
                 nozzle_diameter: 0.4,
             },
         })

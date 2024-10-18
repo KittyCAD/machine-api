@@ -6,8 +6,8 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    DesignFile, FilamentMaterial, HardwareConfiguration, SlicerOptions, TemporaryFile,
-    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+    DesignFile, HardwareConfiguration, SlicerOptions, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
+    ThreeMfTemporaryFile,
 };
 
 /// Handle to invoke the Orca Slicer with some specific machine-specific config.
@@ -75,11 +75,14 @@ impl Slicer {
             anyhow::bail!("Unsupported hardware configuration for orca");
         };
 
-        let filament_name = if let FilamentMaterial::Other { name } = &fdm.filament_material {
-            name
+        let filament_index = options.slicer_configuration.filament_idx.unwrap_or(0);
+
+        let filament_name = if let Some(f) = &fdm.filaments.get(filament_index) {
+            f.name.clone()
         } else {
-            "PLA Basic"
-        };
+            None
+        }
+        .unwrap_or_else(|| "PLA Basic".to_string());
         let start_filament_str = format!("Bambu {} @BBL", filament_name);
 
         match fdm.nozzle_diameter {
