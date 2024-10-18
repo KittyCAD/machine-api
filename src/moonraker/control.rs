@@ -5,9 +5,9 @@ use moonraker::InfoResponse;
 
 use super::Client;
 use crate::{
-    Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, GcodeControl as GcodeControlTrait,
-    GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState,
-    MachineType, SuspendControl as SuspendControlTrait, Volume,
+    traits::Filament, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
+    GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait,
+    MachineMakeModel, MachineState, MachineType, SuspendControl as SuspendControlTrait, Volume,
 };
 
 /// Information about the connected Moonraker-based printer.
@@ -85,7 +85,10 @@ impl ControlTrait for Client {
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
         Ok(HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                filament_material: FilamentMaterial::Pla,
+                filaments: vec![Filament {
+                    material: FilamentMaterial::Pla,
+                    ..Default::default()
+                }],
                 nozzle_diameter: 0.4,
             },
         })

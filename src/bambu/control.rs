@@ -3,7 +3,7 @@ use bambulabs::{client::Client, command::Command};
 
 use super::{Bambu, PrinterInfo};
 use crate::{
-    Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, HardwareConfiguration,
+    traits::Filament, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial, HardwareConfiguration,
     MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
@@ -88,13 +88,12 @@ impl ControlTrait for Bambu {
             return Ok(MachineState::Unknown);
         };
 
-        let more_string = status.stg_cur.map(|s| s.to_string());
-
         match state {
-            bambulabs::message::GcodeState::Idle | bambulabs::message::GcodeState::Finish => Ok(MachineState::Idle),
+            bambulabs::message::GcodeState::Idle
+            | bambulabs::message::GcodeState::Finish
+            | bambulabs::message::GcodeState::Failed => Ok(MachineState::Idle),
             bambulabs::message::GcodeState::Running => Ok(MachineState::Running),
             bambulabs::message::GcodeState::Pause => Ok(MachineState::Paused),
-            bambulabs::message::GcodeState::Failed => Ok(MachineState::Failed { message: more_string }),
         }
     }
 
@@ -107,7 +106,10 @@ impl ControlTrait for Bambu {
         let default = HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
                 nozzle_diameter: status.nozzle_diameter.into(),
-                filament_material: FilamentMaterial::Pla,
+                filaments: vec![Filament {
+                    material: FilamentMaterial::Pla,
+                    ..Default::default()
+                }],
             },
         };
 
@@ -119,20 +121,33 @@ impl ControlTrait for Bambu {
             return Ok(default);
         };
 
-        let Some(first_filament) = ams.tray.first() else {
-            return Ok(default);
-        };
+        let mut filaments = vec![];
+        for tray in &ams.tray {
+            let f = Filament {
+                material: match tray.tray_type.as_deref() {
+                    Some("PLA") => FilamentMaterial::Pla,
+                    Some("PLA-S") => FilamentMaterial::PlaSupport,
+                    Some("ABS") => FilamentMaterial::Abs,
+                    Some("PETG") => FilamentMaterial::Petg,
+                    Some("TPU") => FilamentMaterial::Tpu,
+                    Some("PVA") => FilamentMaterial::Pva,
+                    Some("HIPS") => FilamentMaterial::Hips,
+                    _ => {
+                        tracing::warn!("Unknown filament type: {:?}", tray.tray_type);
+                        FilamentMaterial::Pla
+                    }
+                },
+                name: tray.tray_sub_brands.clone(),
+                color: tray.tray_color.clone(),
+            };
 
-        let Some(tray_sub_brands) = &first_filament.tray_sub_brands else {
-            return Ok(default);
-        };
+            filaments.push(f);
+        }
 
         Ok(HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
                 nozzle_diameter: status.nozzle_diameter.into(),
-                filament_material: FilamentMaterial::Other {
-                    name: tray_sub_brands.clone(),
-                },
+                filaments,
             },
         })
     }

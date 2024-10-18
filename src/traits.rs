@@ -86,11 +86,15 @@ pub enum MachineState {
 }
 
 /// The material that the filament is made of.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
 #[serde(rename_all = "snake_case", tag = "type")]
 pub enum FilamentMaterial {
-    /// polylactic acid based plastics
+    /// Polylactic acid based plastics
+    #[default]
     Pla,
+
+    /// Pla support
+    PlaSupport,
 
     /// acrylonitrile butadiene styrene based plastics
     Abs,
@@ -113,13 +117,20 @@ pub enum FilamentMaterial {
     /// composite material with stuff in other stuff, something like
     /// PLA mixed with carbon fiber, kevlar, or fiberglass
     Composite,
+}
 
-    /// None of the above, likely a custom material that we get directly
-    /// from the printer.
-    Other {
-        /// The name of the material.
-        name: String,
-    },
+/// Information about the filament being used in a FDM printer.
+#[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
+pub struct Filament {
+    /// The name of the filament, this is likely specfic to the manufacturer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// The material that the filament is made of.
+    pub material: FilamentMaterial,
+    /// The color (as hex without the `#`) of the filament, this is likely specific to the manufacturer.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[schemars(length(max = 6, min = 6))]
+    pub color: Option<String>,
 }
 
 /// Configuration for a FDM-based printer.
@@ -128,8 +139,8 @@ pub struct FdmHardwareConfiguration {
     /// Diameter of the extrusion nozzle, in mm.
     pub nozzle_diameter: f64,
 
-    /// type of material being extruded
-    pub filament_material: FilamentMaterial,
+    /// The filaments the printer has access to.
+    pub filaments: Vec<Filament>,
 }
 
 /// The hardware configuration of a machine.
@@ -283,7 +294,11 @@ where
 /// The slicer configuration is a set of parameters that are passed to the
 /// slicer to control how the gcode is generated.
 #[derive(Debug, Default, Clone, PartialEq, Serialize, Deserialize, JsonSchema, Copy)]
-pub struct SlicerConfiguration {}
+pub struct SlicerConfiguration {
+    /// The filament to use for the print.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub filament_idx: Option<usize>,
+}
 
 /// Options passed to a slicer that are specific to a (Machine, DesignFile and
 /// Slicer).

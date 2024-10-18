@@ -336,16 +336,18 @@ pub struct ProjectFile {
     /// The sequence id.
     pub sequence_id: SequenceId,
     /// The project id.
-    pub project_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub project_id: Option<String>,
     /// The profile id.
     pub profile_id: String,
-    /// The task id.
+    /// The task id
     pub task_id: String,
     /// The subtask id.
     pub subtask_id: String,
     /// The subtask name.
     pub subtask_name: String,
     /// The gcode file.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gcode_file: Option<String>,
     #[serde(flatten)]
     other: BTreeMap<String, Value>,
