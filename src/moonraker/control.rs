@@ -67,7 +67,11 @@ impl ControlTrait for Client {
     }
 
     async fn progress(&self) -> Result<Option<f64>> {
-        Ok(None)
+        let status = self.client.status().await?;
+        if !status.virtual_sdcard.is_active {
+            return Ok(None);
+        }
+        Ok(Some(status.virtual_sdcard.progress * 100.0))
     }
 
     async fn state(&self) -> Result<MachineState> {
