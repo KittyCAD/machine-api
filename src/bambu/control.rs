@@ -72,7 +72,10 @@ impl ControlTrait for Bambu {
     }
 
     async fn progress(&self) -> Result<Option<f64>> {
-        Ok(None)
+        let Some(status) = self.get_status()? else {
+            return Ok(None);
+        };
+        Ok(status.mc_percent.map(|v| v as f64))
     }
 
     async fn healthy(&self) -> bool {
