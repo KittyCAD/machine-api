@@ -114,7 +114,7 @@ impl Command {
             subtask_name: job_name.to_string(),
             url: format!("ftp://{}", filename),
             bed_type: BedType::Auto,
-            timelapsed: true,
+            timelapsed: false,
             bed_leveling: true,
             flow_calibration: true,
             vibration_calibration: true,
