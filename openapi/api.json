@@ -292,6 +292,21 @@
               "type"
             ],
             "type": "object"
+          },
+          {
+            "description": "Unknown material",
+            "properties": {
+              "type": {
+                "enum": [
+                  "unknown"
+                ],
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "type": "object"
           }
         ]
       },

@@ -1,4 +1,6 @@
 {
   "type": "process",
-  "name": "machine-api overrides"
+  "name": "machine-api overrides",
+  "brim_width": "0",
+  "brim_object_width": "0"
 }
