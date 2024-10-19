@@ -117,6 +117,9 @@ pub enum FilamentMaterial {
     /// composite material with stuff in other stuff, something like
     /// PLA mixed with carbon fiber, kevlar, or fiberglass
     Composite,
+
+    /// Unknown material
+    Unknown,
 }
 
 /// Information about the filament being used in a FDM printer.

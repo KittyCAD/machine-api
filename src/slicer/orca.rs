@@ -62,28 +62,12 @@ impl Slicer {
             .to_string();
         let machine_str = tokio::fs::read_to_string(&machine_p).await?;
         let mut machine_overrides: bambulabs::templates::Template = serde_json::from_str(&machine_str)?;
-        let filament_p = self
-            .config
-            .join("filament.json")
-            .to_str()
-            .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
-            .to_string();
-        let filament_str = tokio::fs::read_to_string(&filament_p).await?;
-        let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
 
         let HardwareConfiguration::Fdm { config: fdm } = &options.hardware_configuration else {
             anyhow::bail!("Unsupported hardware configuration for orca");
         };
 
         let filament_index = options.slicer_configuration.filament_idx.unwrap_or(0);
-
-        let filament_name = if let Some(f) = &fdm.filaments.get(filament_index) {
-            f.name.clone()
-        } else {
-            None
-        }
-        .unwrap_or_else(|| "PLA Basic".to_string());
-        let start_filament_str = format!("Bambu {} @BBL", filament_name);
 
         match fdm.nozzle_diameter {
             0.2 => {
@@ -130,22 +114,44 @@ impl Slicer {
             .ok_or_else(|| anyhow::anyhow!("Invalid filament profile: {}", default_filament_profile))?
             .trim();
 
-        // Do the filament overrides.
-        filament_overrides.set_inherits(&format!("{} {}", start_filament_str, end_filament_str));
-        let new_filament = filament_overrides.load_inherited()?;
+        let temp_dir = std::env::temp_dir();
+        let mut filament_configs = Vec::new();
+        let filament_p = self
+            .config
+            .join("filament.json")
+            .to_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid slicer config path: {}", self.config.display()))?
+            .to_string();
+        let filament_str = tokio::fs::read_to_string(&filament_p).await?;
+
+        for (index, filament) in fdm.filaments.iter().enumerate() {
+            let filament_name = filament.name.as_deref().unwrap_or("PLA Basic").to_string();
+            println!("filament_name: {:?}", filament_name);
+            let start_filament_str = format!("Bambu {} @BBL", filament_name);
+            // Do the filament overrides.
+            let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
+            let inherits = format!("{} {}", start_filament_str, end_filament_str);
+            filament_overrides.set_inherits(&inherits);
+            let new_filament = filament_overrides.load_inherited()?;
+            let filament_config = temp_dir.join(format!(
+                "filament-{}-{}-{}.json",
+                filament_name.replace(' ', "_"),
+                uid,
+                index
+            ));
+            tokio::fs::write(&filament_config, serde_json::to_string_pretty(&new_filament)?).await?;
+            let filament_config = filament_config
+                .to_str()
+                .ok_or_else(|| anyhow::anyhow!("Invalid filament config path: {}", filament_config.display()))?
+                .to_string();
+            filament_configs.push(filament_config);
+        }
 
         // Write each to a temporary file.
-        let temp_dir = std::env::temp_dir();
         let process_config = temp_dir.join(format!("process-{}.json", uid));
         tokio::fs::write(&process_config, serde_json::to_string_pretty(&new_process)?).await?;
         let machine_config = temp_dir.join(format!("machine-{}.json", uid));
         tokio::fs::write(&machine_config, serde_json::to_string_pretty(&new_machine)?).await?;
-        let filament_config = temp_dir.join(format!("filament-{}.json", uid));
-        tokio::fs::write(&filament_config, serde_json::to_string_pretty(&new_filament)?).await?;
-        let filament_config = filament_config
-            .to_str()
-            .ok_or_else(|| anyhow::anyhow!("Invalid filament config path: {}", filament_config.display()))?
-            .to_string();
         let process_config = process_config
             .to_str()
             .ok_or_else(|| anyhow::anyhow!("Invalid process config path: {}", process_config.display()))?
@@ -156,14 +162,22 @@ impl Slicer {
             .to_string();
 
         let settings = [process_config.clone(), machine_config.clone()].join(";");
+        println!("process_config: {:?}", process_config);
+        println!("machine_config: {:?}", machine_config);
+        println!("filament_config: {:?}", filament_configs);
 
         let args: Vec<String> = vec![
             "--load-settings".to_string(),
             settings,
+            "--load-filament-ids".to_string(),
+            filament_index.to_string(),
             "--load-filaments".to_string(),
-            filament_config.clone(),
+            filament_configs.join(";"),
+            "--no-check".to_string(),
             "--slice".to_string(),
             "0".to_string(),
+            "--debug".to_string(),
+            "5".to_string(),
             "--orient".to_string(),
             "1".to_string(),
             output_flag.to_string(),
@@ -177,6 +191,8 @@ impl Slicer {
                 .to_string(),
         ];
 
+        println!("args: {:?}", args);
+
         // Find the orcaslicer executable path.
         let orca_slicer_path = find_orca_slicer()?;
 
@@ -186,12 +202,16 @@ impl Slicer {
             .await
             .context("Failed to execute orca-slicer command")?;
 
+        let stdout = std::str::from_utf8(&output.stdout)?;
+        tokio::fs::write(format!("orca-slicer-stdout-{}.txt", filament_index), &output.stdout).await?;
+        println!("stdout: {}", stdout);
+        let stderr = std::str::from_utf8(&output.stderr)?;
+        tokio::fs::write(format!("orca-slicer-stderr-{}.txt", filament_index), &output.stderr).await?;
+        println!("stderr: {}", stderr);
         // Make sure the command was successful.
-        if !output.status.success() {
-            let stdout = std::str::from_utf8(&output.stdout)?;
-            let stderr = std::str::from_utf8(&output.stderr)?;
+        /*if !output.status.success() {
             anyhow::bail!("Failed to : {:?}\nstdout:\n{}stderr:{}", output, stdout, stderr);
-        }
+        }*/
 
         // Make sure the G-code file was created.
         if !output_path.exists() {
@@ -199,11 +219,14 @@ impl Slicer {
         }
 
         // Delete all the configs.
-        tokio::fs::remove_file(&process_config).await?;
+        /*tokio::fs::remove_file(&process_config).await?;
         tokio::fs::remove_file(&machine_config).await?;
-        tokio::fs::remove_file(&filament_config).await?;
+        tokio::fs::remove_file(&filament_config).await?;*/
 
-        TemporaryFile::new(&output_path).await
+        let file = TemporaryFile::new(&output_path).await?;
+        println!("Generated file: {:?}", output_path);
+
+        Ok(file)
     }
 }
 
