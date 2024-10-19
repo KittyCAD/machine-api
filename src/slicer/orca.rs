@@ -126,7 +126,6 @@ impl Slicer {
 
         for (index, filament) in fdm.filaments.iter().enumerate() {
             let filament_name = filament.name.as_deref().unwrap_or("PLA Basic").to_string();
-            println!("filament_name: {:?}", filament_name);
             let start_filament_str = format!("Bambu {} @BBL", filament_name);
             // Do the filament overrides.
             let mut filament_overrides: bambulabs::templates::Template = serde_json::from_str(&filament_str)?;
@@ -162,9 +161,6 @@ impl Slicer {
             .to_string();
 
         let settings = [process_config.clone(), machine_config.clone()].join(";");
-        println!("process_config: {:?}", process_config);
-        println!("machine_config: {:?}", machine_config);
-        println!("filament_config: {:?}", filament_configs);
 
         let args: Vec<String> = vec![
             "--load-settings".to_string(),
@@ -191,8 +187,6 @@ impl Slicer {
                 .to_string(),
         ];
 
-        println!("args: {:?}", args);
-
         // Find the orcaslicer executable path.
         let orca_slicer_path = find_orca_slicer()?;
 
@@ -202,16 +196,12 @@ impl Slicer {
             .await
             .context("Failed to execute orca-slicer command")?;
 
-        let stdout = std::str::from_utf8(&output.stdout)?;
-        tokio::fs::write(format!("orca-slicer-stdout-{}.txt", filament_index), &output.stdout).await?;
-        println!("stdout: {}", stdout);
-        let stderr = std::str::from_utf8(&output.stderr)?;
-        tokio::fs::write(format!("orca-slicer-stderr-{}.txt", filament_index), &output.stderr).await?;
-        println!("stderr: {}", stderr);
         // Make sure the command was successful.
-        /*if !output.status.success() {
+        if !output.status.success() {
+            let stdout = std::str::from_utf8(&output.stdout)?;
+            let stderr = std::str::from_utf8(&output.stderr)?;
             anyhow::bail!("Failed to : {:?}\nstdout:\n{}stderr:{}", output, stdout, stderr);
-        }*/
+        }
 
         // Make sure the G-code file was created.
         if !output_path.exists() {
@@ -219,12 +209,13 @@ impl Slicer {
         }
 
         // Delete all the configs.
-        /*tokio::fs::remove_file(&process_config).await?;
+        tokio::fs::remove_file(&process_config).await?;
         tokio::fs::remove_file(&machine_config).await?;
-        tokio::fs::remove_file(&filament_config).await?;*/
+        for filament_config in filament_configs {
+            tokio::fs::remove_file(&filament_config).await?;
+        }
 
         let file = TemporaryFile::new(&output_path).await?;
-        println!("Generated file: {:?}", output_path);
 
         Ok(file)
     }
