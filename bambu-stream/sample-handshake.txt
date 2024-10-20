@@ -1,0 +1,81 @@
+From `ffplay "rtsps://bblp:192190e7@192.168.0.96:322/streaming/live/1"`
+
+OPTIONS rtsps://192.168.0.96:322/streaming/live/1 RTSP/1.0
+CSeq: 1
+User-Agent: Lavf60.16.100
+
+RTSP/1.0 200 OK
+CSeq: 1
+Date: Thu, Aug 08 2024 10:57:17 GMT
+Public: OPTIONS, DESCRIBE, SETUP, TEARDOWN, PLAY, PAUSE, GET_PARAMETER, SET_PARAMETER
+
+DESCRIBE rtsps://192.168.0.96:322/streaming/live/1 RTSP/1.0
+Accept: application/sdp
+CSeq: 2
+User-Agent: Lavf60.16.100
+
+RTSP/1.0 401 Unauthorized
+CSeq: 2
+Date: Thu, Aug 08 2024 10:57:17 GMT
+WWW-Authenticate: Digest realm="LIVE555 Streaming Media", nonce="db860ca0377a9fe8769112644ba5db76"
+
+DESCRIBE rtsps://192.168.0.96:322/streaming/live/1 RTSP/1.0
+Accept: application/sdp
+CSeq: 3
+User-Agent: Lavf60.16.100
+Authorization: Digest username="bblp", realm="LIVE555 Streaming Media", nonce="db860ca0377a9fe8769112644ba5db76", uri="rtsps://192.168.0.96:322/streaming/live/1", response="142ead4ed9c3a58148d54eee6b4d0715"
+
+RTSP/1.0 200 OK
+CSeq: 3
+Date: Thu, Aug 08 2024 10:57:17 GMT
+Content-Base: rtsps://192.168.0.96/streaming/live/1/
+Content-Type: application/sdp
+Content-Length: 496
+
+v=0
+o=- 1723111495901673 1 IN IP4 192.168.0.96
+s=rtsp stream server
+i=Thu Aug  8 11:04:55 2024
+
+t=0 0
+a=tool:LIVE555 Streaming Media v2023.03.30
+a=type:broadcast
+a=control:*
+a=range:npt=now-
+a=x-qt-text-nam:rtsp stream server
+a=x-qt-text-inf:Thu Aug  8 11:04:55 2024
+
+m=video 0 RTP/AVP 96
+c=IN IP4 0.0.0.0
+b=AS:17186
+a=rtpmap:96 H264/90000
+a=fmtp:96 packetization-mode=1;profile-level-id=42C01F;sprop-parameter-sets=Z0LAH42NUCSC2TZAAAADAEAAAA8jwiEagA==,aM4xsg==
+a=control:track1
+
+SETUP rtsps://192.168.0.96/streaming/live/1/track1 RTSP/1.0
+Transport: RTP/AVP/TCP;unicast;interleaved=0-1
+CSeq: 4
+User-Agent: Lavf60.16.100
+Authorization: Digest username="bblp", realm="LIVE555 Streaming Media", nonce="db860ca0377a9fe8769112644ba5db76", uri="rtsps://192.168.0.96/streaming/live/1/track1", response="5bb1433eef289f517fbcce998eb868ec"
+
+RTSP/1.0 200 OK
+CSeq: 4
+Date: Thu, Aug 08 2024 10:57:17 GMT
+Transport: RTP/AVP/TCP;unicast;destination=192.168.0.74;source=192.168.0.96;interleaved=0-1
+Session: 061546E4;timeout=10
+
+PLAY rtsps://192.168.0.96/streaming/live/1/ RTSP/1.0
+Range: npt=0.000-
+CSeq: 5
+User-Agent: Lavf60.16.100
+Session: 061546E4
+Authorization: Digest username="bblp", realm="LIVE555 Streaming Media", nonce="db860ca0377a9fe8769112644ba5db76", uri="rtsps://192.168.0.96/streaming/live/1/", response="a5d9483ecc37519ee2c1f270b2a38e94"
+
+// Some binary crap here, maybe video frames that start coming in?
+
+RTSP/1.0 200 OK
+CSeq: 5
+Date: Thu, Aug 08 2024 10:57:17 GMT
+Range: npt=0.000-
+Session: 061546E4
+RTP-Info: url=rtsps://192.168.0.96/streaming/live/1/track1;seq=61243;rtptime=665680901
