@@ -1,8 +1,8 @@
 use anyhow::Result;
 
 use crate::{
-    traits::Control, AnyMachine, AnySlicer, DesignFile, GcodeControl, GcodeSlicer, SlicerConfiguration, SlicerOptions,
-    ThreeMfControl, ThreeMfSlicer,
+    AnyMachine, AnySlicer, BuildOptions, Control, DesignFile, GcodeControl, GcodeSlicer, MachineInfo,
+    SlicerConfiguration, ThreeMfControl, ThreeMfSlicer,
 };
 
 /// Create a handle to a specific Machine which is capable of producing a 3D
@@ -56,8 +56,12 @@ impl Machine {
     ) -> Result<()> {
         tracing::debug!(name = job_name, "building");
         let hardware_configuration = self.machine.hardware_configuration().await?;
+        let machine_info = self.machine.machine_info().await?;
 
-        let options = SlicerOptions {
+        let options = BuildOptions {
+            make_model: machine_info.make_model(),
+            machine_type: machine_info.machine_type(),
+            max_part_volume: machine_info.max_part_volume(),
             hardware_configuration,
             slicer_configuration: *slicer_configuration,
         };

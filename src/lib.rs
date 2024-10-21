@@ -43,10 +43,10 @@ use serde::{Deserialize, Serialize};
 pub use slicer::AnySlicer;
 pub use sync::SharedMachine;
 pub use traits::{
-    Control, FdmHardwareConfiguration, FilamentMaterial, GcodeControl, GcodeSlicer, GcodeTemporaryFile,
+    BuildOptions, Control, FdmHardwareConfiguration, FilamentMaterial, GcodeControl, GcodeSlicer, GcodeTemporaryFile,
     HardwareConfiguration, MachineInfo, MachineMakeModel, MachineState, MachineType, SlicerConfiguration,
-    SlicerOptions, SuspendControl, TemperatureSensor, TemperatureSensorReading, TemperatureSensors, ThreeMfControl,
-    ThreeMfSlicer, ThreeMfTemporaryFile,
+    SuspendControl, TemperatureSensor, TemperatureSensorReading, TemperatureSensors, ThreeMfControl, ThreeMfSlicer,
+    ThreeMfTemporaryFile,
 };
 
 /// A specific file containing a design to be manufactured.
