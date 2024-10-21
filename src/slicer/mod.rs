@@ -11,8 +11,8 @@ use anyhow::Result;
 pub use config::Config;
 
 use crate::{
-    DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, SlicerOptions,
-    ThreeMfSlicer as ThreeMfSlicerTrait, ThreeMfTemporaryFile,
+    BuildOptions, DesignFile, GcodeSlicer as GcodeSlicerTrait, GcodeTemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
+    ThreeMfTemporaryFile,
 };
 
 /// All Slicers that are supported by the machine-api.
@@ -50,7 +50,7 @@ impl GcodeSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile, options: &SlicerOptions) -> Result<GcodeTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, options: &BuildOptions) -> Result<GcodeTemporaryFile> {
         match self {
             Self::Prusa(slicer) => GcodeSlicerTrait::generate(slicer, design_file, options).await,
             Self::Noop(slicer) => GcodeSlicerTrait::generate(slicer, design_file, options).await,
@@ -63,7 +63,7 @@ impl ThreeMfSlicerTrait for AnySlicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile, options: &SlicerOptions) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, options: &BuildOptions) -> Result<ThreeMfTemporaryFile> {
         match self {
             Self::Prusa(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, options).await,
             Self::Orca(slicer) => ThreeMfSlicerTrait::generate(slicer, design_file, options).await,

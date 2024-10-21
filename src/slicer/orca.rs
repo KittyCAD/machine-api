@@ -6,7 +6,7 @@ use anyhow::{Context, Result};
 use tokio::process::Command;
 
 use crate::{
-    DesignFile, HardwareConfiguration, SlicerOptions, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
+    BuildOptions, DesignFile, HardwareConfiguration, TemporaryFile, ThreeMfSlicer as ThreeMfSlicerTrait,
     ThreeMfTemporaryFile,
 };
 
@@ -30,7 +30,7 @@ impl Slicer {
         output_flag: &str,
         output_extension: &str,
         design_file: &DesignFile,
-        options: &SlicerOptions,
+        options: &BuildOptions,
     ) -> Result<TemporaryFile> {
         // Make sure the config path is a directory.
         if !self.config.is_dir() {
@@ -225,7 +225,7 @@ impl ThreeMfSlicerTrait for Slicer {
     type Error = anyhow::Error;
 
     /// Generate gcode from some input file.
-    async fn generate(&self, design_file: &DesignFile, options: &SlicerOptions) -> Result<ThreeMfTemporaryFile> {
+    async fn generate(&self, design_file: &DesignFile, options: &BuildOptions) -> Result<ThreeMfTemporaryFile> {
         Ok(ThreeMfTemporaryFile(
             self.generate_via_cli("--export-3mf", "3mf", design_file, options)
                 .await?,

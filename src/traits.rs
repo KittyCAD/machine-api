@@ -311,10 +311,10 @@ pub struct SlicerConfiguration {
     pub filament_idx: Option<usize>,
 }
 
-/// Options passed to a slicer that are specific to a (Machine, DesignFile and
-/// Slicer).
+/// Options passed along with the Build request that are specific to a
+/// (Machine, DesignFile and Slicer).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, JsonSchema)]
-pub struct SlicerOptions {
+pub struct BuildOptions {
     /// Specific configuration of the hardware platform producing the file
     /// in real life.
     pub hardware_configuration: HardwareConfiguration,
@@ -322,6 +322,15 @@ pub struct SlicerOptions {
     /// Requested configuration of the slicer -- things like supports,
     /// infill or other configuration to the designed file.
     pub slicer_configuration: SlicerConfiguration,
+
+    /// Make/Model of the target platform.
+    pub make_model: MachineMakeModel,
+
+    /// Method by which the machine can create a physical 3D part.
+    pub machine_type: MachineType,
+
+    /// Largest build volume that the machine can construct.
+    pub max_part_volume: Option<Volume>,
 }
 
 /// [Control]-specific slicer which takes a particular [DesignFile], and produces
@@ -335,7 +344,7 @@ pub trait GcodeSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-        options: &SlicerOptions,
+        options: &BuildOptions,
     ) -> impl Future<Output = Result<GcodeTemporaryFile, <Self as GcodeSlicer>::Error>>;
 }
 
@@ -353,7 +362,7 @@ pub trait ThreeMfSlicer {
     fn generate(
         &self,
         design_file: &DesignFile,
-        options: &SlicerOptions,
+        options: &BuildOptions,
     ) -> impl Future<Output = Result<ThreeMfTemporaryFile, <Self as ThreeMfSlicer>::Error>>;
 }
 
