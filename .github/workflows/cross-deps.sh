@@ -19,6 +19,7 @@ sudo apt update -y && sudo apt install -y \
 	libssl-dev \
 	libxml2-dev \
 	mingw-w64 \
+	pkg-config \
 	wget \
 	zlib1g-dev
 
