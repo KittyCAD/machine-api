@@ -34,9 +34,10 @@ jobs:
         shell: bash
         run: |
           brew install \
-            openssl \
             coreutils \
             jq
+            openssl \
+            pkg-config
 
           cargo install toml-cli
       - name: Cache cargo registry
