@@ -18,12 +18,10 @@ ifeq ($(UNAME), Darwin)
 	CROSS_TARGETS := x86_64-apple-darwin \
 				 aarch64-apple-darwin
 else
-	CROSS_TARGETS := x86_64-pc-windows-gnu \
-				 x86_64-unknown-linux-musl \
+	CROSS_TARGETS := x86_64-unknown-linux-musl \
 				 aarch64-unknown-linux-musl
 	# Turn this back on when it works.
 	# x86_64-unknown-illumos
-	# i686-pc-windows-gnu
 	# x86_64-unknown-freebsd
 endif
 
