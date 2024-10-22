@@ -10,7 +10,7 @@ sudo apt update -y && sudo apt install -y \
 	curl \
 	g++ \
 	gcc \
-	musl-gcc \
+	musl-tools \
 	gcc-mingw-w64-i686 \
 	gcc-mingw-w64 \
 	jq \
