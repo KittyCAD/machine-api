@@ -38,6 +38,7 @@ hyper = "1"
 libmdns = "0.9.1"
 moonraker = { path = "moonraker", optional = true }
 multer = { version = "3.1.0", features = ["json"] }
+openssl = { version = "0", features = ["vendored"] }
 opentelemetry = "0.25.0"
 opentelemetry-otlp = "0.25.0"
 opentelemetry_sdk = { version = "0.25.0", features = ["rt-tokio"] }
