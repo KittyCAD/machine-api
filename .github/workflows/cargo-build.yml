@@ -17,7 +17,6 @@ on:
       - .github/workflows/cargo-build.yml
       - rust-toolchain.toml
       - "openapi/*.json"
-
 permissions: read-all
 name: cargo build
 jobs:
