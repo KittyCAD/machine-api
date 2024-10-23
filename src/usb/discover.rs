@@ -6,7 +6,7 @@ use tokio::sync::RwLock;
 use tokio_serial::{SerialPortBuilderExt, SerialPortType};
 
 use super::UsbVariant;
-use crate::{slicer, usb, Discover, Machine, MachineMakeModel};
+use crate::{slicer, usb, Discover, Filament, Machine, MachineMakeModel};
 
 /// Configuration block for a USB based device.
 #[derive(Clone, Debug, Deserialize, Serialize)]
@@ -29,6 +29,15 @@ pub struct Config {
 
     /// USB Product ID (pid) to scan for. None will match any USB device.
     pub product_id: Option<u16>,
+
+    /// Extrusion hotend nozzle's diameter.
+    pub nozzle_diameter: f64,
+
+    /// Available filaments.
+    pub filaments: Vec<Filament>,
+
+    /// Currently loaded filament, if possible to determine.
+    pub loaded_filament_idx: Option<usize>,
 }
 
 impl Config {
@@ -214,6 +223,7 @@ impl Discover for UsbDiscovery {
                                 port_name.clone(),
                                 baud,
                             ),
+                            config.clone(),
                         ),
                         slicer,
                     )),
