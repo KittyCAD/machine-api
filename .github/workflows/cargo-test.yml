@@ -20,6 +20,8 @@ jobs:
   cargotest:
     name: cargo test
     runs-on: ubuntu-latest
+    env:
+      _ZOO_LOAD_BEARING_ENV_VAR: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
