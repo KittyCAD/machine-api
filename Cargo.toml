@@ -8,8 +8,8 @@ panic = "abort"
 
 [workspace]
 members = [
-	"bambulabs",
-	"moonraker"
+    "bambulabs",
+    "moonraker"
 ]
 
 [features]
