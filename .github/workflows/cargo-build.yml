@@ -23,6 +23,13 @@ jobs:
   cargobuild:
     name: cargo build
     runs-on: ubuntu-latest-8-cores
+    env:
+      # This envvar is here to prevent `ring` from failing due to a
+      # glibc linking error. I don't know why this fixes it and I can't
+      # be bothered to dig in right now.
+      #
+      # Remove this when it no longer FTBFS on `ring` in CI.
+      CARGO_PROFILE_TEST_BUILD_OVERRIDE_DEBUG: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
