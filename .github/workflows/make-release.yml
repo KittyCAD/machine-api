@@ -35,7 +35,7 @@ jobs:
         run: |
           brew install \
             coreutils \
-            jq
+            jq \
             openssl \
             pkg-config
 
@@ -73,7 +73,7 @@ jobs:
         uses: google-github-actions/upload-cloud-storage@v2.2.0
         with:
           path: releases
-          destination: dl.zoo.io
+          destination: dl.kittycad.io
       # Store the binary artifacts for retrival later.
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
