@@ -23,6 +23,8 @@ jobs:
   cargofmt:
     name: cargo fmt
     runs-on: ubuntu-latest
+    env:
+      CARGO_PROFILE_TEST_BUILD_OVERRIDE_DEBUG: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
