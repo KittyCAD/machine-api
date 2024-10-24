@@ -99,7 +99,7 @@ impl ControlTrait for Noop {
     }
 
     async fn progress(&self) -> Result<Option<f64>> {
-        Ok(self.config.progress.clone())
+        Ok(self.config.progress)
     }
 
     async fn state(&self) -> Result<MachineState> {
