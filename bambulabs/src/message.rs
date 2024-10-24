@@ -558,7 +558,7 @@ pub enum GcodeState {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize_repr, JsonSchema, Copy, FromStr, Display)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
-#[repr(i8)]
+#[repr(i16)]
 pub enum Stage {
     /// Nothing.
     Nothing = -1,
