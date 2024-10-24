@@ -12,11 +12,11 @@ impl Config {
         channel: tokio::sync::mpsc::Sender<String>,
         machines: Arc<RwLock<HashMap<String, RwLock<Machine>>>>,
     ) -> Result<()> {
-        for (key, _config) in self
+        for (key, config) in self
             .machines
             .iter()
             .filter_map(|(key, config)| {
-                if let MachineConfig::Noop {} = config {
+                if let MachineConfig::Noop(config) = config {
                     Some((key.clone(), config.clone()))
                 } else {
                     None
@@ -28,6 +28,7 @@ impl Config {
                 key.clone(),
                 RwLock::new(Machine::new(
                     noop::Noop::new(
+                        config.clone(),
                         MachineMakeModel {
                             manufacturer: Some("Zoo Corporation".to_owned()),
                             model: Some("Null Machine".to_owned()),
