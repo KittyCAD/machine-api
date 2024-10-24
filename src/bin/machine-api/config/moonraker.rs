@@ -31,13 +31,12 @@ impl Config {
                 key.clone(),
                 RwLock::new(Machine::new(
                     moonraker::Client::new(
-                        &config.endpoint.clone(),
+                        &config,
                         MachineMakeModel {
                             manufacturer,
                             model,
                             serial: None,
                         },
-                        config.variant.get_max_part_volume(),
                     )?,
                     slicer,
                 )),

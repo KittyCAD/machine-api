@@ -7,10 +7,11 @@ use tokio::{
 };
 use tokio_serial::SerialStream;
 
+use super::Config;
 use crate::{
-    gcode::Client, traits::Filament, Control as ControlTrait, FdmHardwareConfiguration, FilamentMaterial,
-    GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait,
-    MachineMakeModel, MachineState, MachineType, Volume,
+    gcode::Client, Control as ControlTrait, FdmHardwareConfiguration, GcodeControl as GcodeControlTrait,
+    GcodeTemporaryFile, HardwareConfiguration, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState,
+    MachineType, Volume,
 };
 
 /// Handle to a USB based gcode 3D printer.
@@ -18,16 +19,18 @@ use crate::{
 pub struct Usb {
     client: Arc<Mutex<Client<WriteHalf<SerialStream>, ReadHalf<SerialStream>>>>,
     machine_info: UsbMachineInfo,
+    config: Config,
 }
 
 impl Usb {
     /// Create a new USB-based gcode Machine.
-    pub fn new(stream: SerialStream, machine_info: UsbMachineInfo) -> Self {
+    pub fn new(stream: SerialStream, machine_info: UsbMachineInfo, config: Config) -> Self {
         let (reader, writer) = tokio::io::split(stream);
 
         Self {
             client: Arc::new(Mutex::new(Client::new(writer, reader))),
             machine_info,
+            config,
         }
     }
 
@@ -147,14 +150,13 @@ impl ControlTrait for Usb {
     }
 
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
+        let config = &self.config;
+
         Ok(HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                filaments: vec![Filament {
-                    material: FilamentMaterial::Pla,
-                    ..Default::default()
-                }],
-                nozzle_diameter: 0.4,
-                loaded_filament_idx: None,
+                filaments: config.filaments.clone(),
+                nozzle_diameter: config.nozzle_diameter,
+                loaded_filament_idx: config.loaded_filament_idx,
             },
         })
     }
