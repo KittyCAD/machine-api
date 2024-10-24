@@ -2,10 +2,11 @@
 //! and do exactly nothing with it.
 
 use anyhow::Result;
+use serde::{Deserialize, Serialize};
 
 use crate::{
-    Control as ControlTrait, GcodeControl as GcodeControlTrait, GcodeTemporaryFile, HardwareConfiguration,
-    MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
+    Control as ControlTrait, FdmHardwareConfiguration, Filament, GcodeControl as GcodeControlTrait, GcodeTemporaryFile,
+    HardwareConfiguration, MachineInfo as MachineInfoTrait, MachineMakeModel, MachineState, MachineType,
     SuspendControl as SuspendControlTrait, ThreeMfControl as ThreeMfControlTrait, ThreeMfTemporaryFile, Volume,
 };
 
@@ -14,6 +15,26 @@ pub struct Noop {
     make_model: MachineMakeModel,
     machine_type: MachineType,
     volume: Option<Volume>,
+    config: Config,
+}
+
+/// Configuration information for a Moonraker-based endpoint.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Config {
+    /// Extrusion hotend nozzle's diameter.
+    pub nozzle_diameter: f64,
+
+    /// Available filaments.
+    pub filaments: Vec<Filament>,
+
+    /// Currently loaded filament, if possible to determine.
+    pub loaded_filament_idx: Option<usize>,
+
+    /// state that the machine is in
+    pub state: MachineState,
+
+    /// percentage through a print
+    pub progress: Option<f64>,
 }
 
 /// Nothing to see here!
@@ -38,11 +59,17 @@ impl MachineInfoTrait for MachineInfo {
 
 impl Noop {
     /// Return a new no-op Machine.
-    pub fn new(make_model: MachineMakeModel, machine_type: MachineType, volume: Option<Volume>) -> Self {
+    pub fn new(
+        config: Config,
+        make_model: MachineMakeModel,
+        machine_type: MachineType,
+        volume: Option<Volume>,
+    ) -> Self {
         Self {
             make_model,
             volume,
             machine_type,
+            config,
         }
     }
 }
@@ -72,15 +99,23 @@ impl ControlTrait for Noop {
     }
 
     async fn progress(&self) -> Result<Option<f64>> {
-        Ok(None)
+        Ok(self.config.progress)
     }
 
     async fn state(&self) -> Result<MachineState> {
-        Ok(MachineState::Unknown)
+        Ok(self.config.state.clone())
     }
 
     async fn hardware_configuration(&self) -> Result<HardwareConfiguration> {
-        Ok(HardwareConfiguration::None)
+        let config = &self.config;
+
+        Ok(HardwareConfiguration::Fdm {
+            config: FdmHardwareConfiguration {
+                filaments: config.filaments.clone(),
+                nozzle_diameter: config.nozzle_diameter,
+                loaded_filament_idx: config.loaded_filament_idx,
+            },
+        })
     }
 }
 

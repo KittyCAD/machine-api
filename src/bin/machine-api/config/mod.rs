@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use machine_api::{bambu as crate_bambu, moonraker as crate_moonraker, usb as crate_usb};
+use machine_api::{bambu as crate_bambu, moonraker as crate_moonraker, noop as crate_noop, usb as crate_usb};
 use serde::{Deserialize, Serialize};
 
 mod bambu;
@@ -18,7 +18,7 @@ pub struct Config {
 #[non_exhaustive]
 pub enum MachineConfig {
     Usb(crate_usb::Config),
-    Noop {},
+    Noop(crate_noop::Config),
     Moonraker(crate_moonraker::Config),
     Bambu(crate_bambu::Config),
 }

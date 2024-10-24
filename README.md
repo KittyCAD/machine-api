@@ -18,6 +18,11 @@ slicer.config = "config/prusa/mk3.ini"
 
 [machines.nada]
 type = "Noop"
+nozzle_diameter = 0.6
+state.state = "idle"
+progress = 10.0
+[[machines.nada.filaments]]
+material.type = "pla"
 
 [machines.neptune"]
 type = "Moonraker"
