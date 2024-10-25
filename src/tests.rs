@@ -75,7 +75,7 @@ fn test_openapi() -> TestResult {
 
     assert_eq!(spec.openapi, "3.0.3");
     assert_eq!(spec.info.title, "machine-api");
-    assert_eq!(spec.info.version, "0.1.0");
+    assert_eq!(spec.info.version, env!("CARGO_PKG_VERSION"));
 
     // Spot check a couple of items.
     assert!(!spec.paths.paths.is_empty());
