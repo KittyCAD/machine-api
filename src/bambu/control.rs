@@ -124,7 +124,7 @@ impl ControlTrait for Bambu {
 
         let default = HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                nozzle_diameter: nozzle_diameter,
+                nozzle_diameter,
                 filaments: vec![Filament {
                     material: FilamentMaterial::Pla,
                     ..Default::default()
