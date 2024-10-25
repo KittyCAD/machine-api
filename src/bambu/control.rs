@@ -112,9 +112,19 @@ impl ControlTrait for Bambu {
             anyhow::bail!("Failed to get status");
         };
 
+        let nozzle_diameter: f64 = match self.config.nozzle_diameter {
+            Some(nozzle_diameter) => nozzle_diameter,
+            None => status
+                .nozzle_diameter
+                .ok_or(anyhow::anyhow!(
+                    "no nozzle in printer api response, and none set in the config"
+                ))?
+                .into(),
+        };
+
         let default = HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                nozzle_diameter: status.nozzle_diameter.into(),
+                nozzle_diameter: nozzle_diameter,
                 filaments: vec![Filament {
                     material: FilamentMaterial::Pla,
                     ..Default::default()
@@ -160,7 +170,7 @@ impl ControlTrait for Bambu {
 
         Ok(HardwareConfiguration::Fdm {
             config: FdmHardwareConfiguration {
-                nozzle_diameter: status.nozzle_diameter.into(),
+                nozzle_diameter,
                 filaments,
                 loaded_filament_idx: nams.tray_now.map(|v| v.parse().unwrap_or(0)),
             },

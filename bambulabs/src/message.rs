@@ -422,7 +422,7 @@ pub struct PushStatus {
     /// The upload.
     pub upload: Option<PrintUpload>,
     /// The nozzle diameter.
-    pub nozzle_diameter: NozzleDiameter,
+    pub nozzle_diameter: Option<NozzleDiameter>,
     /// The nozzle temperature.
     pub nozzle_temper: Option<f64>,
     /// The nozzle type.
