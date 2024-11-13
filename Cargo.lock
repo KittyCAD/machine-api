@@ -1523,7 +1523,7 @@ dependencies = [
  "openapi-lint",
  "openapiv3",
  "openssl",
- "opentelemetry 0.25.0",
+ "opentelemetry 0.27.0",
  "opentelemetry-otlp",
  "opentelemetry_sdk 0.25.0",
  "parse-display",
