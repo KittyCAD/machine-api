@@ -1,8 +1,6 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
-use opentelemetry::{trace::TracerProvider, KeyValue};
-use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_sdk::Resource;
+use opentelemetry::trace::TracerProvider;
 use tracing_subscriber::prelude::*;
 
 mod config;
@@ -129,19 +127,12 @@ async fn main() -> Result<()> {
         )
     };
 
-    let otlp_host = match std::env::var("OTEL_EXPORTER_OTLP_ENDPOINT") {
-        Ok(val) => val,
-        Err(_) => "http://localhost:4317".to_string(),
-    };
-
-    let provider = opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(opentelemetry_otlp::new_exporter().tonic().with_endpoint(otlp_host))
-        .with_trace_config(
-            opentelemetry_sdk::trace::Config::default()
-                .with_resource(Resource::new(vec![KeyValue::new("service.name", "machine-api")])),
+    let provider = opentelemetry_sdk::trace::TracerProvider::builder()
+        .with_batch_exporter(
+            opentelemetry_otlp::SpanExporter::builder().with_tonic().build()?,
+            opentelemetry_sdk::runtime::Tokio,
         )
-        .install_batch(opentelemetry_sdk::runtime::Tokio)?;
+        .build();
 
     opentelemetry::global::set_tracer_provider(provider.clone());
     let tracer = provider.tracer("tracing-otel-subscriber");
