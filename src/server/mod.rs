@@ -84,7 +84,7 @@ pub async fn create_server(
 /// Get the OpenAPI specification for the server.
 pub fn get_openapi(api: &mut ApiDescription<Arc<Context>>) -> Result<serde_json::Value> {
     // Create the API schema.
-    let mut definition = api.openapi("machine-api", clap::crate_version!());
+    let mut definition = api.openapi("machine-api", clap::crate_version!().parse()?);
     definition
         .description("")
         .contact_url("https://zoo.dev")
