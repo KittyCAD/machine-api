@@ -513,7 +513,7 @@ checksum = "04ff24e3d632f4df6f2e0fa4b61996103eb769a4a8ac49014bb9093372b67931"
 dependencies = [
  "anyhow",
  "clap",
- "dropshot",
+ "dropshot 0.12.0",
  "elf",
  "libc",
  "schemars",
@@ -592,7 +592,7 @@ dependencies = [
  "camino",
  "chrono",
  "debug-ignore",
- "dropshot_endpoint",
+ "dropshot_endpoint 0.12.0",
  "form_urlencoded",
  "futures",
  "hostname 0.4.0",
@@ -628,6 +628,56 @@ dependencies = [
 ]
 
 [[package]]
+name = "dropshot"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "50976b6bac0894e689bb8ce0e2e5892dfeedb0876408bc806f0582d81824a3b5"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "base64 0.22.1",
+ "bytes",
+ "camino",
+ "chrono",
+ "debug-ignore",
+ "dropshot_endpoint 0.13.0",
+ "form_urlencoded",
+ "futures",
+ "hostname 0.4.0",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "indexmap 2.6.0",
+ "multer",
+ "openapiv3",
+ "paste",
+ "percent-encoding",
+ "rustls 0.22.4",
+ "rustls-pemfile",
+ "schemars",
+ "scopeguard",
+ "semver",
+ "serde",
+ "serde_json",
+ "serde_path_to_error",
+ "serde_urlencoded",
+ "sha1",
+ "slog",
+ "slog-async",
+ "slog-bunyan",
+ "slog-json",
+ "slog-term",
+ "thiserror 1.0.68",
+ "tokio",
+ "tokio-rustls 0.25.0",
+ "toml",
+ "uuid 1.11.0",
+ "version_check",
+ "waitgroup",
+]
+
+[[package]]
 name = "dropshot_endpoint"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -636,6 +686,21 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
+ "serde",
+ "serde_tokenstream",
+ "syn",
+]
+
+[[package]]
+name = "dropshot_endpoint"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8371ca3d0ecdd13df8a00acb66312633fc66a5e412076ccbc414238536f8290"
+dependencies = [
+ "heck 0.5.0",
+ "proc-macro2",
+ "quote",
+ "semver",
  "serde",
  "serde_tokenstream",
  "syn",
@@ -1114,9 +1179,9 @@ dependencies = [
 
 [[package]]
 name = "hyper-util"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41296eb09f183ac68eec06e03cdbea2e759633d4067b2f6552fc2e009bcad08b"
+checksum = "df2dcfbe0677734ab2f3ffa7fa7bfd4706bfdc1ef393f2ee30184aed67e631b4"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1511,7 +1576,7 @@ dependencies = [
  "console-subscriber",
  "dashmap",
  "delouse",
- "dropshot",
+ "dropshot 0.13.0",
  "expectorate",
  "futures",
  "futures-util",
@@ -2612,6 +2677,12 @@ dependencies = [
  "core-foundation-sys",
  "libc",
 ]
+
+[[package]]
+name = "semver"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "61697e0a1c7e512e84a621326239844a24d8207b4669b41bc18b32ea5cbf988b"
 
 [[package]]
 name = "serde"
