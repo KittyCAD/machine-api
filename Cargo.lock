@@ -629,9 +629,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "50976b6bac0894e689bb8ce0e2e5892dfeedb0876408bc806f0582d81824a3b5"
+checksum = "c3df91190643cc69a1ccf1ff43bb618cca49878f82ee0ec586a788357749c9e9"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -640,7 +640,7 @@ dependencies = [
  "camino",
  "chrono",
  "debug-ignore",
- "dropshot_endpoint 0.13.0",
+ "dropshot_endpoint 0.14.0",
  "form_urlencoded",
  "futures",
  "hostname 0.4.0",
@@ -668,7 +668,7 @@ dependencies = [
  "slog-bunyan",
  "slog-json",
  "slog-term",
- "thiserror 1.0.68",
+ "thiserror 2.0.3",
  "tokio",
  "tokio-rustls 0.25.0",
  "toml",
@@ -693,9 +693,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot_endpoint"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8371ca3d0ecdd13df8a00acb66312633fc66a5e412076ccbc414238536f8290"
+checksum = "13da823ebbedb0933761beb479919d73d74f20bdcb43d7aafc10e5a1f0264669"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1570,7 +1570,7 @@ dependencies = [
  "console-subscriber",
  "dashmap",
  "delouse",
- "dropshot 0.13.0",
+ "dropshot 0.14.0",
  "expectorate",
  "futures",
  "futures-util",
@@ -2166,9 +2166,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.87"
+version = "1.0.92"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3e4daa0dcf6feba26f985457cdf104d4b4256fc5a09547140f3631bb076b19a"
+checksum = "37d3544b3f2748c54e147655edb5025752e2303145b5aefb3c3ea2c78b973bb0"
 dependencies = [
  "unicode-ident",
 ]
@@ -2945,9 +2945,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "syn"
-version = "2.0.87"
+version = "2.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25aa4ce346d03a6dcd68dd8b4010bcb74e54e62c90c573f394c46eae99aba32d"
+checksum = "919d3b74a5dd0ccd15aeb8f93e7006bd9e14c295087c9896a110f490752bcf31"
 dependencies = [
  "proc-macro2",
  "quote",
