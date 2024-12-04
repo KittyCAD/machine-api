@@ -58,7 +58,7 @@ pub async fn create_server(
 
     let config_dropshot = ConfigDropshot {
         bind_address: bind.parse()?,
-        request_body_max_bytes: 107374182400, // 100 Gigiabytes.
+        default_request_body_max_bytes: 107374182400, // 100 Gigiabytes.
         default_handler_task_mode: dropshot::HandlerTaskMode::CancelOnDisconnect,
         log_headers: Default::default(),
     };
