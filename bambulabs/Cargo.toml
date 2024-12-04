@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.93"
+anyhow = "1.0.94"
 dashmap = "6.1.0"
 format_serde_error = { version = "0.3.0", default-features = false, features = ["serde_json"] }
 include_dir = { version = "0.7.4", features = ["glob"] }
