@@ -600,7 +600,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "multer",
  "openapiv3",
  "paste",
@@ -629,9 +629,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c3df91190643cc69a1ccf1ff43bb618cca49878f82ee0ec586a788357749c9e9"
+checksum = "cd4d216de78db95befa6c071bd36c9ef493806c06f3f267a0ca2582ff860b36b"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -640,7 +640,7 @@ dependencies = [
  "camino",
  "chrono",
  "debug-ignore",
- "dropshot_endpoint 0.14.0",
+ "dropshot_endpoint 0.15.0",
  "form_urlencoded",
  "futures",
  "hostname 0.4.0",
@@ -648,7 +648,7 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "multer",
  "openapiv3",
  "paste",
@@ -668,7 +668,7 @@ dependencies = [
  "slog-bunyan",
  "slog-json",
  "slog-term",
- "thiserror 2.0.3",
+ "thiserror 2.0.4",
  "tokio",
  "tokio-rustls 0.25.0",
  "toml",
@@ -693,9 +693,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot_endpoint"
-version = "0.14.0"
+version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "13da823ebbedb0933761beb479919d73d74f20bdcb43d7aafc10e5a1f0264669"
+checksum = "1e957a4e05bd92e5cce58c341975e725bdf0e8d7ed2ad9626ddd2298fa18efee"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -973,7 +973,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "http",
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "slab",
  "tokio",
  "tokio-util",
@@ -1394,9 +1394,9 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.6.0"
+version = "2.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
+checksum = "62f822373a4fe84d4bb149bf54e584a7f4abec90e072ed49cda0edea5b95471f"
 dependencies = [
  "equivalent",
  "hashbrown 0.15.0",
@@ -1570,7 +1570,7 @@ dependencies = [
  "console-subscriber",
  "dashmap",
  "delouse",
- "dropshot 0.14.0",
+ "dropshot 0.15.0",
  "expectorate",
  "futures",
  "futures-util",
@@ -1889,7 +1889,7 @@ version = "0.4.0"
 source = "git+https://github.com/oxidecomputer/openapi-lint?branch=main#750714d4abe52517f223047fa4fc1569a5f446b5"
 dependencies = [
  "heck",
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "lazy_static",
  "openapiv3",
  "regex",
@@ -1901,7 +1901,7 @@ version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc02deea53ffe807708244e5914f6b099ad7015a207ee24317c22112e17d9c5c"
 dependencies = [
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "serde",
  "serde_json",
 ]
@@ -3293,7 +3293,7 @@ version = "0.22.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ae48d6208a266e853d946088ed816055e556cc6028c5e8e2b84d9fa5dd7c7f5"
 dependencies = [
- "indexmap 2.6.0",
+ "indexmap 2.7.0",
  "serde",
  "serde_spanned",
  "toml_datetime",
