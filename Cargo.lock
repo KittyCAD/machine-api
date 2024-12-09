@@ -629,9 +629,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot"
-version = "0.15.0"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cd4d216de78db95befa6c071bd36c9ef493806c06f3f267a0ca2582ff860b36b"
+checksum = "b84e9c34a06ac21fefe60cf9e5cc321eac9f3d3e2d693e030da3709cf4275479"
 dependencies = [
  "async-stream",
  "async-trait",
@@ -640,7 +640,7 @@ dependencies = [
  "camino",
  "chrono",
  "debug-ignore",
- "dropshot_endpoint 0.15.0",
+ "dropshot_endpoint 0.15.1",
  "form_urlencoded",
  "futures",
  "hostname 0.4.0",
@@ -693,9 +693,9 @@ dependencies = [
 
 [[package]]
 name = "dropshot_endpoint"
-version = "0.15.0"
+version = "0.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e957a4e05bd92e5cce58c341975e725bdf0e8d7ed2ad9626ddd2298fa18efee"
+checksum = "1e4c7e4e96bfedd670ecbaffc1848ab28dd5892b214003517d9667e7a5b465ce"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -1570,7 +1570,7 @@ dependencies = [
  "console-subscriber",
  "dashmap",
  "delouse",
- "dropshot 0.15.0",
+ "dropshot 0.15.1",
  "expectorate",
  "futures",
  "futures-util",
