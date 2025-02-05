@@ -61,7 +61,7 @@ tracing = "0.1"
 tracing-opentelemetry = "0.28.0"
 tracing-slog = "0.3.0"
 tracing-subscriber = { version = "0.3.19", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
-uuid = "1.12.1"
+uuid = "1.13.1"
 
 [dev-dependencies]
 async-trait = "0.1"
