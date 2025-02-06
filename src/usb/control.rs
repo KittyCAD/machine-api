@@ -137,7 +137,7 @@ impl ControlTrait for Usb {
     }
 
     async fn state(&self) -> Result<MachineState> {
-        Ok(MachineState::Unknown)
+        Ok(MachineState::Idle)
     }
 
     async fn progress(&self) -> Result<Option<f64>> {
