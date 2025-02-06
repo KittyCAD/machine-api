@@ -129,7 +129,7 @@ impl ThreeMfSlicerTrait for Slicer {
 // Find the prusaslicer executable path on macOS.
 #[cfg(target_os = "macos")]
 fn find_prusa_slicer() -> Result<PathBuf> {
-    let app_path = PathBuf::from("/Applications/PrusaSlicer.app/Contents/MacOS/PrusaSlicer");
+    let app_path = PathBuf::from("/Applications/Original Prusa Drivers/PrusaSlicer.app/Contents/MacOS/PrusaSlicer");
     if app_path.exists() {
         Ok(app_path)
     } else {
