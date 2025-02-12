@@ -16,6 +16,7 @@ use crate::MachineMakeModel;
 pub struct Bambu {
     client: Arc<Client>,
     info: PrinterInfo,
+    config: Config,
 }
 
 /// Information regarding a discovered Bambu Labs printer.
