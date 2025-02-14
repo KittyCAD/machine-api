@@ -58,7 +58,7 @@ tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "net"]
 tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libudev"] }
 toml = "0.8.20"
 tracing = "0.1"
-tracing-opentelemetry = "0.28.0"
+tracing-opentelemetry = "0.29.0"
 tracing-slog = "0.3.0"
 tracing-subscriber = { version = "0.3.19", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.13.1"
