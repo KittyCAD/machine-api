@@ -41,7 +41,7 @@ multer = { version = "3.1.0", features = ["json"] }
 openssl = { version = "0", features = ["vendored"] }
 opentelemetry = "0.27.1"
 opentelemetry-otlp = "0.27.0"
-opentelemetry_sdk = { version = "0.27.1", features = ["rt-tokio"] }
+opentelemetry_sdk = { version = "0.29.0", features = ["rt-tokio"] }
 parse-display = "0.10.0"
 prometheus-client = "0.23.1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
