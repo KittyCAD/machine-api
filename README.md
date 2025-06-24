@@ -15,6 +15,9 @@ baud = 115200
 variant = "PrusaMk3"
 slicer.type = "Prusa"
 slicer.config = "config/prusa/mk3.ini"
+nozzle_diameter = 0.4
+[[machines.ender3.filaments]]
+material.type = "pla"
 
 [machines.nada]
 type = "Noop"
