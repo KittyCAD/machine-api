@@ -19,16 +19,16 @@ jobs:
         repo: [modeling-app]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-github-app-token@v1
+      - uses: actions/create-github-app-token@v2
         id: app-token
         with:
           # required
           app-id: ${{ secrets.GH_ORG_APP_ID }}
           private-key: ${{ secrets.GH_ORG_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       # Checkout the repo since we will want to update the file there.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: 'kittycad/${{ matrix.repo }}'
           path: ${{ matrix.repo }}

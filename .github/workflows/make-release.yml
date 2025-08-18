@@ -13,7 +13,7 @@ jobs:
     name: make release
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v2.1.7'
         with:
@@ -91,21 +91,21 @@ jobs:
     needs: [makerelease]
     name: createrelease
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Install latest nightly
         uses: dtolnay/rust-toolchain@stable
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name:  release-macos-latest-${{github.ref_name}}
           path: build
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name:  release-ubuntu-latest-${{github.ref_name}}
           path: build
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name:  ubuntu-latest-${{github.ref_name}}-README.md
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name:  macos-latest-${{github.ref_name}}-README.md
       - name: combine readmes
