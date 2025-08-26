@@ -211,7 +211,6 @@ dependencies = [
  "dashmap",
  "format_serde_error",
  "include_dir",
- "lazy_static",
  "nanoid",
  "parse-display",
  "pretty_assertions",
