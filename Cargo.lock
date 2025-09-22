@@ -1898,7 +1898,7 @@ checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
 [[package]]
 name = "openapi-lint"
 version = "0.4.0"
-source = "git+https://github.com/oxidecomputer/openapi-lint?branch=main#750714d4abe52517f223047fa4fc1569a5f446b5"
+source = "git+https://github.com/oxidecomputer/openapi-lint?branch=main#bdd14689fd1fee2fc615c23996232014a6d4aa54"
 dependencies = [
  "heck",
  "indexmap 2.7.0",
