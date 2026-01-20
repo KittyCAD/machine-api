@@ -7,10 +7,8 @@ use parse_display::{Display, FromStr};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-lazy_static::lazy_static! {
-    /// The atomic counter for sequence IDs.
-    pub static ref ATOMIC_COUNTER: AtomicU32 = AtomicU32::new(0);
-}
+/// The atomic counter for sequence IDs.
+pub static ATOMIC_COUNTER: AtomicU32 = AtomicU32::new(0);
 
 /// The sequence id type.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, JsonSchema, Display, FromStr)]
