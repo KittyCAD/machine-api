@@ -69,6 +69,10 @@ pub struct Config {
 
     /// The access code for the printer.
     pub access_code: String,
+
+    /// If set, override returned Nozzle Diameter (or if the printer
+    /// does not return one).
+    pub nozzle_diameter: Option<f64>,
 }
 
 const BAMBU_URN: &str = "urn:bambulab-com:device:3dprinter:1";
@@ -258,6 +262,7 @@ impl DiscoverTrait for BambuDiscover {
                 machine_api_id.clone(),
                 RwLock::new(Machine::new(
                     Bambu {
+                        config: config.clone(),
                         info,
                         client: Arc::new(client),
                     },
