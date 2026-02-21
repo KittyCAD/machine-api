@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.101"
 dashmap = "6.1.0"
 format_serde_error = { version = "0.3.0", default-features = false, features = ["serde_json"] }
 include_dir = { version = "0.7.4", features = ["glob"] }
@@ -16,7 +16,7 @@ rustls = "0.22"
 schemars = { version = "0.8", features = ["uuid", "url"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-serde_repr = "0.1.19"
+serde_repr = "0.1.20"
 tokio = { version = "1", features = ["process", "sync"] }
 tracing = "0.1"
 url = { version = "2.5", features = ["serde"] }
