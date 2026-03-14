@@ -35,7 +35,7 @@ futures = "0.3.32"
 futures-util = "0.3.31"
 http = "1"
 hyper = "1"
-libmdns = "0.9.1"
+libmdns = "0.10.1"
 moonraker = { path = "moonraker", optional = true }
 multer = { version = "3.1.0", features = ["json"] }
 openssl = { version = "0", features = ["vendored"] }
