@@ -8,6 +8,7 @@ pub(crate) fn parse_message(message: &rumqttc::Event) -> Message {
             let payload = publish.payload.clone();
 
             if let Ok(payload) = std::str::from_utf8(&payload) {
+                tracing::warn!("{}", payload);
                 match serde_json::from_str::<Message>(payload)
                     .map_err(|err| format_serde_error::SerdeError::new(payload.to_string(), err))
                 {
