@@ -59,7 +59,7 @@ tokio-serial = { version = "5", optional = true, features = ["tokio-util", "libu
 toml = "0.9.6"
 tracing = "0.1"
 tracing-opentelemetry = "0.32.1"
-tracing-slog = "0.3.0"
+tracing-slog = "0.4.0"
 tracing-subscriber = { version = "0.3.23", features = ["registry", "std", "fmt", "smallvec", "ansi", "tracing-log", "json", "env-filter"] }
 uuid = "1.16.0"
 
