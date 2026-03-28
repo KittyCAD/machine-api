@@ -3502,9 +3502,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-slog"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9306d2ca06aa9dfc8aa729ff884e9dca181f588a298cc5c59d4fdd91372570bf"
+checksum = "a79df328fbed1ee58d33a9af8b938d6780383913c6f2c72b80c9b61e46e23405"
 dependencies = [
  "once_cell",
  "slog",
