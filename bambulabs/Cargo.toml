@@ -10,7 +10,7 @@ format_serde_error = { version = "0.3.0", default-features = false, features = [
 include_dir = { version = "0.7.4", features = ["glob"] }
 lazy_static = "1.5.0"
 nanoid = "0.5.0"
-parse-display = "0.10.0"
+parse-display = "0.11.0"
 rumqttc = "0.25.1"
 rustls = "0.22"
 schemars = { version = "0.8", features = ["uuid", "url"] }
