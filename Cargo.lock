@@ -704,7 +704,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "toml",
- "uuid 1.23.2",
+ "uuid 1.23.3",
  "version_check",
  "waitgroup",
 ]
@@ -1129,9 +1129,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "1.4.1"
+version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8be7462df143984c4598a256ef469b251d7d7f9e271135073e78fc535414f3d0"
+checksum = "6970f50e31d6fc17d3fa27329444bfa74e196cf62e95052a3f6fee181dba6425"
 dependencies = [
  "bytes",
  "itoa",
@@ -1715,7 +1715,7 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-slog",
  "tracing-subscriber",
- "uuid 1.23.2",
+ "uuid 1.23.3",
 ]
 
 [[package]]
@@ -1923,7 +1923,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -2015,9 +2015,9 @@ dependencies = [
 
 [[package]]
 name = "openssl"
-version = "0.10.80"
+version = "0.10.81"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a45fa2aa886c42762255da344f0a0d313e254066c46aad76f300c3d3da62d967"
+checksum = "77823a27f0babb03091cb9ed9ef80af3b39dbc82f97e8fa530374b7dafd87a45"
 dependencies = [
  "bitflags 2.11.1",
  "cfg-if",
@@ -2061,9 +2061,9 @@ dependencies = [
 
 [[package]]
 name = "openssl-sys"
-version = "0.9.116"
+version = "0.9.117"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f28a22dc7140cda5f096e5e7724a6962ca81a7f8bfd2979f9b18c11af56318c4"
+checksum = "b47e7e6bb2c38cd930d25a23b40fa52e068c10e85f3e03a7f5ba5aaca5713695"
 dependencies = [
  "cc",
  "libc",
@@ -2793,7 +2793,7 @@ dependencies = [
  "serde_json",
  "url",
  "uuid 0.8.2",
- "uuid 1.23.2",
+ "uuid 1.23.3",
 ]
 
 [[package]]
@@ -3275,7 +3275,7 @@ version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8c27177b12a6399ffc08b98f76f7c9a1f4fe9fc967c784c5a071fa8d93cf7e1"
 dependencies = [
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -3820,9 +3820,9 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
-version = "1.23.2"
+version = "1.23.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d258b83ceec21034727ecee8c382cfa6c3e133699b0742c64571814fb420c9f7"
+checksum = "144d6b123cef80b301b8f72a9e2ca4370ddec21950d0a103dd22c437006d2db7"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",
