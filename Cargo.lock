@@ -704,7 +704,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "toml",
- "uuid 1.23.4",
+ "uuid 1.24.0",
  "version_check",
  "waitgroup",
 ]
@@ -1725,7 +1725,7 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-slog",
  "tracing-subscriber",
- "uuid 1.23.4",
+ "uuid 1.24.0",
 ]
 
 [[package]]
@@ -2808,7 +2808,7 @@ dependencies = [
  "serde_json",
  "url",
  "uuid 0.8.2",
- "uuid 1.23.4",
+ "uuid 1.24.0",
 ]
 
 [[package]]
@@ -3430,9 +3430,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.52.3"
+version = "1.53.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fc7f01b389ac15039e4dc9531aa973a135d7a4135281b12d7c1bc79fd57fffe"
+checksum = "d988bcd52dbe076d3d46903332f58c912b87a2c49b1428419a5845154762ffee"
 dependencies = [
  "backtrace",
  "bytes",
@@ -3836,9 +3836,9 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
-version = "1.23.4"
+version = "1.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf80a72845275afea99e7f2b434723d3bc7e38470fcd1c7ed39a599c73319a53"
+checksum = "bf3923a6f5c4c6382e0b653c4117f48d631ea17f38ed86e2a828e6f7412f5239"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",
