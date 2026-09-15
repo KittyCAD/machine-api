@@ -156,10 +156,10 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     let bind_addr: SocketAddr = bind.parse()?;
     tokio::spawn(async move {
         let bind_addr = bind_addr;
-        let responder = libmdns::Responder::new().unwrap();
+        let responder = libmdns::Responder::new();
         let _svc = responder.register(
-            "_machine-api._tcp".to_owned(),
-            "Machine Api Server".to_owned(),
+            "_machine-api._tcp",
+            "Machine Api Server",
             bind_addr.port(),
             &["path=/"],
         );

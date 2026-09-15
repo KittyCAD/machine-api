@@ -105,8 +105,8 @@ pub async fn serve(
 
     let responder = libmdns::Responder::new();
     let _svc = responder.register(
-        "_machine-api._tcp".to_owned(),
-        "Machine Api Server".to_owned(),
+        "_machine-api._tcp",
+        "Machine Api Server",
         addr.port(),
         &["path=/"],
     );

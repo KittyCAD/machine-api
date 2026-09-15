@@ -48,8 +48,8 @@ impl Client {
         Ok(Self {
             ip,
             access_code,
-            topic_device_request: format!("device/{}/request", &serial),
-            topic_device_report: format!("device/{}/report", &serial),
+            topic_device_request: format!("device/{}/request", serial),
+            topic_device_report: format!("device/{}/report", serial),
             serial,
             client: Arc::new(client),
             event_loop: Arc::new(Mutex::new(event_loop)),

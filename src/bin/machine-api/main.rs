@@ -127,11 +127,8 @@ async fn main() -> Result<()> {
         )
     };
 
-    let provider = opentelemetry_sdk::trace::TracerProvider::builder()
-        .with_batch_exporter(
-            opentelemetry_otlp::SpanExporter::builder().with_tonic().build()?,
-            opentelemetry_sdk::runtime::Tokio,
-        )
+    let provider = opentelemetry_sdk::trace::SdkTracerProvider::builder()
+        .with_batch_exporter(opentelemetry_otlp::SpanExporter::builder().with_tonic().build()?)
         .build();
 
     opentelemetry::global::set_tracer_provider(provider.clone());
