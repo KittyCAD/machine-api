@@ -48,8 +48,8 @@ impl Client {
         Ok(Self {
             ip,
             access_code,
-            topic_device_request: format!("device/{}/request", &serial),
-            topic_device_report: format!("device/{}/report", &serial),
+            topic_device_request: format!("device/{}/request", serial),
+            topic_device_report: format!("device/{}/report", serial),
             serial,
             client: Arc::new(client),
             event_loop: Arc::new(Mutex::new(event_loop)),
@@ -60,10 +60,12 @@ impl Client {
     fn get_config(ip: &str, access_code: &str) -> Result<rumqttc::MqttOptions> {
         let client_id = format!("bambu-api-{}", nanoid::nanoid!(8));
 
-        let ssl_config = rustls::ClientConfig::builder()
-            .dangerous()
-            .with_custom_certificate_verifier(Arc::new(crate::no_auth::NoAuth::new()))
-            .with_no_client_auth();
+        let ssl_config =
+            rustls::ClientConfig::builder_with_provider(Arc::new(rustls::crypto::aws_lc_rs::default_provider()))
+                .with_safe_default_protocol_versions()?
+                .dangerous()
+                .with_custom_certificate_verifier(Arc::new(crate::no_auth::NoAuth::new()))
+                .with_no_client_auth();
 
         let mut opts = rumqttc::MqttOptions::new(client_id, ip, MQTT_PORT);
         opts.set_max_packet_size(MAX_PACKET_SIZE, MAX_PACKET_SIZE);
