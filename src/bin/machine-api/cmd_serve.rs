@@ -157,12 +157,7 @@ pub async fn main(_cli: &Cli, cfg: &Config, bind: &str) -> Result<()> {
     tokio::spawn(async move {
         let bind_addr = bind_addr;
         let responder = libmdns::Responder::new();
-        let _svc = responder.register(
-            "_machine-api._tcp",
-            "Machine Api Server",
-            bind_addr.port(),
-            &["path=/"],
-        );
+        let _svc = responder.register("_machine-api._tcp", "Machine Api Server", bind_addr.port(), &["path=/"]);
 
         tracing::info!(
             bind_addr = bind_addr.to_string(),

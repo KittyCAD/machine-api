@@ -104,12 +104,7 @@ pub async fn serve(
     let addr: SocketAddr = bind.parse()?;
 
     let responder = libmdns::Responder::new();
-    let _svc = responder.register(
-        "_machine-api._tcp",
-        "Machine Api Server",
-        addr.port(),
-        &["path=/"],
-    );
+    let _svc = responder.register("_machine-api._tcp", "Machine Api Server", addr.port(), &["path=/"]);
 
     // For Cloud run & ctrl+c, shutdown gracefully.
     // "The main process inside the container will receive SIGTERM, and after a grace period,
