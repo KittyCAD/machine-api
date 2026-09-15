@@ -61,6 +61,7 @@ pub async fn create_server(
         default_request_body_max_bytes: 107374182400, // 100 Gigiabytes.
         default_handler_task_mode: dropshot::HandlerTaskMode::CancelOnDisconnect,
         log_headers: Default::default(),
+        compression: Default::default(),
     };
 
     let api_context = Arc::new(Context {
@@ -102,7 +103,7 @@ pub async fn serve(
     let (server, _api_context) = create_server(bind, machines, registry).await?;
     let addr: SocketAddr = bind.parse()?;
 
-    let responder = libmdns::Responder::new().unwrap();
+    let responder = libmdns::Responder::new();
     let _svc = responder.register(
         "_machine-api._tcp".to_owned(),
         "Machine Api Server".to_owned(),
