@@ -74,14 +74,6 @@
                 "description": "The current stage of the machine as defined by Bambu which can include errors, etc.",
                 "nullable": true
               },
-              "nozzle_diameter": {
-                "allOf": [
-                  {
-                    "$ref": "#/components/schemas/NozzleDiameter"
-                  }
-                ],
-                "description": "The nozzle diameter of the machine."
-              },
               "type": {
                 "enum": [
                   "bambu"
@@ -90,7 +82,6 @@
               }
             },
             "required": [
-              "nozzle_diameter",
               "type"
             ],
             "type": "object"
@@ -584,39 +575,6 @@
             "description": "\"Computer numerical control\" - machine that grinds away material from a hunk of material to construct a part.",
             "enum": [
               "cnc"
-            ],
-            "type": "string"
-          }
-        ]
-      },
-      "NozzleDiameter": {
-        "description": "A nozzle diameter.",
-        "oneOf": [
-          {
-            "description": "0.2mm.",
-            "enum": [
-              "0.2"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "0.4mm.",
-            "enum": [
-              "0.4"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "0.6mm.",
-            "enum": [
-              "0.6"
-            ],
-            "type": "string"
-          },
-          {
-            "description": "0.8mm.",
-            "enum": [
-              "0.8"
             ],
             "type": "string"
           }
