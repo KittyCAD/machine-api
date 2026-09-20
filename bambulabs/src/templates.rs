@@ -20,11 +20,11 @@ pub enum Template {
     /// The template for the machine settings.
     Machine(Box<Machine>),
     /// The template for a machine model.
-    MachineModel(MachineModel),
+    MachineModel(Box<MachineModel>),
     /// The template for the filament settings.
-    Filament(Filament),
+    Filament(Box<Filament>),
     /// The template for the process settings.
-    Process(Process),
+    Process(Box<Process>),
 }
 
 impl Template {

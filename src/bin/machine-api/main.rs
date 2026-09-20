@@ -166,7 +166,7 @@ async fn main() -> Result<()> {
 
     let cfg: Config = toml::from_str(
         &std::fs::read_to_string(&cli.config)
-            .map_err(|_| anyhow::anyhow!("Config file not found at {}", &cli.config))?,
+            .map_err(|_| anyhow::anyhow!("Config file not found at {}", cli.config))?,
     )?;
 
     match cli.command {

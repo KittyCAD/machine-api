@@ -56,7 +56,7 @@ pub enum ExtraMachineInfoResponse {
         #[cfg(debug_assertions)]
         #[cfg(not(test))]
         /// The raw status message from the machine.
-        raw_status: bambulabs::message::PushStatus,
+        raw_status: Box<bambulabs::message::PushStatus>,
     },
 }
 
@@ -125,7 +125,7 @@ impl MachineInfoResponse {
                         nozzle_diameter: status.nozzle_diameter,
                         #[cfg(debug_assertions)]
                         #[cfg(not(test))]
-                        raw_status: status,
+                        raw_status: Box::new(status),
                     })
                 }
                 _ => None,
@@ -209,7 +209,7 @@ pub async fn get_machine(
         )),
         None => Err(HttpError::for_not_found(
             None,
-            format!("machine not found by id: {:?}", &params.id),
+            format!("machine not found by id: {:?}", params.id),
         )),
     }
 }

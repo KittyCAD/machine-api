@@ -138,7 +138,7 @@ impl Client {
         let response = self.responses.get(&SequenceId::status());
         if let Some(response) = response {
             if let Message::Print(Print::PushStatus(status)) = response.value() {
-                return Ok(Some(status.clone()));
+                return Ok(Some(status.as_ref().clone()));
             }
         }
 

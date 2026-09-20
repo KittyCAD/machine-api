@@ -206,7 +206,7 @@ pub enum Print {
     /// Calibration.
     Calibration(Calibration),
     /// The status of the print.
-    PushStatus(PushStatus),
+    PushStatus(Box<PushStatus>),
     /// The gcode line.
     GcodeLine(GcodeLine),
     /// A gcode file.

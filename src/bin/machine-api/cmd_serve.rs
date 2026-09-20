@@ -85,7 +85,7 @@ where
                  * I have no idea what the real fix is, but this ain't it. This
                  * just stops graphs from lying when the box goes offline. */
 
-                for (_, gauge) in sensors.iter_mut() {
+                for gauge in sensors.values_mut() {
                     gauge.set(0.0);
                 }
 
