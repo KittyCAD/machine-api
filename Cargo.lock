@@ -713,7 +713,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "toml",
- "uuid 1.26.0",
+ "uuid 1.26.1",
  "version_check",
  "waitgroup",
 ]
@@ -1734,7 +1734,7 @@ dependencies = [
  "tracing-opentelemetry",
  "tracing-slog",
  "tracing-subscriber",
- "uuid 1.26.0",
+ "uuid 1.26.1",
 ]
 
 [[package]]
@@ -2827,7 +2827,7 @@ dependencies = [
  "serde_json",
  "url",
  "uuid 0.8.2",
- "uuid 1.26.0",
+ "uuid 1.26.1",
 ]
 
 [[package]]
@@ -3553,9 +3553,9 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "1.1.5+spec-1.1.0"
+version = "1.1.6+spec-1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12c0ba9680044b4ce98d391a62094047eada0d64860b80166c39f4a6b5640785"
+checksum = "920602543f0911ab71da12c50d59701da54c196d1a2bf5cb4b75667f137a406a"
 dependencies = [
  "indexmap 2.14.0",
  "serde_core",
@@ -3863,9 +3863,9 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 
 [[package]]
 name = "uuid"
-version = "1.26.0"
+version = "1.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5772d71c9be8a8a6ac2117d949c5b224c1b72241bb611d9a3012edcf8af7812"
+checksum = "2ef6dac1e96601b4fb3acccccff2139741fcb757cb9a36089bf5be91cfb285ce"
 dependencies = [
  "getrandom 0.4.2",
  "js-sys",
