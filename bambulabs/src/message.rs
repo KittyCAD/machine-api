@@ -422,7 +422,7 @@ pub struct PushStatus {
     /// The upload.
     pub upload: Option<PrintUpload>,
     /// The nozzle diameter.
-    pub nozzle_diameter: NozzleDiameter,
+    pub nozzle_diameter: Option<NozzleDiameter>,
     /// The nozzle temperature.
     pub nozzle_temper: Option<f64>,
     /// The nozzle type.
@@ -558,7 +558,7 @@ pub enum GcodeState {
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize_repr, JsonSchema, Copy, FromStr, Display)]
 #[display(style = "snake_case")]
 #[serde(rename_all = "snake_case")]
-#[repr(i8)]
+#[repr(i16)]
 pub enum Stage {
     /// Nothing.
     Nothing = -1,

@@ -91,20 +91,26 @@ impl Client {
         let msg_opt = match ep.poll().await {
             Ok(msg_opt) => msg_opt,
             Err(err) => {
-                if let rumqttc::ConnectionError::MqttState(rumqttc::StateError::Io(err)) = err {
-                    tracing::error!("Error polling for message: {:?}", err);
-                    tracing::warn!("Reconnecting...");
-                    // We are in a bad state and should reconnect.
-                    let opts = Self::get_config(&self.ip, &self.access_code)?;
-                    let (client, event_loop) = rumqttc::AsyncClient::new(opts, 25);
-                    drop(ep);
-                    self.client = Arc::new(client);
-                    self.event_loop = Arc::new(Mutex::new(event_loop));
-                    tracing::warn!("Reconnected.");
-                    return Ok(());
+                match err {
+                    rumqttc::ConnectionError::MqttState(rumqttc::StateError::Io(err)) => {
+                        tracing::error!("Error polling for message: {:?}", err);
+                    }
+                    rumqttc::ConnectionError::MqttState(rumqttc::StateError::AwaitPingResp) => {
+                        tracing::error!("Error polling for message: AwaitPingResp");
+                    }
+                    _ => {
+                        tracing::error!("Error polling for message: {:?}; aborting", err);
+                        return Ok(());
+                    }
                 }
-
-                tracing::error!("Error polling for message: {:?}", err);
+                tracing::warn!("Reconnecting...");
+                // We are in a bad state and should reconnect.
+                let opts = Self::get_config(&self.ip, &self.access_code)?;
+                let (client, event_loop) = rumqttc::AsyncClient::new(opts, 25);
+                drop(ep);
+                self.client = Arc::new(client);
+                self.event_loop = Arc::new(Mutex::new(event_loop));
+                tracing::warn!("Reconnected.");
                 return Ok(());
             }
         };
