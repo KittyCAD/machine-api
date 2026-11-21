@@ -43,7 +43,7 @@ opentelemetry = "0.33.0"
 opentelemetry-otlp = "0.33.1"
 opentelemetry_sdk = { version = "0.33.0", features = ["rt-tokio"] }
 parse-display = "0.11.0"
-prometheus-client = "0.25.0"
+prometheus-client = "0.26.0"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 schemars = { version = "0.8", features = ["chrono", "uuid1", "bigdecimal"] }
 serde = { version = "1.0", features = ["derive"] }
